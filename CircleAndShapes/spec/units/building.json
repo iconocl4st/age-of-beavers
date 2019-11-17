@@ -1,0 +1,12 @@
+{
+  "name": "building",
+  "classes": [
+    "placeable",
+    "constructed",
+    "occupies",
+    "visible-in-fog"
+  ],
+  "line-of-sight": 15.0,
+  "health-points": 500.0,
+  "building-path": []
+}

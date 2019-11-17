@@ -1,0 +1,19 @@
+{
+  "name": "fence",
+  "image": "unit/fence.png",
+  "parents": [
+    "building"
+  ],
+  "size": {
+    "width": 1,
+    "height": 1
+  },
+  "building-path": ["husbandry"],
+  "health-points": 10.0,
+  "required-resources": [
+    {
+      "resource": "wood",
+      "amount": 5
+    }
+  ]
+}

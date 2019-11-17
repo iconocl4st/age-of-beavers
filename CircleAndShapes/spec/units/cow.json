@@ -1,0 +1,36 @@
+{
+  "name": "cow",
+  "image": "unit/cow.png",
+  "parents": [
+    "unit"
+  ],
+  "line-of-sight": 0.0,
+  "health-points": 50.0,
+  "move-speed": 0.5,
+  "collect-speed": 1.0,
+  "deposit-speed": 10.0,
+  "ai": {
+    "name": "deer-ai",
+    "params": {
+      "max-size": "5",
+      "max-wait": "3"
+    }
+  },
+  "drop-on-death": [
+    {
+      "type": "natural-resource",
+      "value": "meat"
+    }
+  ],
+  "required-resources": [
+    {
+      "resource": "food",
+      "amount": 25
+    }
+  ],
+  "creation-time": 30.0,
+  "classes": [
+    "prey",
+    "ridable"
+  ]
+}

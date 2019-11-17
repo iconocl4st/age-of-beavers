@@ -1,0 +1,90 @@
+{
+  "weapons": [
+    {
+      "name": "fist",
+      "weapon-class": "Melee",
+      "damage-type": "Bash",
+      "damage": 1.0,
+      "inner-range": 2.6,
+      "outer-range": 3.6,
+      "cooldown-time": 1.0,
+      "attack-time":  1.0,
+      "required-resources": [],
+      "fire-resources": [],
+      "projectile": null,
+      "condition-decrement": 0.0
+    },
+    {
+      "name": "sword",
+      "weapon-class": "Melee",
+      "damage-type": "Slice",
+      "damage": 30.0,
+      "inner-range": 2.6,
+      "outer-range": 3.6,
+      "cooldown-time": 1.0,
+      "attack-time":  1.0,
+      "required-resources": [],
+      "fire-resources": [],
+      "projectile": null,
+      "condition-decrement": 0.0
+    },
+    {
+      "name": "bow",
+      "weapon-class": "Projectile",
+      "damage-type": "Pierce",
+      "damage": 10.0,
+      "inner-range": 5.0,
+      "outer-range": 6.0,
+      "cooldown-time": 2.0,
+      "attack-time":  1.0,
+      "required-resources": [],
+      "fire-resources": [{
+        "resource": "arrow",
+        "amount": 1
+      }],
+      "projectile": {
+        "radius": 0.1,
+        "speed": 4.0,
+        "range": 7.0,
+        "stops-on-first-hit": true
+      },
+      "condition-decrement": 0.01
+    },
+    {
+      "name": "rifle",
+      "weapon-class": "Projectile",
+      "damage-type": "Pierce",
+      "damage": 20.0,
+      "inner-range": 10.0,
+      "outer-range": 11.0,
+      "cooldown-time": 3.0,
+      "attack-time":  1.0,
+      "required-resources": [],
+      "fire-resources": [{
+        "resource": "bullet",
+        "amount": 1
+      }],
+      "projectile": {
+        "radius": 0.1,
+        "speed": 7.0,
+        "range": 12.0,
+        "stops-on-first-hit": false
+      },
+      "condition-decrement": 0.01
+    },
+    {
+      "name": "laser gun",
+      "weapon-class": "Instant",
+      "damage-type": "Heat",
+      "damage": 50.0,
+      "inner-range": 10.0,
+      "outer-range": 11.0,
+      "cooldown-time": 0.0,
+      "attack-time":  0.0,
+      "required-resources": [],
+      "fire-resources": [],
+      "projectile": null,
+      "condition-decrement": 0.0
+    }
+  ]
+}

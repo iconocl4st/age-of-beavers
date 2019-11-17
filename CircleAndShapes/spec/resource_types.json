@@ -1,0 +1,32 @@
+{
+  "resource-types": [
+    {
+      "name": "food",
+      "weight": 100
+    },
+    {
+      "name": "wood",
+      "weight": 100
+    },
+    {
+      "name": "stone",
+      "weight": 100
+    },
+    {
+      "name": "gold",
+      "weight": 200
+    },
+    {
+      "name": "marble",
+      "weight": 100
+    },
+    {
+      "name": "arrow",
+      "weight": 1
+    },
+    {
+      "name": "bullet",
+      "weight": 1
+    }
+  ]
+}

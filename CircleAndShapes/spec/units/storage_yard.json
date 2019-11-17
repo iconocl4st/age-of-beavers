@@ -1,0 +1,37 @@
+{
+  "name": "storage-yard",
+  "image": "unit/storage_yard.png",
+  "size": {
+    "width": 4,
+    "height": 4
+  },
+  "line-of-sight": 15.0,
+  "health-points": 100.0,
+  "carry-capacity": [
+    {
+      "type": "simple",
+      "capacity": 10000000
+    }
+  ],
+  "building-path": ["economic"],
+  "garrison-capacity": 20,
+  "classes": [
+    "storage",
+    "placeable",
+    "constructed",
+    "can-garrison-others",
+    "storage",
+    "occupies",
+    "visible-in-fog"
+  ],
+  "required-resources": [
+    {
+      "resource": "wood",
+      "amount": 500
+    },
+    {
+      "resource": "stone",
+      "amount": 250
+    }
+  ]
+}

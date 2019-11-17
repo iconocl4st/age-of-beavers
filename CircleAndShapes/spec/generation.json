@@ -1,0 +1,65 @@
+{
+  "generation": {
+    "patches": [
+      {
+        "type": "berry",
+        "num-patches": 5,
+        "patch-size": 6
+      },
+      {
+        "type": "tree",
+        "num-patches": 15,
+        "patch-size": 150
+      },
+      {
+        "type": "rocks",
+        "num-patches": 5,
+        "patch-size": 10
+      },
+      {
+        "type": "gold stone",
+        "num-patches": 5,
+        "patch-size": 10
+      },
+      {
+        "type": "marble stone",
+        "num-patches": 5,
+        "patch-size": 10
+      }
+    ],
+    "gaia": [
+      {
+        "type": "deer",
+        "number": 20
+      },
+      {
+        "type": "horse",
+        "number": 10
+      },
+      {
+        "type": "cow",
+        "number": 10
+      }
+    ],
+    "per-player": {
+      "units": [
+        {
+          "type": "brothel",
+          "number": 1
+        },
+        {
+          "type": "storage-yard",
+          "number": 1
+        },
+        {
+          "type": "human",
+          "number": 5
+        },
+        {
+          "type": "wagon",
+          "number": 2
+        }
+      ]
+    }
+  }
+}
