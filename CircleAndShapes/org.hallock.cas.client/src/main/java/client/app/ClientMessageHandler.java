@@ -163,6 +163,10 @@ class ClientMessageHandler {
                         context.gameState.orientationManager.set(msg.unitId, msg.orientation);
                     if (msg.capacity != null)
                         context.gameState.capacityManager.set(msg.unitId, msg.capacity);
+                        
+            if (collectSpeed != null) { writer.write }
+            if (depositSpeed != null) {}
+            if (evolutionWeights != null) {}
 
                     // to do
 

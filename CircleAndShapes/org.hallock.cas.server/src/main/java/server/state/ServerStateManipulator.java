@@ -483,6 +483,13 @@ public class ServerStateManipulator {
         if (spec instanceof ConstructionSpec) {
             state.constructionManager.set(id, new ConstructionZone((ConstructionSpec) spec, location));
         }
+        
+        for (CreationSpec creationSpec : spec.canCreate) {
+            if (creationSpec.method.equals(CreationSpec.CreationMethod.Garrison)) {
+                state.evolutionManager.set(id, EvolutionSpec.uniformWeights());
+                break;
+            }
+        }
 
         if (spec.containsClass("player-occupies")) {
             state.gateStateManager.set(id, new GateInfo(location.toPoint(), GateInfo.GateState.UnlockedForPlayerOnly));
@@ -749,6 +756,7 @@ public class ServerStateManipulator {
         unitUpdate.orientation = state.orientationManager.get(entity);
         unitUpdate.capacity = state.capacityManager.get(entity);
         unitUpdate.buildSpeed = state.buildSpeedManager.get(entity);
+        unitUpdate.evolutionWeights = state.evolutionManager.get(entity);
         return unitUpdate;
     }
 

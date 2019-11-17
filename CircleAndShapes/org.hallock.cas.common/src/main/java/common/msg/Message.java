@@ -355,6 +355,9 @@ public abstract class Message implements Jsonable {
         public WeaponSet weapons;
         public CapacitySpec capacity;
         public Double buildSpeed;
+        public Double collectSpeed;
+        public Double depositSpeed;
+        public EvolutionSpec evolutionWeights;
 
         public String debug;
 
@@ -428,6 +431,9 @@ public abstract class Message implements Jsonable {
             if (weapons != null) { writer.writeBeginDocument(); writer.write("weapons", weapons, WeaponSet.Serializer, options); writer.writeEndDocument(); }
             if (capacity != null) { writer.writeBeginDocument(); writer.write("capacity", capacity, CapacitySpec.Serializer, options); writer.writeEndDocument(); }
             if (buildSpeed != null) { writer.writeBeginDocument(); writer.write("buildSpeed", buildSpeed); writer.writeEndDocument(); }
+            if (collectSpeed != null) { writer.write }
+            if (depositSpeed != null) {}
+            if (evolutionWeights != null) {}
             if (debug != null) { writer.writeBeginDocument(); writer.write("debug-string", debug); writer.writeEndDocument(); }
             writer.writeEndArray();
         }
@@ -491,6 +497,35 @@ public abstract class Message implements Jsonable {
         @Override
         public MessageType getMessageType() {
             return MessageType.CHANGE_OCCUPANCY;
+        }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public static class SetEvolutionSelection extends Message {
+        public final EntityId entity;
+        public final EvolutionSpec weights;
+
+        public SetEvolutionSelection(EntityId entity, EvolutionSpec newState) {
+            this.entity = entity;
+            this.newState = newState;
+        }
+
+        public static SetEvolutionSelection finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
+            EntityId entity = reader.read("entity", EntityId.Serializer, spec);
+            EntityId weights = reader.read("new-weights", EvolutionSpec.Serializer, spec);
+//            GateInfo b = reader.read("gate-state", spec, GateInfo.Serializer);
+            return new SetEvolutionSelection(entity, b);
+        }
+
+        @Override
+        protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+            writer.write("entity", entity, EntityId.Serializer, options);
+            writer.write("new-weights", weights, EvolutionSpec.Serializer, options);
+//            writer.write("gate-state", newState, GateInfo.Serializer, options);
+        }
+
+        @Override
+        public MessageType getMessageType() {
+            return MessageType.SET_EVOLUTION_SELECTION;
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

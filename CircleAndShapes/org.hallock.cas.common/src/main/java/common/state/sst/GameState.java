@@ -47,6 +47,7 @@ public class GameState implements Jsonable {
     public ManagerImpl<Double> depositSpeedManager;
     public ManagerImpl<Double> buildSpeedManager;
     public ManagerImpl<CapacitySpec> capacityManager;
+    public ManagerImpl<EvolutionSpec> evolutionManager;
     public ManagerImpl<WeaponSet> weaponsManager;
     public ManagerImpl<ProjectileLaunch> projectileManager;
 
@@ -91,6 +92,7 @@ public class GameState implements Jsonable {
         gs.lineOfSightManager = new ManagerImpl<>(DataSerializer.DoubleSerializer);
         gs.collectSpeedManager = new ManagerImpl<>(DataSerializer.DoubleSerializer);
         gs.depositSpeedManager = new ManagerImpl<>(DataSerializer.DoubleSerializer);
+        gs.evolutionManager = new ManagerImpl<>(EvolutionSpec.Serializer);
         gs.gameSpec = spec;
         return gs;
     }
@@ -124,6 +126,7 @@ public class GameState implements Jsonable {
         lineOfSightManager.updateAll(newGameState.lineOfSightManager);
         collectSpeedManager.updateAll(newGameState.collectSpeedManager);
         depositSpeedManager.updateAll(newGameState.depositSpeedManager);
+        evolutionManager.updateAll(newGameState.evolutionManager);
         gameSpec = newGameState.gameSpec;
     }
 
@@ -157,6 +160,7 @@ public class GameState implements Jsonable {
         reader.readName("line-of-sight-manager"); lineOfSightManager.updateAll(reader, options);
         reader.readName("collect-speed-manager"); collectSpeedManager.updateAll(reader, options);
         reader.readName("deposit-speed-manager"); depositSpeedManager.updateAll(reader, options);
+        reader.readName("evolution-manager"); evolutionManager.updateAll(reader, options);
         reader.readEndDocument();
     }
 
@@ -192,6 +196,7 @@ public class GameState implements Jsonable {
         writer.writeName("line-of-sight-manager"); lineOfSightManager.writeTo(writer, options);
         writer.writeName("collect-speed-manager"); collectSpeedManager.writeTo(writer, options);
         writer.writeName("deposit-speed-manager"); depositSpeedManager.writeTo(writer, options);
+        writer.writeName("evolution-manager"); evolutionManager.writeTo(reader, options);
         writer.writeEndDocument();
     }
 
@@ -222,6 +227,7 @@ public class GameState implements Jsonable {
             lineOfSightManager.remove(entity);
             collectSpeedManager.remove(entity);
             depositSpeedManager.remove(entity);
+            evolutionManager.remove(entity);
         }
     }
 

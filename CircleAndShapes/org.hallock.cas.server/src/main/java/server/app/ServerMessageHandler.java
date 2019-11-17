@@ -121,6 +121,12 @@ public class ServerMessageHandler {
                 stateManipulator.stopRiding(msg.rider);
             }
             break;
+            case SET_EVOLUTION_SELECTION: {
+                Message.SetEvolutionSelection msg = (Message.SetEvolutionSelection) message;
+                ServerStateManipulator stateManipulator = c.createStateManipulator(c);
+                stateManipulator.setEvolutionPreferences(msg.entity, msg.weights);
+            }
+            break;
             default:
                 System.out.println("Server: Ignoring unknown message type " + message.getMessageType());
         }

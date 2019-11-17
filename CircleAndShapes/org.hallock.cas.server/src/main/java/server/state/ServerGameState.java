@@ -131,16 +131,19 @@ public class ServerGameState {
             if (weapons != null) nextState.weaponsManager.set(entityId, weapons);
 
             Double buildSpeed = state.buildSpeedManager.get(entityId);
-            if (buildSpeed != null) state.buildSpeedManager.set(entityId, buildSpeed);
+            if (buildSpeed != null) nextState.buildSpeedManager.set(entityId, buildSpeed);
 
             Double lineOfSight = state.lineOfSightManager.get(entityId);
-            if (lineOfSight != null) state.lineOfSightManager.set(entityId, lineOfSight);
+            if (lineOfSight != null) nextState.lineOfSightManager.set(entityId, lineOfSight);
 
             Double collectSpeed = state.collectSpeedManager.get(entityId);
-            if (collectSpeed != null) state.collectSpeedManager.set(entityId, collectSpeed);
+            if (collectSpeed != null) nextState.collectSpeedManager.set(entityId, collectSpeed);
 
             Double depositSpeed = state.depositSpeedManager.get(entityId);
-            if (depositSpeed != null) state.depositSpeedManager.set(entityId, depositSpeed);
+            if (depositSpeed != null) nextState.depositSpeedManager.set(entityId, depositSpeed);
+            
+            EvolutionSpec weights = state.evolutionManager.get(entityId);
+            if (weights != null) nextState.evolutionManager.set(entityId, weights);
         }
     }
 
