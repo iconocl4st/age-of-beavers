@@ -8,7 +8,10 @@ import common.state.Player;
 import common.state.sst.sub.GateInfo;
 import common.state.sst.sub.Load;
 import common.state.sst.sub.WeaponSet;
+import common.state.sst.sub.capacity.Prioritization;
+import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
+import common.util.EvolutionSpec;
 
 public class UnitUpdater {
 
@@ -124,6 +127,20 @@ public class UnitUpdater {
         Message.UnitUpdated unitUpdated = new Message.UnitUpdated();
         unitUpdated.unitId = attacker.entityId;
         unitUpdated.weapons = weapons;
+        return unitUpdated;
+    }
+
+    public static Message updateUnitEvoWeights(EntityId entityId, EvolutionSpec weights) {
+        Message.UnitUpdated unitUpdated = new Message.UnitUpdated();
+        unitUpdated.unitId = entityId;
+        unitUpdated.evolutionWeights = weights;
+        return unitUpdated;
+    }
+
+    public static Message updateUnitCapacity(EntityId entityId, PrioritizedCapacitySpec capacity) {
+        Message.UnitUpdated  unitUpdated = new Message.UnitUpdated();
+        unitUpdated.unitId  = entityId;
+        unitUpdated.capacity = capacity;
         return unitUpdated;
     }
 }

@@ -163,13 +163,14 @@ class ClientMessageHandler {
                         context.gameState.orientationManager.set(msg.unitId, msg.orientation);
                     if (msg.capacity != null)
                         context.gameState.capacityManager.set(msg.unitId, msg.capacity);
-                        
-            if (collectSpeed != null) { writer.write }
-            if (depositSpeed != null) {}
-            if (evolutionWeights != null) {}
-
-                    // to do
-
+                    if (msg.collectSpeed != null)
+                        context.gameState.collectSpeedManager.set(msg.unitId, msg.collectSpeed);
+                    if (msg.depositSpeed != null)
+                        context.gameState.depositSpeedManager.set(msg.unitId, msg.depositSpeed);
+                    if (msg.evolutionWeights != null)
+                        context.gameState.evolutionManager.set(msg.unitId, msg.evolutionWeights);
+                    if (msg.baseHealth != null)
+                        context.gameState.baseHealthManager.set(msg.unitId, msg.baseHealth);
                     if (msg.losDistance != null) {
                         try {
                             context.gameState.lineOfSight.updateLineOfSight(null, msg.losOldLocation, msg.losNewLocation, msg.losDistance);
@@ -238,7 +239,7 @@ class ClientMessageHandler {
                     throw new RuntimeException("Received state message without a game state.");
             } break;
             default:
-                System.out.println("Ignoring unknown message type: " + msgType);
+                System.out.println("Client: Ignoring unknown message type: " + msgType);
                 reader.finishCurrentObject();
         }
         reader.readEndDocument();

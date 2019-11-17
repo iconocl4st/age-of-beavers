@@ -71,6 +71,7 @@ public class Lobby implements BroadCaster {
         synchronized (statusSync) {
             ensureStatus(LobbyInfo.LobbyStatus.Waiting);
             this.status = LobbyInfo.LobbyStatus.InGame;
+            spec.numPlayers = connections.size() + 1;
             game = Game.createGame(context, this);
 
             MapGenerator.randomlyGenerateMap(

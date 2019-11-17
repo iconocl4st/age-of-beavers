@@ -35,8 +35,10 @@ public class ServerMessageReader {
             case DROP_ALL: msg = Message.DropAll.finishParsing(reader, readOptions); break;
             case RIDE: msg = Message.Ride.finishParsing(reader, readOptions); break;
             case STOP_RIDING: msg = Message.StopRiding.finishParsing(reader, readOptions); break;
+            case SET_EVOLUTION_SELECTION: msg = Message.SetEvolutionSelection.finishParsing(reader, readOptions); break;
+            case SET_DESIRED_CAPACITY: msg = Message.SetDesiredCapacity.finishParsing(reader, readOptions); break;
             default:
-                System.out.println("Ignoring unknown message type: " + msgType);
+                System.out.println("Server reader: Ignoring unknown message type: " + msgType);
                 reader.finishCurrentObject();
         }
         reader.readEndDocument();

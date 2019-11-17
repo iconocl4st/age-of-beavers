@@ -1,7 +1,6 @@
 package common.state.spec;
 
-import common.state.sst.sub.capacity.CapacitySpec;
-import common.state.sst.sub.capacity.CarryLimitCapacitySpec;
+import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.json.*;
 
 import java.awt.*;
@@ -16,7 +15,7 @@ public class EntitySpec implements Serializable {
     public Dimension size;
     public List<EntitySpec> dropOnDeath;
     public double initialBaseHealth;
-    public CapacitySpec carryCapacity;
+    public PrioritizedCapacitySpec carryCapacity;
     public int garrisonCapacity;
     public double initialMovementSpeed;
     // TODO collection speed depends on where
@@ -83,7 +82,7 @@ public class EntitySpec implements Serializable {
         for (Map.Entry<ResourceType, Integer> entry : requiredResources.entrySet()) {
             carryLimits.put(entry.getKey(), entry.getValue());
         }
-        spec.carryCapacity = new CarryLimitCapacitySpec(carryLimits);
+        spec.carryCapacity = PrioritizedCapacitySpec.createCapacitySpec(gSpec, carryLimits);
         spec.initialMovementSpeed = 0;
         spec.initialLineOfSight= 0;
         spec.initialDepositSpeed = 0;
@@ -125,7 +124,7 @@ public class EntitySpec implements Serializable {
             writer.write("drop-on-death", value.dropOnDeath, EntitySpec.Serializer, options);
             writer.write("classes", value.classes, DataSerializer.StringSerializer, options);
 
-            writer.write("carry-capacity", value.carryCapacity, CapacitySpec.Serializer, options);
+            writer.write("carry-capacity", value.carryCapacity, PrioritizedCapacitySpec.Serializer, options);
 
             writer.write("required-resources", value.requiredResources, ResourceType.Serializer, DataSerializer.IntegerSerializer, options);
             writer.write("ai-arguments",  value.aiArgs, DataSerializer.StringSerializer, DataSerializer.StringSerializer, options);
@@ -163,7 +162,7 @@ public class EntitySpec implements Serializable {
             ret.garrisonCapacity = reader.readInt32("garrison-capacity");
             reader.read("drop-on-death", spec, ret.dropOnDeath, EntitySpec.Serializer);
             reader.read("classes", spec, ret.classes, DataSerializer.StringSerializer);
-            ret.carryCapacity = reader.read("carry-capacity", CapacitySpec.Serializer, spec);
+            ret.carryCapacity = reader.read("carry-capacity", PrioritizedCapacitySpec.Serializer, spec);
             reader.read("required-resources", ret.requiredResources, ResourceType.Serializer, DataSerializer.IntegerSerializer, spec);
             reader.read("ai-arguments", ret.aiArgs, DataSerializer.StringSerializer, DataSerializer.StringSerializer, spec);
             ret.buildingPath = reader.read("build-path", new String[0], DataSerializer.StringSerializer, spec);

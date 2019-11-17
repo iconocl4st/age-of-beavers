@@ -5,7 +5,9 @@
     "width": 1,
     "height": 1
   },
-  "building-path": ["husbandry"],
+  "building-path": [
+    "husbandry"
+  ],
   "garrison-capacity": 1,
   "health-points": 10.0,
   "line-of-sight": 5.0,

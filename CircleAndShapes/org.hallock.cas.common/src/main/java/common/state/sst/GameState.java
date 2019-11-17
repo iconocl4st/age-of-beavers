@@ -10,12 +10,14 @@ import common.state.Player;
 import common.state.los.LineOfSightSpec;
 import common.state.sst.manager.*;
 import common.state.sst.sub.*;
-import common.state.sst.sub.capacity.CapacitySpec;
+import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
+import common.util.EvolutionSpec;
 import common.util.json.*;
 
 import java.awt.*;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 public class GameState implements Jsonable {
     public double currentTime;
@@ -46,7 +48,7 @@ public class GameState implements Jsonable {
     public ManagerImpl<Double> collectSpeedManager;
     public ManagerImpl<Double> depositSpeedManager;
     public ManagerImpl<Double> buildSpeedManager;
-    public ManagerImpl<CapacitySpec> capacityManager;
+    public ManagerImpl<PrioritizedCapacitySpec> capacityManager;
     public ManagerImpl<EvolutionSpec> evolutionManager;
     public ManagerImpl<WeaponSet> weaponsManager;
     public ManagerImpl<ProjectileLaunch> projectileManager;
@@ -87,7 +89,7 @@ public class GameState implements Jsonable {
         gs.orientationManager = new ManagerImpl<>(DataSerializer.DoubleSerializer);
         gs.weaponsManager = new ManagerImpl<>(WeaponSet.Serializer);
         gs.projectileManager = new ManagerImpl<>(ProjectileLaunch.Serializer);
-        gs.capacityManager = new ManagerImpl<>(CapacitySpec.Serializer);
+        gs.capacityManager = new ManagerImpl<>(PrioritizedCapacitySpec.Serializer);
         gs.buildSpeedManager = new ManagerImpl<>(DataSerializer.DoubleSerializer);
         gs.lineOfSightManager = new ManagerImpl<>(DataSerializer.DoubleSerializer);
         gs.collectSpeedManager = new ManagerImpl<>(DataSerializer.DoubleSerializer);
@@ -196,7 +198,7 @@ public class GameState implements Jsonable {
         writer.writeName("line-of-sight-manager"); lineOfSightManager.writeTo(writer, options);
         writer.writeName("collect-speed-manager"); collectSpeedManager.writeTo(writer, options);
         writer.writeName("deposit-speed-manager"); depositSpeedManager.writeTo(writer, options);
-        writer.writeName("evolution-manager"); evolutionManager.writeTo(reader, options);
+        writer.writeName("evolution-manager"); evolutionManager.writeTo(writer, options);
         writer.writeEndDocument();
     }
 

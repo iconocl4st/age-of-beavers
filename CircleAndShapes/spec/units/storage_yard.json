@@ -7,13 +7,12 @@
   },
   "line-of-sight": 15.0,
   "health-points": 100.0,
-  "carry-capacity": [
-    {
-      "type": "simple",
-      "capacity": 10000000
-    }
+  "carry-capacity": {
+    "total-weight": 100000
+  },
+  "building-path": [
+    "economic"
   ],
-  "building-path": ["economic"],
   "garrison-capacity": 20,
   "classes": [
     "storage",

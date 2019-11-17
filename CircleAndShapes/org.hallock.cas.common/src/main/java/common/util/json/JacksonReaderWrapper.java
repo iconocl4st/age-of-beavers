@@ -95,6 +95,22 @@ public class JacksonReaderWrapper extends JsonReaderWrapperSpec {
     }
 
     @Override
+    public Long readLong() throws IOException {
+        JsonToken jsonToken = parser.getCurrentToken();
+        switch (jsonToken) {
+            case VALUE_NUMBER_INT:
+                Long longValue = parser.getLongValue();
+                parser.nextToken();
+                return longValue;
+            case VALUE_NULL:
+                parser.nextToken();
+                return null;
+            default:
+                throw new IllegalStateException("Expected token to be int, but found: " + jsonToken);
+        }
+    }
+
+    @Override
     public Integer readInt32() throws IOException {
         JsonToken jsonToken = parser.getCurrentToken();
         switch (jsonToken) {

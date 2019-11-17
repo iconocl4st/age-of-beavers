@@ -6,6 +6,7 @@ import client.gui.mouse.BuildingPlacer;
 import client.gui.mouse.SelectionListener;
 import client.state.SelectionManager;
 import common.CommonConstants;
+import common.state.Player;
 import common.state.spec.GameSpec;
 import common.util.Marked;
 import common.action.Action;
@@ -426,7 +427,7 @@ public class GamePainter {
         }
     }
 
-    private void paintImage(Graphics2D g, String imagePath, double gx, double gy, double gwidth, double gheight, boolean selected, Zoom zoom) {
+    private void paintImage(Graphics2D g, String imagePath, double gx, double gy, double gwidth, double gheight, boolean selected, Zoom zoom, Player player) {
         if (zoom.isOutOfScreen(gx, gy, gwidth, gheight)) {
             return;
         }
@@ -445,6 +446,11 @@ public class GamePainter {
                 0, 0,
                 panel
         );
+        if (player != null) {
+            g.setColor(Colors.PLAYER_COLORS[player.number]);
+            int d = 1;
+            g.drawRect(x - d, uy - d, ux - x + 2 * d, y - uy + 2 * d);
+        }
 
         if (selected) {
             g.setColor(Color.yellow);
@@ -457,6 +463,7 @@ public class GamePainter {
         EntitySpec type = context.gameState.typeManager.get(entityId);
         DPoint location = context.gameState.locationManager.getLocation(entityId);
         Boolean isHidden = context.gameState.hiddenManager.get(entityId);
+        Player player = context.gameState.playerManager.get(entityId);
         if (type == null || location == null || isHidden == null || isHidden) return;
         boolean selected = context.selectionManager.isSelected(entityId);
         paintImage(
@@ -467,7 +474,8 @@ public class GamePainter {
                 type.size.width,
                 type.size.width,
                 selected,
-                zoom
+                zoom,
+                player.equals(Player.GAIA) ? null : player
         );
         Set<Integer> controlGroups = context.selectionManager.getControlGroups(entityId);
         if (!controlGroups.isEmpty()) {

@@ -8,19 +8,18 @@
     "width": 4,
     "height": 4
   },
-  "building-path": ["economic"],
-  "garrison-capacity": 5,
-  "carry-capacity": [
-    {
-      "type": "limits",
-      "limits": [
-        {
-          "resource": "wood",
-          "amount": 2000
-        }
-      ]
-    }
+  "building-path": [
+    "economic"
   ],
+  "garrison-capacity": 5,
+  "carry-capacity": {
+    "limits": [
+      {
+        "resource": "wood",
+        "amount": 500
+      }
+    ]
+  },
   "classes": [
     "storage",
     "can-garrison-others"

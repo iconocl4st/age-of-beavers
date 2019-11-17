@@ -6,12 +6,9 @@
   ],
   "line-of-sight": 3.0,
   "health-points": 40.0,
-  "carry-capacity": [
-    {
-      "type": "simple",
-      "capacity": 100000
-    }
-  ],
+  "carry-capacity": {
+    "total-weight": 50000
+  },
   "move-speed": 0.5,
   "classes": [
     "storage",

@@ -43,6 +43,11 @@ public abstract class JsonReaderWrapperSpec implements AutoCloseable {
         return readString();
     }
 
+    public Long readLong(String flags) throws IOException {
+        readName(flags);
+        return readLong();
+    }
+
     public boolean hasMoreInArray() {
         return !getCurrentJacksonType().equals(JsonToken.END_ARRAY);
     }
@@ -113,6 +118,7 @@ public abstract class JsonReaderWrapperSpec implements AutoCloseable {
     public abstract Integer readInt32() throws IOException;
     public abstract String readString() throws IOException;
     public abstract void readNull() throws IOException;
+    public abstract Long readLong() throws IOException;
 
     public abstract void readBeginDocument() throws IOException;
     public abstract void readEndDocument() throws IOException;
@@ -123,5 +129,4 @@ public abstract class JsonReaderWrapperSpec implements AutoCloseable {
     public abstract void finishCurrentObject() throws IOException;
     // Try not to use this...
     public abstract String awkwardlyReadName() throws IOException;
-
 }

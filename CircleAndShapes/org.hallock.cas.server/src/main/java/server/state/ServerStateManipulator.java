@@ -11,10 +11,7 @@ import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.Player;
 import common.state.los.VisibilityChange;
-import common.state.spec.CarrySpec;
-import common.state.spec.ConstructionSpec;
-import common.state.spec.EntitySpec;
-import common.state.spec.ResourceType;
+import common.state.spec.*;
 import common.state.spec.attack.DamageType;
 import common.state.spec.attack.Weapon;
 import common.state.spec.attack.WeaponSpec;
@@ -22,6 +19,8 @@ import common.state.spec.attack.Weapons;
 import common.state.sst.GameState;
 import common.state.sst.GameStateHelper;
 import common.state.sst.sub.*;
+import common.state.sst.sub.capacity.Prioritization;
+import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
 import common.util.GridLocationQuerier;
 import common.util.json.EmptyJsonable;
@@ -357,6 +356,40 @@ public class ServerStateManipulator {
         }
     }
 
+    public void setEvolutionPreferences(EntityId entityId, EvolutionSpec weights) {
+        EntityReader entity = new EntityReader(game.serverState.state, entityId);
+        Object sync = entity.getSync();
+        if (sync == null) {
+            return;
+        }
+        synchronized (sync) {
+            if (entity.noLongerExists()) return;
+            if (!entity.isOwnedBy(player)) return;
+
+            game.serverState.state.evolutionManager.set(entityId, weights);
+            broadCaster.broadCast(UnitUpdater.updateUnitEvoWeights(entityId, weights));
+        }
+    }
+
+    public void setDesiredCapacity(EntityId entityId, ResourceType resourceType, int priority, int desiredMinimum, int desiredMaximum) {
+        EntityReader entity = new EntityReader(game.serverState.state, entityId);
+        Object sync = entity.getSync();
+        if (sync == null) {
+            return;
+        }
+        synchronized (sync) {
+            if (entity.noLongerExists()) return;
+            if (!entity.isOwnedBy(player)) return;
+            if (!entity.getType().containsClass("storage")) return;
+
+            PrioritizedCapacitySpec capacitySpec = game.serverState.state.capacityManager.get(entityId);
+            Prioritization prioritization = capacitySpec.getPrioritization(resourceType);
+            prioritization.desiredMaximum = Math.min(desiredMaximum, prioritization.maximumAmount);
+            prioritization.desiredAmount = Math.min(desiredMinimum, prioritization.desiredMaximum);
+            prioritization.priority = priority;
+            broadCaster.broadCast(UnitUpdater.updateUnitCapacity(entityId, capacitySpec));
+        }
+    }
 
 
 //
@@ -485,7 +518,7 @@ public class ServerStateManipulator {
         }
         
         for (CreationSpec creationSpec : spec.canCreate) {
-            if (creationSpec.method.equals(CreationSpec.CreationMethod.Garrison)) {
+            if (creationSpec.method.equals(CreationMethod.Garrison)) {
                 state.evolutionManager.set(id, EvolutionSpec.uniformWeights());
                 break;
             }

@@ -8,7 +8,9 @@
     "width": 2,
     "height": 2
   },
-  "building-path": ["economic"],
+  "building-path": [
+    "economic"
+  ],
   "garrison-capacity": 2,
   "classes": [
     "storage",
@@ -24,22 +26,19 @@
   "required-resources": [
     {
       "resource": "wood",
-      "amount": 200
+      "amount": 300
     },
     {
       "resource": "stone",
       "amount": 100
     }
   ],
-  "carry-capacity": [
-    {
-      "type": "limits",
-      "limits": [
-        {
-          "resource": "food",
-          "amount": 200
-        }
-      ]
-    }
-  ]
+  "carry-capacity": {
+    "limits": [
+      {
+        "resource": "food",
+        "amount": 200
+      }
+    ]
+  }
 }

@@ -7,10 +7,12 @@ import common.state.EntityId;
 import common.state.Player;
 import common.state.spec.EntitySpec;
 import common.state.spec.GameSpec;
+import common.state.spec.ResourceType;
 import common.state.sst.GameState;
 import common.state.sst.sub.*;
-import common.state.sst.sub.capacity.CapacitySpec;
+import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
+import common.util.EvolutionSpec;
 import common.util.json.*;
 
 import java.awt.*;
@@ -333,6 +335,7 @@ public abstract class Message implements Jsonable {
         public Action action;
         public Load load;
         public Double health;
+        public Double baseHealth;
         public Player owner;
         public EntityId rides;
         public EntityId isWithin;
@@ -353,7 +356,7 @@ public abstract class Message implements Jsonable {
         public Double rotationSpeed;
         public Double orientation;
         public WeaponSet weapons;
-        public CapacitySpec capacity;
+        public PrioritizedCapacitySpec capacity;
         public Double buildSpeed;
         public Double collectSpeed;
         public Double depositSpeed;
@@ -361,81 +364,114 @@ public abstract class Message implements Jsonable {
 
         public String debug;
 
-        public static UnitUpdated finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
+        public static UnitUpdated finishParsing(JsonReaderWrapperSpec reader, ReadOptions options) throws IOException {
             UnitUpdated unitUpdated = new UnitUpdated();
-            unitUpdated.unitId = reader.read("unitId", EntityId.Serializer, spec);
-            reader.readBeginArray("changes");
-            if (!reader.hasMoreInArray()) return unitUpdated;
-            reader.readBeginDocument();
-            String currentKey = reader.awkwardlyReadName();
-
-            // TODO:
-            if (currentKey.equals("location")) { unitUpdated.location = reader.read(DPoint.Serializer, spec); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("action")) { unitUpdated.action = reader.read(Action.Serializer, spec); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("load")) { unitUpdated.load = reader.read(Load.Serializer, spec); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("initialBaseHealth")) { unitUpdated.health = reader.readDouble(); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("owner")) { unitUpdated.owner = reader.read(Player.Serializer, spec); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("rides")) { unitUpdated.rides = reader.read(EntityId.Serializer, spec); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("isWithin")) { unitUpdated.isWithin = reader.read(EntityId.Serializer, spec); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("buildProgress")) { unitUpdated.buildProgress = reader.readDouble(); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("isNowOfType")) { unitUpdated.isNowOfType = reader.read(EntitySpec.Serializer, spec); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("newMovementSpeed")) { unitUpdated.newMovementSpeed = reader.readDouble(); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("isHidden")) { unitUpdated.isHidden = reader.readBoolean(); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("losPlayer")) { unitUpdated.losPlayer = reader.read(Player.Serializer, spec); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("losDistance")) { unitUpdated.losDistance = reader.readDouble(); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("losOldLocation")) { unitUpdated.losOldLocation = reader.read(DPoint.Serializer, spec); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("losNewLocation")) { unitUpdated.losNewLocation = reader.read(DPoint.Serializer, spec); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("creationTime")) { unitUpdated.creationTime = reader.readDouble(); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("constructionZone")) { unitUpdated.constructionZone = reader.read(ConstructionZone.Serializer, spec); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("constructionProgress")) { unitUpdated.constructionProgress = reader.readDouble(); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("occupancy")) { unitUpdated.occupancy = reader.read(GateInfo.Serializer, spec); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("gatherPoint")) { unitUpdated.gatherPoint = reader.read(DPoint.Serializer, spec); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("attackSpeed")) { unitUpdated.attackSpeed = reader.readDouble(); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("rotationSpeed")) { unitUpdated.rotationSpeed = reader.readDouble(); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("orientation")) { unitUpdated.orientation = reader.readDouble(); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("weapons")) { unitUpdated.weapons = reader.read(WeaponSet.Serializer, spec); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("capacity")) { unitUpdated.capacity = reader.read(CapacitySpec.Serializer, spec); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("buildSpeed")) { unitUpdated.buildSpeed = reader.readDouble(); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            if (currentKey.equals("debug-string")) { unitUpdated.debug = reader.readString(); reader.readEndDocument(); if (!reader.hasMoreInArray()) { reader.readEndArray(); return unitUpdated; } reader.readBeginDocument(); currentKey = reader.awkwardlyReadName(); }
-            reader.readEndArray();
+            unitUpdated.unitId = reader.read("unitId", EntityId.Serializer, options);
+            long flags = reader.readLong("flags");
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_0000_0001) != 0) unitUpdated.location = reader.read("location", DPoint.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_0000_0010) != 0) unitUpdated.action = reader.read("action", Action.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_0000_0100) != 0) unitUpdated.load = reader.read("load", Load.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_0000_1000) != 0) unitUpdated.health = reader.readDouble("current-health");
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_0001_0000) != 0) unitUpdated.owner = reader.read("owner", Player.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_0010_0000) != 0) unitUpdated.rides = reader.read("rides", EntityId.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_0100_0000) != 0) unitUpdated.isWithin = reader.read("isWithin", EntityId.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_1000_0000) != 0) unitUpdated.buildProgress = reader.readDouble("buildProgress");
+            if ((flags & 0b0000_0000_0000_0000_0000_0001_0000_0000) != 0) unitUpdated.isNowOfType = reader.read("isNowOfType", EntitySpec.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_0010_0000_0000) != 0) unitUpdated.newMovementSpeed = reader.readDouble("newMovementSpeed");
+            if ((flags & 0b0000_0000_0000_0000_0000_0100_0000_0000) != 0) unitUpdated.isHidden = reader.readBoolean("isHidden");
+            if ((flags & 0b0000_0000_0000_0000_0000_1000_0000_0000) != 0) unitUpdated.losPlayer = reader.read("losPlayer", Player.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0001_0000_0000_0000) != 0) unitUpdated.losDistance = reader.readDouble("losDistance");
+            if ((flags & 0b0000_0000_0000_0000_0010_0000_0000_0000) != 0) unitUpdated.losOldLocation = reader.read("losOldLocation", DPoint.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0100_0000_0000_0000) != 0) unitUpdated.losNewLocation = reader.read("losNewLocation", DPoint.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_1000_0000_0000_0000) != 0) unitUpdated.creationTime = reader.readDouble("creationTime");
+            if ((flags & 0b0000_0000_0000_0001_0000_0000_0000_0000) != 0) unitUpdated.constructionZone = reader.read("constructionZone", ConstructionZone.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0010_0000_0000_0000_0000) != 0) unitUpdated.constructionProgress = reader.readDouble("constructionProgress");
+            if ((flags & 0b0000_0000_0000_0100_0000_0000_0000_0000) != 0) unitUpdated.occupancy = reader.read("occupancy", GateInfo.Serializer, options);
+            if ((flags & 0b0000_0000_0000_1000_0000_0000_0000_0000) != 0) unitUpdated.gatherPoint = reader.read("gatherPoint", DPoint.Serializer, options);
+            if ((flags & 0b0000_0000_0001_0000_0000_0000_0000_0000) != 0) unitUpdated.attackSpeed = reader.readDouble("attackSpeed");
+            if ((flags & 0b0000_0000_0010_0000_0000_0000_0000_0000) != 0) unitUpdated.rotationSpeed = reader.readDouble("rotationSpeed");
+            if ((flags & 0b0000_0000_0100_0000_0000_0000_0000_0000) != 0) unitUpdated.orientation = reader.readDouble("orientation");
+            if ((flags & 0b0000_0000_1000_0000_0000_0000_0000_0000) != 0) unitUpdated.weapons = reader.read("weapons", WeaponSet.Serializer, options);
+            if ((flags & 0b0000_0001_0000_0000_0000_0000_0000_0000) != 0) unitUpdated.capacity = reader.read("capacity", PrioritizedCapacitySpec.Serializer, options);
+            if ((flags & 0b0000_0010_0000_0000_0000_0000_0000_0000) != 0) unitUpdated.buildSpeed = reader.readDouble("buildSpeed");
+            if ((flags & 0b0000_0100_0000_0000_0000_0000_0000_0000) != 0) unitUpdated.depositSpeed = reader.readDouble("deposit-speed");
+            if ((flags & 0b0000_1000_0000_0000_0000_0000_0000_0000) != 0) unitUpdated.collectSpeed = reader.readDouble("collect-speed");
+            if ((flags & 0b0001_0000_0000_0000_0000_0000_0000_0000) != 0) unitUpdated.evolutionWeights = reader.read("evolution-weights", EvolutionSpec.Serializer, options);
+            if ((flags & 0b0010_0000_0000_0000_0000_0000_0000_0000) != 0) unitUpdated.baseHealth = reader.readDouble("base-health");
+            if ((flags & 0b1000_0000_0000_0000_0000_0000_0000_0000) != 0) unitUpdated.debug = reader.readString("debug");
             return unitUpdated;
         }
 
         @Override
         protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
             writer.write("unitId", unitId, EntityId.Serializer, options);
-            writer.writeBeginArray("changes");
-            if (location != null) { writer.writeBeginDocument(); writer.write("location", location, DPoint.Serializer, options); writer.writeEndDocument(); }
-            if (action != null) { writer.writeBeginDocument(); writer.write("action", action, Action.Serializer, options); writer.writeEndDocument(); }
-            if (load != null) { writer.writeBeginDocument(); writer.write("load", load, Load.Serializer, options); writer.writeEndDocument(); }
-            if (health != null) { writer.writeBeginDocument(); writer.write("initialBaseHealth", health); writer.writeEndDocument(); }
-            if (owner != null) { writer.writeBeginDocument(); writer.write("owner", owner, Player.Serializer, options); writer.writeEndDocument(); }
-            if (rides != null) { writer.writeBeginDocument(); writer.write("rides", rides, EntityId.Serializer, options); writer.writeEndDocument(); }
-            if (isWithin != null) { writer.writeBeginDocument(); writer.write("isWithin", isWithin, EntityId.Serializer, options); writer.writeEndDocument(); }
-            if (buildProgress != null) { writer.writeBeginDocument(); writer.write("buildProgress", buildProgress); writer.writeEndDocument(); }
-            if (isNowOfType != null) { writer.writeBeginDocument(); writer.write("isNowOfType", isNowOfType, EntitySpec.Serializer, options); writer.writeEndDocument(); }
-            if (newMovementSpeed != null) { writer.writeBeginDocument(); writer.write("newMovementSpeed", newMovementSpeed); writer.writeEndDocument(); }
-            if (isHidden != null) { writer.writeBeginDocument(); writer.write("isHidden", isHidden); writer.writeEndDocument(); }
-            if (losPlayer != null) { writer.writeBeginDocument(); writer.write("losPlayer", losPlayer, Player.Serializer, options); writer.writeEndDocument(); }
-            if (losDistance != null) { writer.writeBeginDocument(); writer.write("losDistance", losDistance); writer.writeEndDocument(); }
-            if (losOldLocation != null) { writer.writeBeginDocument(); writer.write("losOldLocation", losOldLocation, DPoint.Serializer, options); writer.writeEndDocument(); }
-            if (losNewLocation != null) { writer.writeBeginDocument(); writer.write("losNewLocation", losNewLocation, DPoint.Serializer, options); writer.writeEndDocument(); }
-            if (creationTime != null) { writer.writeBeginDocument(); writer.write("creationTime", creationTime); writer.writeEndDocument(); }
-            if (constructionZone != null) { writer.writeBeginDocument(); writer.write("constructionZone", constructionZone, ConstructionZone.Serializer, options); writer.writeEndDocument(); }
-            if (constructionProgress != null) { writer.writeBeginDocument(); writer.write("constructionProgress", constructionProgress); writer.writeEndDocument(); }
-            if (occupancy != null) { writer.writeBeginDocument(); writer.write("occupancy", occupancy, GateInfo.Serializer, options); writer.writeEndDocument(); }
-            if (gatherPoint != null) { writer.writeBeginDocument(); writer.write("gatherPoint", gatherPoint, DPoint.Serializer, options); writer.writeEndDocument(); }
-            if (attackSpeed != null) { writer.writeBeginDocument(); writer.write("attackSpeed", attackSpeed); writer.writeEndDocument(); }
-            if (rotationSpeed != null) { writer.writeBeginDocument(); writer.write("rotationSpeed", rotationSpeed); writer.writeEndDocument(); }
-            if (orientation != null) { writer.writeBeginDocument(); writer.write("orientation", orientation); writer.writeEndDocument(); }
-            if (weapons != null) { writer.writeBeginDocument(); writer.write("weapons", weapons, WeaponSet.Serializer, options); writer.writeEndDocument(); }
-            if (capacity != null) { writer.writeBeginDocument(); writer.write("capacity", capacity, CapacitySpec.Serializer, options); writer.writeEndDocument(); }
-            if (buildSpeed != null) { writer.writeBeginDocument(); writer.write("buildSpeed", buildSpeed); writer.writeEndDocument(); }
-            if (collectSpeed != null) { writer.write }
-            if (depositSpeed != null) {}
-            if (evolutionWeights != null) {}
-            if (debug != null) { writer.writeBeginDocument(); writer.write("debug-string", debug); writer.writeEndDocument(); }
-            writer.writeEndArray();
+
+            long flags = 0;
+            if (location != null)               flags |= 0b0000_0000_0000_0000_0000_0000_0000_0001;
+            if (action != null)                 flags |= 0b0000_0000_0000_0000_0000_0000_0000_0010;
+            if (load != null)                   flags |= 0b0000_0000_0000_0000_0000_0000_0000_0100;
+            if (health != null)                 flags |= 0b0000_0000_0000_0000_0000_0000_0000_1000;
+            if (owner != null)                  flags |= 0b0000_0000_0000_0000_0000_0000_0001_0000;
+            if (rides != null)                  flags |= 0b0000_0000_0000_0000_0000_0000_0010_0000;
+            if (isWithin != null)               flags |= 0b0000_0000_0000_0000_0000_0000_0100_0000;
+            if (buildProgress != null)          flags |= 0b0000_0000_0000_0000_0000_0000_1000_0000;
+            if (isNowOfType != null)            flags |= 0b0000_0000_0000_0000_0000_0001_0000_0000;
+            if (newMovementSpeed != null)       flags |= 0b0000_0000_0000_0000_0000_0010_0000_0000;
+            if (isHidden != null)               flags |= 0b0000_0000_0000_0000_0000_0100_0000_0000;
+            if (losPlayer != null)              flags |= 0b0000_0000_0000_0000_0000_1000_0000_0000;
+            if (losDistance != null)            flags |= 0b0000_0000_0000_0000_0001_0000_0000_0000;
+            if (losOldLocation != null)         flags |= 0b0000_0000_0000_0000_0010_0000_0000_0000;
+            if (losNewLocation != null)         flags |= 0b0000_0000_0000_0000_0100_0000_0000_0000;
+            if (creationTime != null)           flags |= 0b0000_0000_0000_0000_1000_0000_0000_0000;
+            if (constructionZone != null)       flags |= 0b0000_0000_0000_0001_0000_0000_0000_0000;
+            if (constructionProgress != null)   flags |= 0b0000_0000_0000_0010_0000_0000_0000_0000;
+            if (occupancy != null)              flags |= 0b0000_0000_0000_0100_0000_0000_0000_0000;
+            if (gatherPoint != null)            flags |= 0b0000_0000_0000_1000_0000_0000_0000_0000;
+            if (attackSpeed != null)            flags |= 0b0000_0000_0001_0000_0000_0000_0000_0000;
+            if (rotationSpeed != null)          flags |= 0b0000_0000_0010_0000_0000_0000_0000_0000;
+            if (orientation != null)            flags |= 0b0000_0000_0100_0000_0000_0000_0000_0000;
+            if (weapons != null)                flags |= 0b0000_0000_1000_0000_0000_0000_0000_0000;
+            if (capacity != null)               flags |= 0b0000_0001_0000_0000_0000_0000_0000_0000;
+            if (buildSpeed != null)             flags |= 0b0000_0010_0000_0000_0000_0000_0000_0000;
+            if (depositSpeed != null)           flags |= 0b0000_0100_0000_0000_0000_0000_0000_0000;
+            if (collectSpeed != null)           flags |= 0b0000_1000_0000_0000_0000_0000_0000_0000;
+            if (evolutionWeights != null)       flags |= 0b0001_0000_0000_0000_0000_0000_0000_0000;
+            if (baseHealth != null)             flags |= 0b0010_0000_0000_0000_0000_0000_0000_0000;
+            if (debug != null)                  flags |= 0b1000_0000_0000_0000_0000_0000_0000_0000;
+
+            writer.write("flags", flags);
+
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_0000_0001) != 0) writer.write("location", location, DPoint.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_0000_0010) != 0) writer.write("action", action, Action.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_0000_0100) != 0) writer.write("load", load, Load.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_0000_1000) != 0) writer.write("current-health", health);
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_0001_0000) != 0) writer.write("owner", owner, Player.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_0010_0000) != 0) writer.write("rides", rides, EntityId.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_0100_0000) != 0) writer.write("isWithin", isWithin, EntityId.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_0000_1000_0000) != 0) writer.write("buildProgress", buildProgress);
+            if ((flags & 0b0000_0000_0000_0000_0000_0001_0000_0000) != 0) writer.write("isNowOfType", isNowOfType, EntitySpec.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_0010_0000_0000) != 0) writer.write("newMovementSpeed", newMovementSpeed);
+            if ((flags & 0b0000_0000_0000_0000_0000_0100_0000_0000) != 0) writer.write("isHidden", isHidden);
+            if ((flags & 0b0000_0000_0000_0000_0000_1000_0000_0000) != 0) writer.write("losPlayer", losPlayer, Player.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0001_0000_0000_0000) != 0) writer.write("losDistance", losDistance);
+            if ((flags & 0b0000_0000_0000_0000_0010_0000_0000_0000) != 0) writer.write("losOldLocation", losOldLocation, DPoint.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0100_0000_0000_0000) != 0) writer.write("losNewLocation", losNewLocation, DPoint.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_1000_0000_0000_0000) != 0) writer.write("creationTime", creationTime);
+            if ((flags & 0b0000_0000_0000_0001_0000_0000_0000_0000) != 0) writer.write("constructionZone", constructionZone, ConstructionZone.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0010_0000_0000_0000_0000) != 0) writer.write("constructionProgress", constructionProgress);
+            if ((flags & 0b0000_0000_0000_0100_0000_0000_0000_0000) != 0) writer.write("occupancy", occupancy, GateInfo.Serializer, options);
+            if ((flags & 0b0000_0000_0000_1000_0000_0000_0000_0000) != 0) writer.write("gatherPoint", gatherPoint, DPoint.Serializer, options);
+            if ((flags & 0b0000_0000_0001_0000_0000_0000_0000_0000) != 0) writer.write("attackSpeed", attackSpeed);
+            if ((flags & 0b0000_0000_0010_0000_0000_0000_0000_0000) != 0) writer.write("rotationSpeed", rotationSpeed);
+            if ((flags & 0b0000_0000_0100_0000_0000_0000_0000_0000) != 0) writer.write("orientation", orientation);
+            if ((flags & 0b0000_0000_1000_0000_0000_0000_0000_0000) != 0) writer.write("weapons", weapons, WeaponSet.Serializer, options);
+            if ((flags & 0b0000_0001_0000_0000_0000_0000_0000_0000) != 0) writer.write("capacity", capacity, PrioritizedCapacitySpec.Serializer, options);
+            if ((flags & 0b0000_0010_0000_0000_0000_0000_0000_0000) != 0) writer.write("buildSpeed", buildSpeed);
+            if ((flags & 0b0000_0100_0000_0000_0000_0000_0000_0000) != 0) writer.write("deposit-speed", depositSpeed);
+            if ((flags & 0b0000_1000_0000_0000_0000_0000_0000_0000) != 0) writer.write("collect-speed", collectSpeed);
+            if ((flags & 0b0001_0000_0000_0000_0000_0000_0000_0000) != 0) writer.write("evolution-weights", evolutionWeights, EvolutionSpec.Serializer, options);
+            if ((flags & 0b0010_0000_0000_0000_0000_0000_0000_0000) != 0) writer.write("base-health", baseHealth);
+            if ((flags & 0b1000_0000_0000_0000_0000_0000_0000_0000) != 0) writer.write("debug", debug);
         }
 
         @Override
@@ -506,14 +542,14 @@ public abstract class Message implements Jsonable {
 
         public SetEvolutionSelection(EntityId entity, EvolutionSpec newState) {
             this.entity = entity;
-            this.newState = newState;
+            this.weights = newState;
         }
 
         public static SetEvolutionSelection finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
-            EntityId entity = reader.read("entity", EntityId.Serializer, spec);
-            EntityId weights = reader.read("new-weights", EvolutionSpec.Serializer, spec);
-//            GateInfo b = reader.read("gate-state", spec, GateInfo.Serializer);
-            return new SetEvolutionSelection(entity, b);
+            return new SetEvolutionSelection(
+                reader.read("entity", EntityId.Serializer, spec),
+                reader.read("new-weights", EvolutionSpec.Serializer, spec)
+            );
         }
 
         @Override
@@ -526,6 +562,45 @@ public abstract class Message implements Jsonable {
         @Override
         public MessageType getMessageType() {
             return MessageType.SET_EVOLUTION_SELECTION;
+        }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public static class SetDesiredCapacity extends Message {
+        public final EntityId entity;
+        public final ResourceType resourceType;
+        public final int priority;
+        public final int desiredMinimum;
+        public final int desiredMaximum;
+
+        public SetDesiredCapacity(EntityId entity, ResourceType resourceType, int priority, int desiredMinimum, int desiredMaximum) {
+            this.entity = entity;
+            this.resourceType = resourceType;
+            this.priority = priority;
+            this.desiredMinimum = desiredMinimum;
+            this.desiredMaximum = desiredMaximum;
+        }
+
+        public static SetDesiredCapacity finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
+            EntityId entity = reader.read("entity", EntityId.Serializer, spec);
+            ResourceType resource = reader.read("resource", ResourceType.Serializer, spec);
+            Integer priority = reader.readInt32("priority");
+            Integer minimum = reader.readInt32("minimum");
+            Integer maximum = reader.readInt32("maximum");
+            return new SetDesiredCapacity(entity, resource, priority, minimum, maximum);
+        }
+
+        @Override
+        protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+            writer.write("entity", entity, EntityId.Serializer, options);
+            writer.write("resource", resourceType, ResourceType.Serializer, options);
+            writer.write("priority", priority);
+            writer.write("minimum", desiredMinimum);
+            writer.write("maximum", desiredMaximum);
+        }
+
+        @Override
+        public MessageType getMessageType() {
+            return MessageType.SET_DESIRED_CAPACITY;
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -831,53 +906,7 @@ public abstract class Message implements Jsonable {
         STOP_RIDING,
         DIE,
         DROP_ALL,
+        SET_EVOLUTION_SELECTION,
+        SET_DESIRED_CAPACITY,
     }
-
-    /*
-    public static final DataSerializer<Message> Serializer = new DataSerializer.JsonableSerializer<Message>() {
-        @Override
-        public Message parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
-            reader.readBeginDocument();
-            MessageType msgType = reader.b(MessageType.values(), reader.readInt32("type"));
-            Message msg = null;
-            spec.spec =
-            switch (msgType) {
-                case AI_EVENT: msg = AiEventMessage.finishParsing(reader, spec); break;
-                case OCCUPANCY_UPDATED: msg = OccupancyChanged.finishParsing(reader, spec); break;
-                case QUIT_CONNECTION: msg = Quit.finishParsing(reader, spec); break;
-                case UNIT_REMOVED: msg = UnitRemoved.finishParsing(reader, spec); break;
-                case UNIT_UPDATED: msg = UnitUpdated.finishParsing(reader, spec); break;
-                case CHANGE_OCCUPANCY: msg = ChangeOccupancy.finishParsing(reader, spec); break;
-                case DIE: msg = Die.finishParsing(reader, spec); break;
-                case DROP_ALL: msg = DropAll.finishParsing(reader, spec); break;
-                case GAME_OVER: msg = GameOver.finishParsing(reader, spec); break;
-                case GARRISON: msg = Garrison.finishParsing(reader, spec); break;
-                case JOIN: msg = Join.finishParsing(reader, spec); break;
-                case JOINED: msg = Joined.finishParsing(reader, spec); break;
-                case LAUNCH: msg = Launch.finishParsing(reader, spec); break;
-                case LAUNCHED: msg = Launched.finishParsing(reader, spec); break;
-                case LEAVE: msg = Leave.finishParsing(reader, spec); break;
-                case LEFT: msg = Left.finishParsing(reader, spec); break;
-                case LIST_LOBBIES: msg = ListLobbies.finishParsing(reader, spec); break;
-                case LOBBY_LIST: msg = LobbyList.finishParsing(reader, spec); break;
-                case PLACE_BUILDING: msg = PlaceBuilding.finishParsing(reader, spec); break;
-                case PROJECTILE_LANDED: msg = ProjectileLanded.finishParsing(reader, spec); break;
-                case PROJECTILE_LAUNCHED: msg = ProjectileLaunched.finishParsing(reader, spec); break;
-                case REQUEST_ACTION: msg = RequestAction.finishParsing(reader, spec); break;
-                case RIDE: msg = Ride.finishParsing(reader, spec); break;
-                case SET_GATHER_POINT: msg = SetGatherPoint.finishParsing(reader, spec); break;
-                case STOP_RIDING: msg = StopRiding.finishParsing(reader, spec); break;
-                case TIME_CHANGE: msg = TimeChange.finishParsing(reader, spec); break;
-                case UNGARRISON: msg = UnGarrison.finishParsing(reader, spec); break;
-//                case UPDATE_ENTIRE_GAME: msg = UpdateEntireGameState.finishParsing(reader, spec); break;
-                case ERROR: msg = Error.finishParsing(reader, spec); break;
-                case INFORM: msg = Inform.finishParsing(reader, spec); break;
-                default:
-                    throw new RuntimeException("Unrecognized message type");
-            }
-            reader.readEndDocument();
-            return msg;
-        }
-    };
-    */
 }

@@ -43,6 +43,11 @@ public class JacksonWriterWrapper extends JsonWriterWrapperSpec {
     }
 
     @Override
+    protected void p_write(Long l) throws IOException {
+        generator.writeNumber(l);
+    }
+
+    @Override
     public void writeBeginDocument() throws IOException {
         generator.writeStartObject();
     }

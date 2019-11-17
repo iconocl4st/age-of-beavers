@@ -127,6 +127,12 @@ public class ServerMessageHandler {
                 stateManipulator.setEvolutionPreferences(msg.entity, msg.weights);
             }
             break;
+            case SET_DESIRED_CAPACITY: {
+                Message.SetDesiredCapacity msg = (Message.SetDesiredCapacity) message;
+                ServerStateManipulator stateManipulator = c.createStateManipulator(c);
+                stateManipulator.setDesiredCapacity(msg.entity, msg.resourceType, msg.priority, msg.desiredMinimum, msg.desiredMaximum);
+            }
+            break;
             default:
                 System.out.println("Server: Ignoring unknown message type " + message.getMessageType());
         }

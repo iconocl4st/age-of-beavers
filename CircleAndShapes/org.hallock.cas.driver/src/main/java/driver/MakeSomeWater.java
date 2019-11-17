@@ -1,3 +1,5 @@
+package driver;
+
 import client.gui.game.Zoom;
 import client.gui.mouse.ZoomListener;
 
@@ -40,7 +42,7 @@ public class MakeSomeWater {
     public static void main(String[] args) {
         Random random = new Random();
 
-        JFrame frame = new JFrame("Testing");
+        JFrame frame = new JFrame("driver.Testing");
         frame.setBounds(50, 50, 1000, 1000);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JPanel panel = new PanelDisplayer();

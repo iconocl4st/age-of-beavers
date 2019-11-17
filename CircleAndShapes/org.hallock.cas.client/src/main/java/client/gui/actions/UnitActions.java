@@ -26,8 +26,8 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
     private String stackArg;
     private Actions actions;
 
-    private final DemandsView demands = new DemandsView();
-    private final EvolutionView evolutionView = new EvolutionView();
+    private final DemandsView demands;
+    private final EvolutionView evolutionView;
 
     // make sure they all fit...
     private static final int NUM_ROWS = 3;
@@ -41,6 +41,8 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
     private UnitActions(ClientContext context) {
         this.context = context;
         stack.addLast(StackItem.GlobalActions);
+        demands = new DemandsView(context);
+        evolutionView = new EvolutionView(context);
     }
 
 
@@ -186,7 +188,8 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
                         drawDemands(recreate);
                         break;
                     case SetEvolutionSpec:
-                        drawEvolutions(recreate);
+                        if (recreate)
+                            drawEvolutions();
                         break;
                 }
                 revalidate();
@@ -201,15 +204,13 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
             setLayout(new GridLayout(0, 1));
             add(demands);
         }
-        demands.drawDemands(currentlySelected.iterator().next());
+        demands.drawDemands(currentlySelected.iterator().next(), recreate);
     }
 
-    private void drawEvolutions(boolean recreate) {
-        if (recreate) {
-            removeCurrentButtons();
-            setLayout(new GridLayout(0, 1));
-            add(evolutionView);
-        }
+    private void drawEvolutions() {
+        removeCurrentButtons();
+        setLayout(new GridLayout(0, 1));
+        add(evolutionView);
         evolutionView.drawEvolution(currentlySelected.iterator().next());
     }
 

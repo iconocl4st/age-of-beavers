@@ -8,7 +8,9 @@
     "width": 1,
     "height": 1
   },
-  "building-path": ["husbandry"],
+  "building-path": [
+    "husbandry"
+  ],
   "health-points": 10.0,
   "required-resources": [
     {

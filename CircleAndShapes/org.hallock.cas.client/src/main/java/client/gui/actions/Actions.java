@@ -6,10 +6,7 @@ import client.gui.actions.global_action.PlaceBuilding;
 import client.gui.actions.multi_unit.FilterAction;
 import client.gui.actions.unit_action.*;
 import common.state.EntityReader;
-import common.state.spec.CreationSpec;
-import common.state.spec.EntitySpec;
-import common.state.spec.GameSpec;
-import common.state.spec.ResourceType;
+import common.state.spec.*;
 import common.state.sst.sub.GateInfo;
 
 import java.util.HashMap;
@@ -120,6 +117,12 @@ public class Actions {
                     @Override
                     public boolean isEnabled(EntityReader entity) {
                         return defaultGuardStatement(entity) && entity.getType().containsClass("storage");
+                    }
+                },
+                new PushStack(context, "Set evo selects...", UnitActions.StackItem.SetEvolutionSpec) {
+                    @Override
+                    public boolean isEnabled(EntityReader entity) {
+                        return defaultGuardStatement(entity) && entity.getType().canCreate.stream().anyMatch(c->c.method.equals(CreationMethod.Garrison));
                     }
                 },
                 new PushStack(context, "Gate options...", UnitActions.StackItem.GateOptions) {

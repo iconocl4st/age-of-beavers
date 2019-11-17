@@ -2,7 +2,7 @@ package common.util.json;
 
 import java.io.IOException;
 
-public class SplitJsonWriterWrapper extends  JsonWriterWrapperSpec {
+public class SplitJsonWriterWrapper extends JsonWriterWrapperSpec {
 
     private final JsonWriterWrapperSpec r1;
     private final JsonWriterWrapperSpec r2;
@@ -34,6 +34,11 @@ public class SplitJsonWriterWrapper extends  JsonWriterWrapperSpec {
 
     @Override
     protected void p_write(String value) throws IOException {
+        r1.p_write(value); r2.p_write(value);
+    }
+
+    @Override
+    protected void p_write(Long value) throws IOException {
         r1.p_write(value); r2.p_write(value);
     }
 

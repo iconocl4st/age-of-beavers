@@ -9,8 +9,9 @@ import common.state.sst.sub.ConstructionZone;
 import common.state.sst.sub.GateInfo;
 import common.state.sst.sub.Load;
 import common.state.sst.sub.WeaponSet;
-import common.state.sst.sub.capacity.CapacitySpec;
+import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
+import common.util.EvolutionSpec;
 
 import java.awt.*;
 import java.util.*;
@@ -128,25 +129,17 @@ public class EntityReader implements LocatedEntitySpec {
 
     public boolean noLongerExists() { return state.entityManager.get(entityId) == null; }
 
-    public CapacitySpec getCapacity() { return state.capacityManager.get(entityId); }
+    public PrioritizedCapacitySpec getCapacity() { return state.capacityManager.get(entityId); }
 
     public boolean canAccept(ResourceType resource) {
-        return getCapacity().hasRoomFor(getCarrying(), resource);
-    }
-
-    public boolean canAcceptSomeResource() {
-        CapacitySpec capacity = getCapacity();
-        Load carrying = getCarrying();
-        for (ResourceType resource : state.gameSpec.resourceTypes) {
-            if (capacity.hasRoomFor(carrying, resource)) return true;
-        }
-        return false;
+        return getCapacity().amountPossibleToAccept(getCarrying(), resource) > 0;
     }
 
     private static double zin(Double d) {
         if (d == null) return 0.0;
         return d;
     }
+
     private static boolean fin(Boolean b) {
         if (b == null) return false;
         return b;
@@ -261,5 +254,9 @@ public class EntityReader implements LocatedEntitySpec {
 
     public double getBaseLineOfSight() {
         return zin(state.lineOfSightManager.get(entityId));
+    }
+
+    public EvolutionSpec getEvolutionWeights() {
+        return state.evolutionManager.get(entityId);
     }
 }

@@ -15,9 +15,10 @@ import common.state.sst.sub.ConstructionZone;
 import common.state.sst.sub.GateInfo;
 import common.state.sst.sub.Load;
 import common.state.sst.sub.WeaponSet;
-import common.state.sst.sub.capacity.CapacitySpec;
+import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
 import ai.GaiaAi;
+import common.util.EvolutionSpec;
 import common.util.json.EmptyJsonable;
 
 import java.awt.*;
@@ -124,7 +125,7 @@ public class ServerGameState {
             Double attackSpeed = state.attackSpeedManager.get(entityId);
             if (attackSpeed != null) nextState.attackSpeedManager.set(entityId, attackSpeed);
 
-            CapacitySpec capacity = state.capacityManager.get(entityId);
+            PrioritizedCapacitySpec capacity = state.capacityManager.get(entityId);
             if (capacity != null) nextState.capacityManager.set(entityId, capacity);
 
             WeaponSet weapons = state.weaponsManager.get(entityId);

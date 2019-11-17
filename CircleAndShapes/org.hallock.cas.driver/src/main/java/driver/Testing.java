@@ -1,3 +1,5 @@
+package driver;
+
 import client.app.ClientContext;
 import client.app.ClientDriver;
 import common.msg.Message;
@@ -15,8 +17,6 @@ public class Testing {
         // TODO: stance
 
         // repair
-        // make the window show up with proper bounds...
-        // implement multiple players
         // create export to tensor
         // make a testing framework
         // update the spec on the fly
@@ -42,7 +42,8 @@ public class Testing {
         // make units occupy
         // add color to players
         // add a spectate
-        // control click pathing
+        // control click pathing indicator
+
         // add sounds
         // common actions when multiple are selected
         // using bson
@@ -69,6 +70,7 @@ public class Testing {
         // refactor out a move to ai
         // write the first player ai
 
+        // create natural resource for dropped resources...
 
         int numClients = 2;
         ServerContext serverContext = ServerDriver.createServerContext();

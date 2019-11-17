@@ -4,7 +4,8 @@ import common.state.spec.attack.DamageType;
 import common.state.spec.attack.ProjectileSpec;
 import common.state.spec.attack.WeaponClass;
 import common.state.spec.attack.WeaponSpec;
-import common.state.sst.sub.capacity.*;
+import common.state.sst.sub.capacity.Prioritization;
+import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -146,7 +147,7 @@ public class GameSpecParser {
             for (CarrySpec carrySpec : eSpec.carrying) {
                 carryLimits.put(carrySpec.type, carrySpec.startingQuantity);
             }
-            eSpec.carryCapacity = new CarryLimitCapacitySpec(carryLimits);
+            eSpec.carryCapacity = PrioritizedCapacitySpec.createCapacitySpec(spec, carryLimits);
             eSpec.classes = NATURAL_RESOURCE_CLASSES;
             eSpec.requiredResources = Collections.emptyMap();
             eSpec.canCreate = Collections.emptySet();
@@ -202,24 +203,26 @@ public class GameSpecParser {
     }
 
 
-    private static CapacitySpec parseCapacitySpec(JSONObject o, GameSpec spec) {
-        switch ((String) o.get("type")) {
-            case "simple":
-                return new SimpleCapacitySpec((int)(long) o.get("capacity"));
-            case "limits":
-                HashMap<ResourceType, Integer> carryLimits = new HashMap<>();
-                JSONArray limitsList = (JSONArray) o.get("limits");
-                for (int j = 0; j < limitsList.size(); j++) {
-                    JSONObject limit = (JSONObject) limitsList.get(j);
-                    carryLimits.put(
-                            spec.getResourceType((String) limit.get("resource")),
-                            (int)(long)limit.get("amount")
-                    );
-                }
-                return new CarryLimitCapacitySpec(carryLimits);
-            default:
-                throw new RuntimeException("Unknown capacity spec: " + o.get("type"));
+    private static PrioritizedCapacitySpec parseCapacitySpec(JSONObject o, GameSpec spec) {
+        PrioritizedCapacitySpec capacitySpec;
+        if (o.containsKey("limits")) {
+            JSONArray limitsList = (JSONArray) o.get("limits");
+            HashMap<ResourceType, Integer> limits = new HashMap<>();
+            for (int j = 0; j < limitsList.size(); j++) {
+                JSONObject limit = (JSONObject) limitsList.get(j);
+                limits.put(spec.getResourceType((String) limit.get("resource")), (int) (long) limit.get("amount"));
+            }
+            capacitySpec = PrioritizedCapacitySpec.createCapacitySpec(spec, limits);
+        } else {
+            capacitySpec = new PrioritizedCapacitySpec();
         }
+
+        if (o.containsKey("total-weight")) {
+            capacitySpec.totalWeight = (int)(long) o.get("total-weight");
+        } else {
+            capacitySpec.totalWeight = capacitySpec.sumAllowedResources();
+        }
+        return capacitySpec;
     }
 
 
@@ -229,7 +232,11 @@ public class GameSpecParser {
             if (parentBuilder == null) throw new RuntimeException("Parent does not exist: " + parent);
             fillEntity(spec, toFill, builders, parentBuilder);
         }
-        toFill.addAttributesFromJson(spec, current.jsonObject);
+        try {
+            toFill.addAttributesFromJson(spec, current.jsonObject);
+        } catch (Exception e) {
+            throw new RuntimeException("Error parsing file " + current.file, e);
+        }
     }
 
     private static void parseUnits(Path location, GameSpec spec) throws IOException, ParseException {
@@ -237,6 +244,7 @@ public class GameSpecParser {
         try (Stream<Path> paths = Files.walk(location.resolve("units")).filter(Files::isRegularFile)) {
             for (Path p : paths.collect(Collectors.toList())) {
                 EntitySpecBuilder builder = new EntitySpecBuilder();
+                builder.file = p.toAbsolutePath().toString();
                 builder.jsonObject = getJson(p);
                 builder.unitSpec = new EntitySpec(
                         (String) builder.jsonObject.get("name"),
@@ -244,7 +252,7 @@ public class GameSpecParser {
                 );
 
                 builder.unitSpec.carrying = Collections.emptySet();
-                builder.unitSpec.carryCapacity = new InCapableCapacitySpec();
+                builder.unitSpec.carryCapacity = PrioritizedCapacitySpec.createIncapableCapacity(spec);
                 builder.unitSpec.canCreate = new HashSet<>();
                 builder.unitSpec.classes = new HashSet<>();
                 builder.unitSpec.classes.add("unit");
@@ -296,6 +304,7 @@ public class GameSpecParser {
         JSONObject jsonObject;
         EntitySpec unitSpec;
         HashMap<String, List<Map<String, Object>>> canCreate = new HashMap<>();
+        String file;
 
         public void addAttributesFromJson(GameSpec spec, JSONObject unitJson) {
             if (unitJson.containsKey("line-of-sight")) {
@@ -346,16 +355,7 @@ public class GameSpecParser {
                 }
             }
             if (unitJson.containsKey("carry-capacity")) {
-                if (unitSpec.carryCapacity instanceof InCapableCapacitySpec) {
-                    unitSpec.carryCapacity = new CapableCapacitySpec();
-                }
-                JSONArray specs = (JSONArray) unitJson.get("carry-capacity");
-                for (int j = 0; j < specs.size(); j++) {
-                    unitSpec.carryCapacity = new CombinationCapacitySpec(
-                            unitSpec.carryCapacity,
-                            parseCapacitySpec((JSONObject) specs.get(j), spec)
-                    );
-                }
+                unitSpec.carryCapacity = parseCapacitySpec((JSONObject) unitJson.get("carry-capacity"), spec);
             }
             if (unitJson.containsKey("can-create")) {
                 List<Map<String, Object>> canCreateList = new LinkedList<>();

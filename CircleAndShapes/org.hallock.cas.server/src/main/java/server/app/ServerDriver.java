@@ -28,7 +28,7 @@ public class ServerDriver {
     public static ServerContext createServerContext() throws IOException, ParseException {
         ServerContext context = new ServerContext();
         for (int i = 0; i < context.lobbies.length; i++) {
-            GameSpec spec = GameSpecParser.parseGameSpec(Paths.get("/home/thallock/Documents/Idea/CircleAndShapes/spec"));
+            GameSpec spec = GameSpecParser.parseGameSpec(Paths.get("./spec"));
             context.lobbies[i] = new Lobby(context, "Lobby " + String.format("%02d", i + 1), spec);
         }
         return context;

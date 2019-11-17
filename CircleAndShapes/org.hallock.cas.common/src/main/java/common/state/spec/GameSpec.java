@@ -17,6 +17,7 @@ public class GameSpec implements Jsonable {
 
     public int width;
     public int height;
+    public int numPlayers;
     public ResourceType[] resourceTypes;
     public EntitySpec[] naturalResources;
     public EntitySpec[] unitSpecs;
@@ -97,6 +98,7 @@ public class GameSpec implements Jsonable {
         writer.writeBeginDocument();
         writer.write("width", width);
         writer.write("height", height);
+        writer.write("num-players", numPlayers);
         writer.write("resource-types", resourceTypes, ResourceType.EntireSerializer, options);
         writer.write("natural-resource-types", naturalResources, EntitySpec.IgnoreCanCreateSerializer, options);
         writer.write("unit-types", unitSpecs, EntitySpec.IgnoreCanCreateSerializer, options);
@@ -124,6 +126,7 @@ public class GameSpec implements Jsonable {
             reader.readBeginDocument();
             ret.width = reader.readInt32("width");
             ret.height = reader.readInt32("height");
+            ret.numPlayers = reader.readInt32("num-players");
             ret.resourceTypes = reader.read("resource-types", new ResourceType[0], ResourceType.EntireSerializer, spec);
             ret.naturalResources = reader.read("natural-resource-types", new EntitySpec[0], EntitySpec.IgnoreCanCreateSerializer, spec);
             ret.unitSpecs = reader.read("unit-types", new EntitySpec[0], EntitySpec.IgnoreCanCreateSerializer, spec);

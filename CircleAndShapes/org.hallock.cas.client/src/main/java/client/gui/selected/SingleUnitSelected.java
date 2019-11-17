@@ -14,7 +14,7 @@ import common.state.spec.GameSpec;
 import common.state.spec.ResourceType;
 import common.state.sst.sub.GateInfo;
 import common.state.sst.sub.Load;
-import common.state.sst.sub.capacity.CapacitySpec;
+import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
 
 import javax.swing.*;
@@ -174,7 +174,7 @@ public class SingleUnitSelected extends JPanel {
             moveSpeed.setText("Move speed: " + String.valueOf(entity.getMovementSpeed()));
             lineOfSight.setText("Line of sight: " + String.valueOf(entity.getBaseLineOfSight()));
 
-            CapacitySpec currentCapacity = entity.getCapacity();
+            PrioritizedCapacitySpec currentCapacity = entity.getCapacity();
             if (currentCapacity != null) {
                 capacity.setText("Capacity: " + currentCapacity.getDisplayString());
             } else {

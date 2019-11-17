@@ -3,7 +3,6 @@ package client.gui;
 import client.app.ClientContext;
 import client.gui.game.Colors;
 import client.gui.game.Zoom;
-import client.gui.mouse.GrabFocusListener;
 import common.state.EntityReader;
 import common.state.Player;
 import common.state.spec.EntitySpec;
@@ -40,9 +39,11 @@ public class Minimap extends JPanel {
         g.setColor(Colors.GRASS);
         g.fillRect(0, 0, w, h);
 
-        g.setColor(Colors.PLAYER_COLORS[context.currentPlayer.number]);
-        for (ReversableManagerImpl.Pair<Player> pair : context.gameState.playerManager.getByType(context.currentPlayer)) {
-            drawUnit(g, pair);
+        for (int i = 1; i < spec.numPlayers; i++) {
+            for (ReversableManagerImpl.Pair<Player> pair : context.gameState.playerManager.getByType(new Player(i))) {
+                g.setColor(Colors.PLAYER_COLORS[i]);
+                drawUnit(g, pair);
+            }
         }
 
         drawResource(g, Colors.MINIMAP_TREE, "tree");

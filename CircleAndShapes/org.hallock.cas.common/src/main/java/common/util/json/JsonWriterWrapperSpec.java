@@ -22,6 +22,11 @@ public abstract class JsonWriterWrapperSpec implements AutoCloseable {
         writeBeginDocument();
     }
 
+    public void write(String name, long value) throws IOException {
+        writeName(name);
+        write(value);
+    }
+
     public void write(String keyName, Integer value) throws IOException {
         writeName(keyName);
         write(value);
@@ -87,6 +92,12 @@ public abstract class JsonWriterWrapperSpec implements AutoCloseable {
     }
 
 
+    public void write(Long l) throws IOException {
+        if (l == null) { writeNull(); return; }
+        p_write(l);
+    }
+
+
     public void write(Boolean v) throws IOException {
         if (v == null) { writeNull(); return; }
         p_write(v);
@@ -110,6 +121,7 @@ public abstract class JsonWriterWrapperSpec implements AutoCloseable {
     protected abstract void p_write(Double d) throws IOException;
     protected abstract void p_write(Integer i) throws IOException;
     protected abstract void p_write(String string) throws IOException;
+    protected abstract void p_write(Long l) throws IOException;
 
     public abstract void writeBeginDocument() throws IOException;
     public abstract void writeEndDocument() throws IOException;

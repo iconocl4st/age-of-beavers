@@ -5,19 +5,18 @@
     "width": 1,
     "height": 1
   },
-  "building-path": ["husbandry"],
-  "garrison-capacity": 1,
-  "carry-capacity": [
-    {
-      "type": "limits",
-      "limits": [
-        {
-          "resource": "food",
-          "amount": 500
-        }
-      ]
-    }
+  "building-path": [
+    "husbandry"
   ],
+  "garrison-capacity": 1,
+  "carry-capacity": {
+    "limits": [
+      {
+        "resource": "food",
+        "amount": 500
+      }
+    ]
+  },
   "health-points": 10.0,
   "line-of-sight": 5.0,
   "can-create": [
