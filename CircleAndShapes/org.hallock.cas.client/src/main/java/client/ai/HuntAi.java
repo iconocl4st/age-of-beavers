@@ -1,12 +1,13 @@
 package client.ai;
 
-import client.app.ClientContext;
+import client.state.ClientGameState;
 import common.AiEvent;
 import common.Proximity;
+import common.state.EntityId;
+import common.state.EntityReader;
 import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
 import common.state.spec.attack.Weapon;
-import common.state.EntityId;
 import common.util.DPoint;
 import common.util.GridLocationQuerier;
 
@@ -18,15 +19,15 @@ public class HuntAi extends Ai {
 
     private final EntitySpec preyType;
 
-    private EntityId currentPrey;
-    private EntityId currentCarcass;
+    private EntityReader currentPrey;
+    private EntityReader currentCarcass;
 
 
     public String toString() {
         return "hunt " + preyType;
     }
 
-    public HuntAi(ClientContext state, EntityId hunter, EntityId prey, EntitySpec preyType) {
+    public HuntAi(ClientGameState state, EntityReader hunter, EntityReader prey, EntitySpec preyType) {
         super(state, hunter);
         this.preyType = preyType;
         setCurrentPrey(prey);
@@ -40,7 +41,7 @@ public class HuntAi extends Ai {
             return;
         if (currentPrey == null)
             return;
-        if (!event.entity.equals(currentPrey))
+        if (!event.entity.equals(currentPrey.entityId))
             return;
         setCurrentPrey(null);
         List<EntityId> droppedUnits = ((AiEvent.TargetKilled) event).droppedUnits;
@@ -48,20 +49,20 @@ public class HuntAi extends Ai {
             currentCarcass = null;
         } else {
             // TODO: what if they drop multiple items...
-            currentCarcass = droppedUnits.get(0);
+            currentCarcass = new EntityReader(context.gameState, droppedUnits.get(0));
         }
 
         // TODO: what if this is false...
         setActions(ar);
     }
 
-    private void setCurrentPrey(EntityId nextCurrentPrey) {
+    private void setCurrentPrey(EntityReader nextCurrentPrey) {
         if (currentPrey != null) {
-            context.eventManager.stopListeningTo(this, currentPrey);
+            context.eventManager.stopListeningTo(this, currentPrey.entityId);
         }
         currentPrey = nextCurrentPrey;
         if (currentPrey != null) {
-            context.eventManager.listenForEventsFrom(this, currentPrey);
+            context.eventManager.listenForEventsFrom(this, currentPrey.entityId);
         }
     }
 
@@ -131,7 +132,7 @@ public class HuntAi extends Ai {
                 return deliverToNearestDropOff(ar, collectingResource, controlling.entityId);
             }
             if (currentPrey != null) {
-                DPoint targetLocation = context.gameState.locationManager.getLocation(currentPrey);
+                DPoint targetLocation = currentPrey.getLocation();
                 if (targetLocation == null) {
                     setCurrentPrey(null);
                     continue;
@@ -140,17 +141,21 @@ public class HuntAi extends Ai {
                     ar.setUnitActionToAttack(controlling, currentPrey, weaponOfChoice);
                     return AiAttemptResult.Successful;
                 } else {
-                    return ar.setUnitActionToMove(controlling,  currentPrey);
+                    return ar.setUnitActionToMove(controlling, currentPrey);
                 }
             }
             if (currentCarcass != null) {
-                DPoint targetLocation = context.gameState.locationManager.getLocation(currentCarcass);
+                DPoint targetLocation = currentCarcass.getLocation();
                 if (targetLocation == null) {
                     currentCarcass = null;
                     continue;
                 }
-                if (Proximity.closeEnoughToInteract(context.gameState, controlling.entityId, currentCarcass)) {
-                    ar.setUnitActionToCollect(controlling, currentCarcass);
+                ResourceType resourceType = currentCarcass.getCarrying().getNonzeroResource();
+                if (resourceType == null) {
+                    currentCarcass = null;
+                }
+                if (Proximity.closeEnoughToInteract(controlling, currentCarcass)) {
+                    ar.setUnitActionToCollect(controlling, currentCarcass, resourceType);
                     return AiAttemptResult.Successful;
                 } else {
                     return ar.setUnitActionToMove(controlling, currentCarcass);
@@ -173,7 +178,7 @@ public class HuntAi extends Ai {
                 return AiAttemptResult.Completed;
             }
 
-            setCurrentPrey(results.entity);
+            setCurrentPrey(results.getEntity(context.gameState));
             ar.setUnitActionToMove(controlling, results.path);
             return AiAttemptResult.Successful;
         }

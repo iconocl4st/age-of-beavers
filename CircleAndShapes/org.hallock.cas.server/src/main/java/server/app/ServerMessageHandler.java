@@ -1,6 +1,7 @@
 package server.app;
 
 import common.msg.Message;
+import common.state.EntityReader;
 import server.state.ServerStateManipulator;
 
 import java.io.IOException;

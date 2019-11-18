@@ -1,10 +1,10 @@
 package client.ai;
 
-import client.app.ClientContext;
+import client.state.ClientGameState;
 import common.AiEvent;
 import common.action.Action;
+import common.state.EntityReader;
 import common.state.spec.CreationSpec;
-import common.state.EntityId;
 import common.state.sst.sub.Load;
 
 
@@ -12,10 +12,11 @@ public class CreateAi extends Ai {
 
     private final CreationSpec spec;
 
-    public CreateAi(ClientContext context, EntityId controlling, CreationSpec spec) {
+    public CreateAi(ClientGameState context, EntityReader controlling, CreationSpec spec) {
         super(context, controlling);
         this.spec = spec;
     }
+
     @Override
     public String toString() {
         return "Continuously create " + spec.createdType.name;

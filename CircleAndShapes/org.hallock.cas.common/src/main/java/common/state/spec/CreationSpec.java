@@ -10,6 +10,7 @@ import common.util.json.*;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 public class CreationSpec implements Jsonable {
@@ -34,7 +35,7 @@ public class CreationSpec implements Jsonable {
         return (createdType.name + ":" + method.name()).hashCode();
     }
 
-    public Set<EntityId> getContributingUnits(GameState state, EntityId entityId) {
+    public Set<EntityReader> getContributingUnits(GameState state, EntityId entityId) {
         EntityReader entity = new EntityReader(state, entityId);
         if (method.equals(CreationMethod.Garrison)) {
             return entity.getGarrisoned();
@@ -45,14 +46,18 @@ public class CreationSpec implements Jsonable {
             double auraWidth = Double.valueOf(creationMethodParams.get("aura-width"));
 
             DPoint location = state.locationManager.getLocation(entityId);
-            return state.locationManager.getEntitiesWithin(
+
+            HashSet<EntityReader> ret = new HashSet<>();
+            for (EntityId e : state.locationManager.getEntitiesWithin(
                     location.x - auraWidth,
                     location.y - auraWidth,
                     location.x + auraWidth,
                     location.y + auraWidth,
                     e -> state.typeManager.get(e).name.equals(creatorType) &&
                             (!mustBeGaia || state.playerManager.get(e).equals(Player.GAIA))
-            );
+            ))
+                ret.add(new EntityReader(state, e));
+            return ret;
         }
         return Collections.emptySet();
     }

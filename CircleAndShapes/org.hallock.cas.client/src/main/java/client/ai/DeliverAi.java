@@ -1,10 +1,9 @@
 package client.ai;
 
-import client.app.ClientContext;
+import client.state.ClientGameState;
 import common.Proximity;
-import common.state.spec.ResourceType;
-import common.state.EntityId;
 import common.state.EntityReader;
+import common.state.spec.ResourceType;
 import common.state.sst.sub.Load;
 
 import java.util.Map;
@@ -14,13 +13,13 @@ public class DeliverAi extends Ai {
     private final EntityReader destination;
     private final boolean deliverToOthers;
 
-    public DeliverAi(ClientContext state, EntityId carrier, EntityId destination) {
+    public DeliverAi(ClientGameState state, EntityReader carrier, EntityReader destination) {
         this(state, carrier, destination, false);
     }
 
-    public DeliverAi(ClientContext state, EntityId carrier, EntityId destination, boolean deliverToOthers) {
+    public DeliverAi(ClientGameState state, EntityReader carrier, EntityReader destination, boolean deliverToOthers) {
         super(state, carrier);
-        this.destination = new EntityReader(state.gameState, destination);
+        this.destination = destination;
         this.deliverToOthers = deliverToOthers;
     }
 
@@ -47,10 +46,10 @@ public class DeliverAi extends Ai {
             if (!destination.canAccept(entry.getKey()))
                 continue;
 
-            if (Proximity.closeEnoughToInteract(context.gameState, controlling.entityId, destination.entityId)) {
-                ar.setUnitActionToDeposit(controlling, destination.entityId, entry.getKey(), Integer.MAX_VALUE);
+            if (Proximity.closeEnoughToInteract(controlling, destination)) {
+                ar.setUnitActionToDeposit(controlling, destination, entry.getKey(), Integer.MAX_VALUE);
             } else {
-                ar.setUnitActionToMove(controlling, destination.entityId);
+                ar.setUnitActionToMove(controlling, destination);
             }
             return AiAttemptResult.Successful;
         }

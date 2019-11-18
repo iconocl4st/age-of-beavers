@@ -1,18 +1,18 @@
 package client.ai;
 
+import client.state.ClientGameState;
 import common.Proximity;
 import common.algo.AStar;
-import client.app.ClientContext;
+import common.state.EntityReader;
 import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
-import common.state.EntityId;
 import common.state.sst.sub.Load;
 import common.util.GridLocationQuerier;
 
 public class Gather extends Ai {
 
     private final EntitySpec naturalResourceSpec;
-    private EntityId currentTarget;
+    private EntityReader currentTarget;
     private GatherState currentState;
 
     private enum GatherState {
@@ -20,7 +20,7 @@ public class Gather extends Ai {
         Gathering,
     }
 
-    public Gather(ClientContext state, EntityId gatherer, EntityId target, EntitySpec resourceType) {
+    public Gather(ClientGameState state, EntityReader gatherer, EntityReader target, EntitySpec resourceType) {
         super(state, gatherer);
         this.currentTarget = target;
         this.naturalResourceSpec = resourceType;
@@ -61,12 +61,17 @@ public class Gather extends Ai {
             }
 
             if (currentTarget != null) {
-                if (Proximity.closeEnoughToInteract(context.gameState, controlling.entityId, currentTarget)) {
-                    ar.setUnitActionToCollect(controlling, currentTarget);
+                ResourceType resourceType = currentTarget.getCarrying().getNonzeroResource();
+                if (resourceType == null) {
+                    currentTarget = null;
+                    continue;
+                }
+                if (Proximity.closeEnoughToInteract(controlling, currentTarget)) {
+                    ar.setUnitActionToCollect(controlling, currentTarget, resourceType);
                     return AiAttemptResult.Successful;
                 }
 
-                AStar.PathSearch results = GridLocationQuerier.findPath(context.gameState, controlling.entityId, currentTarget, context.currentPlayer);
+                AStar.PathSearch results = GridLocationQuerier.findPath(context.gameState, controlling.entityId, currentTarget.entityId, context.currentPlayer);
                 if (results == null) {
                     currentTarget = null;
                     continue;
@@ -79,7 +84,7 @@ public class Gather extends Ai {
             if (!results.successful()) {
                 return AiAttemptResult.Unsuccessful; // or successful?
             }
-            currentTarget = results.entity;
+            currentTarget = results.getEntity(context.gameState);
         }
     }
 }

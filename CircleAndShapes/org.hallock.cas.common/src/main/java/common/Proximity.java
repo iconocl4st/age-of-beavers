@@ -1,5 +1,6 @@
 package common;
 
+import common.state.EntityReader;
 import common.state.spec.EntitySpec;
 import common.state.EntityId;
 import common.state.sst.GameState;
@@ -12,14 +13,14 @@ public class Proximity {
 
 
 
-    public static boolean closeEnoughToInteract(GameState state, EntityId unit, EntityId storage) {
-        EntitySpec type1 = state.typeManager.get(unit);
+    public static boolean closeEnoughToInteract(EntityReader unit, EntityReader storage) {
+        EntitySpec type1 = unit.getType();
         if (type1 == null) return false;
-        DPoint location1 = state.locationManager.getLocation(unit);
+        DPoint location1 = unit.getLocation();
         if (location1 == null) return false;
-        EntitySpec type2 = state.typeManager.get(storage);
+        EntitySpec type2 = storage.getType();
         if (type2 == null) return false;
-        DPoint location2 = state.locationManager.getLocation(storage);
+        DPoint location2 = storage.getLocation();
         if (location2 == null) return false;
 
         // todo: only consider the boundaries?

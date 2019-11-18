@@ -11,11 +11,29 @@ import java.util.Map;
 
 public class PrioritizedCapacitySpec implements Jsonable {
 
-    public int totalWeight = 0;
+    private int totalWeight = 0;
     private final HashMap<ResourceType, Prioritization> prioritizations = new HashMap<>();
+
+    public PrioritizedCapacitySpec(GameSpec spec) {
+        for (ResourceType resourceType : spec.resourceTypes) {
+            prioritizations.put(resourceType, new Prioritization());
+        }
+    }
+    private PrioritizedCapacitySpec() {}
 
     public Prioritization getPrioritization(ResourceType resourceType) {
         return prioritizations.get(resourceType);
+    }
+
+    public void setTotalWeight(int totalWeight) {
+        this.totalWeight = totalWeight; // TODO: what if the total weight increased?
+        for (Map.Entry<ResourceType, Prioritization> entry : prioritizations.entrySet()) {
+            Prioritization value = entry.getValue();
+            int max = totalWeight / entry.getKey().weight;
+            value.desiredMaximum = Math.min(value.desiredMaximum, max);
+            value.desiredAmount = Math.min(value.desiredAmount, max);
+            value.maximumAmount = Math.min(value.maximumAmount, max);
+        }
     }
 
     public int amountPossibleToAccept(Load load, ResourceType resource) {
@@ -42,6 +60,10 @@ public class PrioritizedCapacitySpec implements Jsonable {
             ret += entry.getValue().maximumAmount * entry.getKey().weight;
         }
         return ret;
+    }
+
+    public int getTotalWeight() {
+        return totalWeight;
     }
 
     @Override
@@ -72,11 +94,13 @@ public class PrioritizedCapacitySpec implements Jsonable {
         }
         return prioritizedCapacitySpec;
     }
-    public static PrioritizedCapacitySpec createCapacitySpec(GameSpec spec, HashMap<ResourceType, Integer> carryLimits) {
+    public static PrioritizedCapacitySpec createCapacitySpec(GameSpec spec, HashMap<ResourceType, Integer> carryLimits, boolean makeDesired) {
         PrioritizedCapacitySpec prioritizedCapacitySpec = createIncapableCapacity(spec);
         for (Map.Entry<ResourceType, Integer> entry : carryLimits.entrySet()) {
             Prioritization prioritization = new Prioritization();
             prioritization.desiredMaximum = prioritization.maximumAmount = entry.getValue();
+            if (makeDesired)
+                prioritization.desiredAmount = entry.getValue();
             prioritizedCapacitySpec.prioritizations.put(entry.getKey(), prioritization);
         }
         return prioritizedCapacitySpec;

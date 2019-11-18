@@ -82,7 +82,7 @@ public class EntitySpec implements Serializable {
         for (Map.Entry<ResourceType, Integer> entry : requiredResources.entrySet()) {
             carryLimits.put(entry.getKey(), entry.getValue());
         }
-        spec.carryCapacity = PrioritizedCapacitySpec.createCapacitySpec(gSpec, carryLimits);
+        spec.carryCapacity = PrioritizedCapacitySpec.createCapacitySpec(gSpec, carryLimits, true);
         spec.initialMovementSpeed = 0;
         spec.initialLineOfSight= 0;
         spec.initialDepositSpeed = 0;
@@ -106,7 +106,7 @@ public class EntitySpec implements Serializable {
             writer.writeBeginDocument();
             writer.write("name", value.name);
             writer.write("image", value.image);
-            writer.write("ai", value.ai);
+            writer.write("client.ai", value.ai);
 
             writer.write("size", value.size,  DataSerializer.DimensionSerializer, options);
 
@@ -118,6 +118,7 @@ public class EntitySpec implements Serializable {
             writer.write("initial-rotation-speed", value.initialRotationSpeed);
             writer.write("initial-attack-speed", value.initialAttackSpeed);
             writer.write("initial-build-speed", value.initialBuildSpeed);
+            writer.write("creation-time",  value.creationTime);
 
             writer.write("garrison-capacity", value.garrisonCapacity);
 
@@ -127,7 +128,7 @@ public class EntitySpec implements Serializable {
             writer.write("carry-capacity", value.carryCapacity, PrioritizedCapacitySpec.Serializer, options);
 
             writer.write("required-resources", value.requiredResources, ResourceType.Serializer, DataSerializer.IntegerSerializer, options);
-            writer.write("ai-arguments",  value.aiArgs, DataSerializer.StringSerializer, DataSerializer.StringSerializer, options);
+            writer.write("client.ai-arguments",  value.aiArgs, DataSerializer.StringSerializer, DataSerializer.StringSerializer, options);
             writer.write("build-path", value.buildingPath, DataSerializer.StringSerializer, options);
 
 //            writer.write("can-create", canCreate, CreationSpec.Serializer, options);
@@ -149,7 +150,7 @@ public class EntitySpec implements Serializable {
             ret.canCreate = new HashSet<>();
             ret.carrying = new HashSet<>();
 
-            ret.ai = reader.readString("ai");
+            ret.ai = reader.readString("client.ai");
             ret.size = reader.read("size", DataSerializer.DimensionSerializer, spec);
             ret.initialLineOfSight = reader.readDouble("line-of-sight");
             ret.initialBaseHealth = reader.readDouble("initial-initialBaseHealth");
@@ -159,12 +160,13 @@ public class EntitySpec implements Serializable {
             ret.initialRotationSpeed = reader.readDouble("initial-rotation-speed");
             ret.initialAttackSpeed = reader.readDouble("initial-attack-speed");
             ret.initialBuildSpeed = reader.readDouble("initial-build-speed");
+            ret.creationTime = reader.readDouble("creation-time");
             ret.garrisonCapacity = reader.readInt32("garrison-capacity");
             reader.read("drop-on-death", spec, ret.dropOnDeath, EntitySpec.Serializer);
             reader.read("classes", spec, ret.classes, DataSerializer.StringSerializer);
             ret.carryCapacity = reader.read("carry-capacity", PrioritizedCapacitySpec.Serializer, spec);
             reader.read("required-resources", ret.requiredResources, ResourceType.Serializer, DataSerializer.IntegerSerializer, spec);
-            reader.read("ai-arguments", ret.aiArgs, DataSerializer.StringSerializer, DataSerializer.StringSerializer, spec);
+            reader.read("client.ai-arguments", ret.aiArgs, DataSerializer.StringSerializer, DataSerializer.StringSerializer, spec);
             ret.buildingPath = reader.read("build-path", new String[0], DataSerializer.StringSerializer, spec);
 //            reader.read("can-create", spec, ret.canCreate, CreationSpec.Serializer);
             ret.canCreate = new HashSet<>();

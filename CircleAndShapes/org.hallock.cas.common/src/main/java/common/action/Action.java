@@ -43,7 +43,7 @@ public abstract class Action implements Jsonable {
         Move,
         Build,
         Wait,
-        Chase,
+//        Chase,
         ;
 
         public static final DataSerializer<ActionType> Serializer = new DataSerializer<ActionType>() {
@@ -133,14 +133,6 @@ public abstract class Action implements Jsonable {
         public final int maximumAmountToCollect;
         public double progress;
 
-//        public Collect(EntityId resource) {
-//            this(resource, Integer.MAX_VALUE);
-//        }
-
-//        public Collect(EntityId resource, int maxAmount) {
-//            this(resource, maxAmount, null);
-//        }
-
         public Collect(EntityId carrier, ResourceType resourceToCollect, int maxAmount) {
             super(ActionType.Collect);
             this.resourceCarrier = carrier;
@@ -159,7 +151,7 @@ public abstract class Action implements Jsonable {
         }
 
         public String toString() {
-            return "collecting (" + String.format("0.2f", 100 * progress) + "%)";
+            return "collecting (" + String.format("%.2f", 100 * progress) + "%)";
         }
 
         @Override
@@ -234,6 +226,7 @@ public abstract class Action implements Jsonable {
         }
 
         public String toString() {
+            //  to do, why is it null
             return "Creating a " + spec.createdType.name + ": (" + String.format("%.2f", 100 * (spec.createdType.creationTime - timeRemaining) / spec.createdType.creationTime) + "%) (from " + numberOfContributingUnits + ")";
         }
 
@@ -319,29 +312,6 @@ public abstract class Action implements Jsonable {
         }
     }
 
-    public static class Chase extends Action {
-        public final EntityId chased;
-        public DPoint lastKnownLocation;
-        public final double desiredProximity;
-
-        public Chase(EntityId chased, double desiredProximity) {
-            super(ActionType.Chase);
-            this.chased = chased;
-            this.desiredProximity = desiredProximity;
-
-        }
-
-        public static Action finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) {return null;}
-
-        @Override
-        public double getProgressIndicator() {
-            return 0;
-        }
-
-        @Override
-        protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) {}
-    }
-
 
 //    public class Research extends Action {
 //        @Override
@@ -367,7 +337,6 @@ public abstract class Action implements Jsonable {
                 case Create: action = Create.finishParsing(reader, spec); break;
                 case Idle: action = Idle.finishParsing(reader, spec); break;
                 case Wait: action = Wait.finishParsing(reader, spec); break;
-                case Chase: action = Chase.finishParsing(reader, spec); break;
             }
             reader.readEndDocument();
             return action;

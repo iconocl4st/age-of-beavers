@@ -20,13 +20,13 @@ public class Evolution {
     }
 
 
-    EvolutionSpec createEvolvedSpec(Set<EntityId> contributing) {
+    EvolutionSpec createEvolvedSpec(Set<EntityReader> contributing) {
         if (contributing == null || contributing.isEmpty()) return null;
         EntityReader[] entities = new EntityReader[contributing.size()];
 
-        Iterator<EntityId> iterator = contributing.iterator();
+        Iterator<EntityReader> iterator = contributing.iterator();
         for (int i = 0; i < entities.length; i++) {
-            entities[i] = new EntityReader(state.state, iterator.next());
+            entities[i] = iterator.next();
             if (!entities[i].getType().equals(entities[0].getType())) {
                 throw new RuntimeException("Different types contributing to creation.");
             }

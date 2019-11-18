@@ -1,6 +1,7 @@
 package common.util;
 
 import common.algo.AStar;
+import common.state.EntityReader;
 import common.state.spec.EntitySpec;
 import common.state.EntityId;
 import common.state.Player;
@@ -134,6 +135,11 @@ public class GridLocationQuerier {
 
         public boolean successful() {
             return entity != null;
+        }
+
+        public EntityReader getEntity(GameState state) {
+            if (entity == null) return null;
+            return new EntityReader(state, entity);
         }
     }
 

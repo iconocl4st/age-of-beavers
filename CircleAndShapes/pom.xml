@@ -26,6 +26,8 @@
         <module>org.hallock.cas.client</module>
         <module>org.hallock.cas.driver</module>
         <module>org.hallock.cas.server</module>
+        <module>org.hallock.cas.uiclient</module>
+        <module>org.hallock.cas.client.ai</module>
     </modules>
 
     <dependencies>

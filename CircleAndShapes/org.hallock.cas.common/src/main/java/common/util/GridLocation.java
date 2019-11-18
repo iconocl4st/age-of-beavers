@@ -453,7 +453,9 @@ public class GridLocation implements Serializable {
                     }
                     path = pathSearch.path;
                 }
-                best = new GridLocationQuerier.NearestEntityQueryResults(results.entity, results.location, path, results.distance);
+                if (results.distance < best.distance) {
+                    best = new GridLocationQuerier.NearestEntityQueryResults(results.entity, results.location, path, results.distance);
+                }
                 break;
             }
         }

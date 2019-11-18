@@ -16,6 +16,7 @@ import common.state.sst.GameStateHelper;
 import common.state.sst.sub.ConstructionZone;
 import common.state.sst.sub.Load;
 import common.state.sst.sub.ProjectileLaunch;
+import common.state.sst.sub.capacity.Prioritization;
 import common.util.DPoint;
 import common.util.EvolutionSpec;
 import common.util.GridLocationQuerier;
@@ -26,7 +27,9 @@ import server.state.ServerStateManipulator;
 import server.util.IdGenerator;
 
 import java.awt.*;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.Random;
+import java.util.Set;
 
 public class Simulator {
 
@@ -78,9 +81,9 @@ public class Simulator {
             case Create:
                 create(entity, ssm, (Action.Create) action, timeDelta);
                 break;
-            case Chase:
-                chase(entity, ssm, (Action.Chase) action, timeDelta);
-                break;
+//            case Chase:
+//                chase(entity, ssm, (Action.Chase) action, timeDelta);
+//                break;
             default:
                 throw new RuntimeException("Unknown action: " + action.type);
         }
@@ -116,7 +119,7 @@ public class Simulator {
 //            if (player == null)
 //                return;
 
-            Set<EntityId> contributingUnits = action.spec.getContributingUnits(state.state, entity.entityId);
+            Set<EntityReader> contributingUnits = action.spec.getContributingUnits(state.state, entity.entityId);
 
             action.numberOfContributingUnits = contributingUnits.size();
             double newRemainingTime = action.timeRemaining - timeDelta * action.numberOfContributingUnits;
@@ -125,7 +128,7 @@ public class Simulator {
                 return;
             }
 
-            UnGarrisonLocation unGarrisonLocation = UnGarrisonLocation.getUnGarrisonLocation(state.state, entity.entityId);
+            UnGarrisonLocation unGarrisonLocation = UnGarrisonLocation.getUnGarrisonLocation(state.state, entity);
             if (unGarrisonLocation.isImossible()) {
                 ssm.setCreationProgress(entity.entityId, action, 0.0);
                 return;
@@ -133,7 +136,7 @@ public class Simulator {
 
             EntityId createdUnit = generator.generateId();
             ssm.createUnit(createdUnit, action.spec.createdType, evolution.createEvolvedSpec(contributingUnits), unGarrisonLocation.point, entity.getOwner());
-            ssm.setUnitAction(createdUnit, new Action.MoveSeq(unGarrisonLocation.path));
+            ssm.setUnitAction(new EntityReader(state.state, createdUnit), new Action.MoveSeq(unGarrisonLocation.path));
             ssm.done(entity, AiEvent.ActionCompletedReason.Successful);
         }
     }
@@ -288,7 +291,7 @@ public class Simulator {
                 return;
             }
 
-            if (!Proximity.closeEnoughToInteract(state.state, entity.entityId, constructionEntity.entityId)) {
+            if (!Proximity.closeEnoughToInteract(entity, constructionEntity)) {
                 ssm.done(entity, AiEvent.ActionCompletedReason.TooFar);
                 return;
             }
@@ -325,34 +328,20 @@ public class Simulator {
         Load toLoad = to.getCarrying();
         if (toLoad == null) return false;
 
-        EntitySpec toType = to.getType();
+        Prioritization prioritization = from.getCapacity().getPrioritization(r);
 
-        Set<ResourceType> resourcesToTranfer = new HashSet<>();
-        if (r == null) {
-            for (Map.Entry<ResourceType, Integer> entry :  fromLoad.quantities.entrySet()) {
-                if (entry.getValue() > 0)
-                    resourcesToTranfer.add(entry.getKey());
-            }
-        } else {
-            resourcesToTranfer.add(r);
-        }
+        int possibleToAccept = Math.min(maxToCarry, to.getCapacity().amountPossibleToAccept(toLoad, r));
+        int possibleToTake = Math.max(0, fromLoad.quantities.getOrDefault(r, 0) - prioritization.desiredAmount);
+        int amountToTransfer = Math.min(amount, Math.min(possibleToAccept, possibleToTake));
+        if (amountToTransfer <= 0)
+            return false;
+        int newFrom = possibleToTake - amountToTransfer;
+        int newTo = toLoad.quantities.getOrDefault(r, 0) + amountToTransfer;
 
-        boolean canTransferMore = false;
-        for (ResourceType resource : resourcesToTranfer) {
-            int weighedAmount = amount * 100 / resource.weight; // TODO: remove this constant...
-            int possibleToAccept = Math.min(maxToCarry, to.getCapacity().amountPossibleToAccept(toLoad, resource));
-            int possibleToTake = fromLoad.quantities.getOrDefault(resource, 0);
-            int amountToTransfer = Math.min(weighedAmount, Math.min(possibleToAccept, possibleToTake));
-            if (amountToTransfer <= 0) continue;
-            int newFrom = possibleToTake - amountToTransfer;
-            int newTo = toLoad.quantities.getOrDefault(resource, 0) + amountToTransfer;
+        ssm.changePayload(from.entityId, fromLoad, r, newFrom);
+        ssm.changePayload(to.entityId, toLoad, r, newTo);
 
-            ssm.changePayload(from.entityId, fromLoad, resource, newFrom);
-            ssm.changePayload(to.entityId, toLoad, resource, newTo);
-
-            canTransferMore |= amountToTransfer < possibleToAccept && newFrom < possibleToTake;
-        }
-        return canTransferMore;
+        return amountToTransfer < possibleToAccept && newFrom < possibleToTake;
     }
 
     // Could be done in the actual action class?
@@ -361,15 +350,12 @@ public class Simulator {
         if (syncs == null) return;
         synchronized (syncs[0]) {
             synchronized (syncs[1]) {
-                if (!Proximity.closeEnoughToInteract(state.state, entity.entityId, action.location)) {
+                EntityReader depositLocation = new EntityReader(state.state, action.location);
+                if (!Proximity.closeEnoughToInteract(entity, depositLocation)) {
                     ssm.done(entity, AiEvent.ActionCompletedReason.TooFar);
                     return;
                 }
-
-                // TODO: check that the resource is correct
-                // TODO: check the player
-
-                double nextProgress = action.progress + entity.getDepositSpeed() * timeDelta;
+                double nextProgress = action.progress + entity.getDepositSpeed() * timeDelta * 100 / (double) action.resource.weight;
                 int amount = (int) nextProgress;
                 action.progress = Math.max(0.0, Math.min(1.0, nextProgress - amount));
                 ssm.setActionProgress(entity.entityId, action);
@@ -396,26 +382,20 @@ public class Simulator {
         synchronized (syncs[0]) {
             synchronized (syncs[1]) {
                 EntityReader collected = new EntityReader(state.state, action.resourceCarrier);
-
                 if (entity.noLongerExists() || collected.noLongerExists()) {
                     return;
                 }
-
-                if (!Proximity.closeEnoughToInteract(state.state, entity.entityId, action.resourceCarrier)) {
+                if (!Proximity.closeEnoughToInteract(entity, collected)) {
                     ssm.done(entity, AiEvent.ActionCompletedReason.TooFar);
                     return;
                 }
-
-                // TODO: check that the resource is correct
-                // TODO: there is space in the destination
-                // TODO: check the player
 
                 double collectionSpeed = entity.getCollectSpeed();
                 if (!(collected.getType().containsClass("natural-resource"))) {
                     collectionSpeed *= 20;
                 }
 
-                double nextProgress = action.progress + collectionSpeed * timeDelta;
+                double nextProgress = action.progress + collectionSpeed * timeDelta * 100 / action.resource.weight;
                 int amount = (int) nextProgress;
                 action.progress = Math.max(0.0, Math.min(1.0, nextProgress - amount));
                 ssm.setActionProgress(entity.entityId, action);
@@ -433,52 +413,52 @@ public class Simulator {
         }
     }
 
-    private void chase(EntityReader entity, ServerStateManipulator ssm, Action.Chase action, double timeDelta) {
-        // TODO: can't travel directly there...
-        Object synchronizationObject = entity.getSync();
-        if (synchronizationObject == null) return;
-
-        synchronized (synchronizationObject) {
-            DPoint idealLocation = state.state.locationManager.getLocation(action.chased);
-            if (state.state.lineOfSight.isVisible(action.requestingPlayer, (int) idealLocation.x, (int) idealLocation.y)) {
-                action.lastKnownLocation = idealLocation;
-            }
-            DPoint targetLocation = action.lastKnownLocation;
-
-            DPoint location = entity.getLocation();
-            EntitySpec type = entity.getType();
-            if (type == null)
-                return;
-            double speed = entity.getMovementSpeed();
-
-            double dx = targetLocation.x - location.x;
-            double dy = targetLocation.y - location.y;
-            double n = Math.sqrt(dx * dx + dy * dy);
-            double distanceToTravel = timeDelta * speed;
-
-            boolean done = false;
-            final DPoint desiredLocation;
-            if (n > distanceToTravel) {
-                desiredLocation = new DPoint(
-                        location.x + distanceToTravel * dx / n,
-                        location.y + distanceToTravel * dy / n
-                );
-            } else {
-                desiredLocation = targetLocation;
-                done = true;
-            }
-
-            Point gridPoint = desiredLocation.toPoint();
-            if (state.state.isOccupiedFor(gridPoint, entity.getOwner())) {
-                ssm.done(entity, AiEvent.ActionCompletedReason.Invalid);
-                return;
-            }
-
-            ssm.changeUnitLocation(entity, desiredLocation);
-            if (done)
-                ssm.done(entity, AiEvent.ActionCompletedReason.Successful);
-        }
-    }
+//    private void chase(EntityReader entity, ServerStateManipulator ssm, Action.Chase action, double timeDelta) {
+//        // TODO: can't travel directly there...
+//        Object synchronizationObject = entity.getSync();
+//        if (synchronizationObject == null) return;
+//
+//        synchronized (synchronizationObject) {
+//            DPoint idealLocation = state.state.locationManager.getLocation(action.chased);
+//            if (state.state.lineOfSight.isVisible(action.requestingPlayer, (int) idealLocation.x, (int) idealLocation.y)) {
+//                action.lastKnownLocation = idealLocation;
+//            }
+//            DPoint targetLocation = action.lastKnownLocation;
+//
+//            DPoint location = entity.getLocation();
+//            EntitySpec type = entity.getType();
+//            if (type == null)
+//                return;
+//            double speed = entity.getMovementSpeed();
+//
+//            double dx = targetLocation.x - location.x;
+//            double dy = targetLocation.y - location.y;
+//            double n = Math.sqrt(dx * dx + dy * dy);
+//            double distanceToTravel = timeDelta * speed;
+//
+//            boolean done = false;
+//            final DPoint desiredLocation;
+//            if (n > distanceToTravel) {
+//                desiredLocation = new DPoint(
+//                        location.x + distanceToTravel * dx / n,
+//                        location.y + distanceToTravel * dy / n
+//                );
+//            } else {
+//                desiredLocation = targetLocation;
+//                done = true;
+//            }
+//
+//            Point gridPoint = desiredLocation.toPoint();
+//            if (state.state.isOccupiedFor(gridPoint, entity.getOwner())) {
+//                ssm.done(entity, AiEvent.ActionCompletedReason.Invalid);
+//                return;
+//            }
+//
+//            ssm.changeUnitLocation(entity, desiredLocation);
+//            if (done)
+//                ssm.done(entity, AiEvent.ActionCompletedReason.Successful);
+//        }
+//    }
 
     private void move(EntityReader entity, ServerStateManipulator ssm, Action.MoveSeq action, double timeDelta) {
         Object synchronizationObject = entity.getSync();

@@ -105,12 +105,26 @@ public abstract class AiEvent implements Jsonable {
         protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) {}
     }
 
+    public static class DemandsChanged extends AiEvent {
+        public DemandsChanged(EntityId entity) {
+            super(entity, EventType.DemandsChanged);
+        }
+
+        static AiEvent finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec, EntityId entityId) {
+            return new DemandsChanged(entityId);
+        }
+
+        @Override
+        protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {}
+    }
+
     public enum EventType {
         TargetWithinRange,
         ActionCompleted,
         TargetKilled,
         GarrisonChange,
         ResourceChange,
+        DemandsChanged,
     }
 
 
@@ -137,6 +151,7 @@ public abstract class AiEvent implements Jsonable {
                 case GarrisonChange: event = GarrisonedChanged.finishParsing(reader, spec, entityId); break;
                 case ResourceChange: event = ResourcesChanged.finishParsing(reader, spec, entityId); break;
                 case TargetKilled: event = TargetKilled.finishParsing(reader, spec, entityId); break;
+                case DemandsChanged: event = DemandsChanged.finishParsing(reader, spec, entityId); break;
 //                case TargetWithinRange: event = TargetWithinRange.finishParsing(reader, spec, entityId); break;
             }
             reader.readEndDocument();

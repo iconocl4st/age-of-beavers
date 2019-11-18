@@ -1,6 +1,6 @@
 package driver;
 
-import client.app.ClientContext;
+import client.app.UiClientContext;
 import client.app.ClientDriver;
 import common.msg.Message;
 import org.json.simple.parser.ParseException;
@@ -16,67 +16,104 @@ public class Testing {
 
         // TODO: stance
 
-        // repair
-        // create export to tensor
-        // make a testing framework
-        // update the spec on the fly
-        // create service deliveries ai
-        // create consumer class with priorities with threshholds
-//          make none of the managers have to access to other managers
-//        (move methods into a helper class)
+        // repair action
+        // research action
+
+
+        // missing buildings
+        // amory
+        // weapon manufactorer (probably different kinds) / blacksmith
+        // refinery
+        // track
+        // archery range
+        // lancing thing
+        // stable
+        // city hall (what for?)
+        // university
+        // hospital
+        // farm
+        // stance
+        // mill (by water or slaves)
+        // shooting range
+        // market
+        // outpost
+        // tower
+        // wall
+        // castle
+        // dock
+        // fishing ship
+        // airport
+        // bar
+        // winery
+        // grape vine
+        // granary
+        // statue
+        // portal
+        // gunpowder: sulfur, charcoal potassium
+        // expeditions
+        // mine
+        // oil
+        // select old
+
+
+
+        // create nueral ai
+        //      create export to tensor
+
+        // questionable
+        //      make a testing framework
+        //      update the spec on the fly
 
         // make the action have a timestamp of when it was set by the server (to enable multiple client renders  for one server tick)
-        // make the game time also depend on the current time
-        // implement an obstacle search
+        // image manager
+        // make the game time also depend on the current time (as an option)
 
-        // draw orientations
-//        use the base initialBaseHealth class
-//                        use weapon manager
-//                        use armor manager
-//                        use projectile manager
-        // use entity reader
+        // fix pathing:
+        //    implement an obstacle search
+        //    implement blocked counter
+        //    make units occupy
 
+        // small changes
+        //      draw orientations
+        //      use armor manager
+        //      use entity reader
+        //      control click pathing indicator
+        //      create natural resource for dropped resources...
+        //      implement evolution params in the brothel/feeding trough
 
-        // transport ai
-        // implement blocked counter
-        // make units occupy
-        // add color to players
         // add a spectate
-        // control click pathing indicator
 
         // add sounds
         // common actions when multiple are selected
         // using bson
 
+
+        // write the first player client.ai
+        //      refactor ai
+        //      create a while within proximity client.ai
+        //      create an WithNoOtherResources sub - client.ai
+        //      in range listener
+        //      intercept/chase client.ai
+        //      refactor out a move to client.ai
+
+
+
         // BUGS
-        // sometimes stuck when walking somewhere
-        // make all of the units go back to the town center when the run out of resources to gather...
-        // elaborate the selection priority
-        // makes sure resources are preserved somehow after construction. (don't let extra resources be there.)
+        // don't let extra resources be in construction zone.
         // players can move to a spot, but still not be close enough to interact...
-        // still see a white box over a resource...
         //  To finish astar:
         //          make the path start/stop at the floor of the first and last points
         //          make sure that +1, +2 is also feasible unless the point is integer
         //          this is still slightly too conservative
         //          could also do intersections of all corners of the unit
-        // implement evolution params in the brothel/feeding trough
-        // change things to attributes
-        // image manager
-        // create a while within proximity ai
-        // create an WithNoOtherResources sub - ai
-        // in range listener
-        // intercept/chase ai
-        // refactor out a move to ai
-        // write the first player ai
 
-        // create natural resource for dropped resources...
+
 
         int numClients = 2;
         ServerContext serverContext = ServerDriver.createServerContext();
-        ClientContext[] clientContexts = new ClientContext[numClients];
+        UiClientContext[] clientContexts = new UiClientContext[numClients];
         for (int i = 0; i < numClients; i++) {
-            clientContexts[i] = new ClientContext();
+            clientContexts[i] = new UiClientContext();
         }
 
         System.out.println("Starting server");
@@ -94,7 +131,7 @@ public class Testing {
         CountDownLatch clientsRunningLatch = new CountDownLatch(numClients);
 
         System.out.println("Starting clients");
-        for (final ClientContext clientContext : clientContexts)
+        for (final UiClientContext clientContext : clientContexts)
             new Thread(() -> {
                 try {
                     ClientDriver.runClientContext(clientContext, clientsRunningLatch);
@@ -114,10 +151,12 @@ public class Testing {
             clientContexts[i].writer.flush();
         }
 
+        Thread.sleep(1000);
+
         clientContexts[0].writer.send(new Message.Launch());
         clientContexts[0].writer.flush();
 
-        clientContexts[1].uiManager.mainWindowFrame.setLocation(50, 1920);
+        clientContexts[1].uiManager.mainWindowFrame.setLocation(1920, 50);
 
         /////////////////////////
         /// TEMPLE IDEAS
@@ -140,8 +179,5 @@ public class Testing {
         // ancient
 
         // divine rapier
-
-
     }
-
 }

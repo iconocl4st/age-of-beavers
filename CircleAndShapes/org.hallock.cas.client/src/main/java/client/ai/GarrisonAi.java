@@ -1,14 +1,15 @@
 package client.ai;
 
-import client.app.ClientContext;
+import client.state.ClientGameState;
 import common.Proximity;
 import common.state.EntityId;
+import common.state.EntityReader;
 
 public class GarrisonAi extends Ai {
 
-    private final EntityId garrisonLocation;
+    private final EntityReader garrisonLocation;
 
-    public GarrisonAi(ClientContext state, EntityId toGarrison, EntityId garrisonLocation)  {
+    public GarrisonAi(ClientGameState state, EntityReader toGarrison, EntityReader garrisonLocation)  {
         super(state, toGarrison);
         this.garrisonLocation = garrisonLocation;
     }
@@ -22,7 +23,7 @@ public class GarrisonAi extends Ai {
         if (controlling.isHidden()) {
             return AiAttemptResult.Completed;
         }
-        if (Proximity.closeEnoughToInteract(context.gameState, controlling.entityId, garrisonLocation)) {
+        if (Proximity.closeEnoughToInteract(controlling, garrisonLocation)) {
             ar.setUnitActionToEnter(controlling, garrisonLocation);
             return AiAttemptResult.Successful;
         } else {

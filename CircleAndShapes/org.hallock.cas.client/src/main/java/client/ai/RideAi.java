@@ -1,15 +1,15 @@
 package client.ai;
 
-import client.app.ClientContext;
+import client.state.ClientGameState;
 import common.Proximity;
-import common.state.EntityId;
+import common.state.EntityReader;
 
 // todo: dry with garrison
 public class RideAi extends Ai {
 
-    private final EntityId ridden;
+    private final EntityReader ridden;
 
-    public RideAi(ClientContext context, EntityId rider, EntityId ridden) {
+    public RideAi(ClientGameState context, EntityReader rider, EntityReader ridden) {
         super(context, rider);
         this.ridden = ridden;
     }
@@ -20,7 +20,7 @@ public class RideAi extends Ai {
 
     @Override
     public AiAttemptResult setActions(ActionRequester ar) {
-        if (Proximity.closeEnoughToInteract(context.gameState, controlling.entityId, ridden)) {
+        if (Proximity.closeEnoughToInteract(controlling, ridden)) {
             ar.setUnitActionToMount(controlling, ridden);
             return AiAttemptResult.Successful;
         } else {

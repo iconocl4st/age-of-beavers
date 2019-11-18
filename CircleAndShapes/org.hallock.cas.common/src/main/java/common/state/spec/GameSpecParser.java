@@ -147,7 +147,7 @@ public class GameSpecParser {
             for (CarrySpec carrySpec : eSpec.carrying) {
                 carryLimits.put(carrySpec.type, carrySpec.startingQuantity);
             }
-            eSpec.carryCapacity = PrioritizedCapacitySpec.createCapacitySpec(spec, carryLimits);
+            eSpec.carryCapacity = PrioritizedCapacitySpec.createCapacitySpec(spec, carryLimits, false);
             eSpec.classes = NATURAL_RESOURCE_CLASSES;
             eSpec.requiredResources = Collections.emptyMap();
             eSpec.canCreate = Collections.emptySet();
@@ -212,15 +212,15 @@ public class GameSpecParser {
                 JSONObject limit = (JSONObject) limitsList.get(j);
                 limits.put(spec.getResourceType((String) limit.get("resource")), (int) (long) limit.get("amount"));
             }
-            capacitySpec = PrioritizedCapacitySpec.createCapacitySpec(spec, limits);
+            capacitySpec = PrioritizedCapacitySpec.createCapacitySpec(spec, limits, false);
         } else {
-            capacitySpec = new PrioritizedCapacitySpec();
+            capacitySpec = new PrioritizedCapacitySpec(spec);
         }
 
         if (o.containsKey("total-weight")) {
-            capacitySpec.totalWeight = (int)(long) o.get("total-weight");
+            capacitySpec.setTotalWeight((int)(long) o.get("total-weight"));
         } else {
-            capacitySpec.totalWeight = capacitySpec.sumAllowedResources();
+            capacitySpec.setTotalWeight(capacitySpec.sumAllowedResources());
         }
         return capacitySpec;
     }
@@ -310,8 +310,8 @@ public class GameSpecParser {
             if (unitJson.containsKey("line-of-sight")) {
                 unitSpec.initialLineOfSight = (double) unitJson.get("line-of-sight");
             }
-            if (unitJson.containsKey("initialBaseHealth-points")) {
-                unitSpec.initialBaseHealth = (double) unitJson.get("initialBaseHealth-points");
+            if (unitJson.containsKey("health-points")) {
+                unitSpec.initialBaseHealth = (double) unitJson.get("health-points");
             }
             if (unitJson.containsKey("size")) {
                 unitSpec.size = parseDimension((JSONObject) unitJson.get("size"));
@@ -375,8 +375,8 @@ public class GameSpecParser {
                 }
                 canCreate.put(unitSpec.name, canCreateList);
             }
-            if (unitJson.containsKey("ai")) {
-                JSONObject aiObject = (JSONObject) unitJson.get("ai");
+            if (unitJson.containsKey("client.ai")) {
+                JSONObject aiObject = (JSONObject) unitJson.get("client.ai");
                 unitSpec.ai = (String) aiObject.get("name");
                 unitSpec.aiArgs = new HashMap<>();
                 JSONObject parameters = (JSONObject) aiObject.get("params");

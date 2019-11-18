@@ -2,6 +2,7 @@ package server.algo;
 
 import common.algo.AStar;
 import common.state.EntityId;
+import common.state.EntityReader;
 import common.state.Player;
 import common.state.spec.EntitySpec;
 import common.state.sst.GameState;
@@ -19,15 +20,15 @@ public final class UnGarrisonLocation {
         this.path = path;
     }
 
-    public static UnGarrisonLocation getUnGarrisonLocation(GameState state, EntityId holder) {
-        Player owner = state.playerManager.get(holder);
+    public static UnGarrisonLocation getUnGarrisonLocation(GameState state, EntityReader holder) {
+        Player owner = holder.getOwner();
         GameState.OccupancyView occupancyState = state.getOccupancyView(owner);
-        EntitySpec type = state.typeManager.get(holder);
-        DPoint location = state.locationManager.getLocation(holder);
-        DPoint gatherPoint = state.gatherPointManager.get(holder);
+        EntitySpec type = holder.getType();
+        DPoint location = holder.getLocation();
+        DPoint gatherPoint = holder.getCurrentGatherPoint();
 
         if (gatherPoint != null) {
-            AStar.PathSearch path = GridLocationQuerier.findPath(state, holder, gatherPoint, owner);
+            AStar.PathSearch path = GridLocationQuerier.findPath(state, holder.entityId, gatherPoint, owner);
             if (path != null) {
                 return new UnGarrisonLocation(path.path.points.get(0), path.path);
             }

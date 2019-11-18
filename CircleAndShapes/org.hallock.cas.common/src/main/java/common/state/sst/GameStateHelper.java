@@ -1,5 +1,6 @@
 package common.state.sst;
 
+import common.state.EntityReader;
 import common.state.spec.EntitySpec;
 import common.state.EntityId;
 import common.state.Player;
@@ -7,18 +8,17 @@ import common.state.sst.manager.ManagerImpl;
 import common.util.json.EmptyJsonable;
 
 public class GameStateHelper {
-    public static boolean playerCanRide(GameState gs, Player player, EntityId rider, EntityId ridden) {
+    public static boolean playerCanRide(Player player, EntityReader rider, EntityReader ridden) {
         if (rider.equals(ridden)) return false;
-        EntitySpec riderType = gs.typeManager.get(rider);
-        EntitySpec riddenType = gs.typeManager.get(ridden);
-        Player riderOwner = gs.playerManager.get(rider);
-        Player riddenOwner = gs.playerManager.get(ridden);
+        EntitySpec riderType = rider.getType();
+        EntitySpec riddenType = ridden.getType();
+        Player riderOwner = rider.getOwner();
+        Player riddenOwner = ridden.getOwner();
         if (riderType == null || riddenType == null || riderOwner == null || riddenOwner == null)
             return false;
         if (!riderType.containsClass("rider") || !riddenType.containsClass("ridable"))
             return false;
-//        if (gs.ridingManager.getRiding(rider) != null) return false;
-        if (gs.hiddenManager.get(rider) || gs.hiddenManager.get(ridden))
+        if (rider.isHidden() || ridden.isHidden())
             return false;
         if (player.equals(Player.GOD)) return true;
         if (riddenOwner.equals(Player.GAIA)) {
@@ -30,16 +30,16 @@ public class GameStateHelper {
         }
     }
 
-    public static boolean playerCanGarrison(GameState gs, Player player, EntityId goGarrison, EntityId destination) {
-        EntitySpec eEntity = gs.typeManager.get(goGarrison);
+    public static boolean playerCanGarrison(Player player, EntityReader goGarrison, EntityReader destination) {
+        EntitySpec eEntity = goGarrison.getType();
         if (eEntity == null || !eEntity.containsClass("can-garrison-in-others"))
             return false;
-        EntitySpec rEntity = gs.typeManager.get(destination);
+        EntitySpec rEntity = destination.getType();
         if (rEntity == null || !rEntity.containsClass("can-garrison-others"))
             return false;
-        Player eOwner = gs.playerManager.get(goGarrison);
+        Player eOwner = goGarrison.getOwner();
         if (eOwner == null) return false;
-        Player dOwner = gs.playerManager.get(destination);
+        Player dOwner = destination.getOwner();
         if (dOwner == null) return false;
         if (player.equals(Player.GOD)) return true;
         if (!player.equals(eOwner)) return false;

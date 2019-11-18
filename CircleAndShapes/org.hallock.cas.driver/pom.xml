@@ -19,7 +19,7 @@
         </dependency>
         <dependency>
             <groupId>org.hallock</groupId>
-            <artifactId>org.hallock.cas.client</artifactId>
+            <artifactId>org.hallock.cas.uiclient</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>

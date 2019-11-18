@@ -1,14 +1,14 @@
 package client.ai;
 
-import client.app.ClientContext;
-import common.state.EntityId;
+import client.state.ClientGameState;
+import common.state.EntityReader;
 import common.util.DPoint;
 
 public class MoveAi extends Ai {
     private DPoint currentLocation;
     private DPoint destination;
 
-    public MoveAi(ClientContext context, EntityId controlling, DPoint location) {
+    public MoveAi(ClientGameState context, EntityReader controlling, DPoint location) {
         super(context, controlling);
         destination = location;
     }

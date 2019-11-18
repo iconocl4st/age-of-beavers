@@ -26,6 +26,17 @@ public class EntityReader implements LocatedEntitySpec {
         this.entityId = entityId;
     }
 
+    public int hashCode() {
+        return entityId.hashCode();
+    }
+
+    public boolean equals(Object other) {
+        if (!(other instanceof EntityReader)) {
+            return false;
+        }
+        EntityReader o = (EntityReader) other;
+        return o.entityId.equals(entityId);
+    }
 
     public double getCurrentAge() {
         return state.currentTime - zin(state.ageManager.get(entityId));
@@ -54,30 +65,34 @@ public class EntityReader implements LocatedEntitySpec {
         return state.constructionManager.get(entityId);
     }
 
-    public EntityId getHolder() {
-        return state.garrisonManager.get(entityId);
+    public EntityReader getHolder() {
+        EntityId holderId = state.garrisonManager.get(this.entityId);
+        if (holderId == null) return null;
+        return new EntityReader(state, holderId);
     }
 
-    public Set<EntityId> getGarrisoned() {
+    public Set<EntityReader> getGarrisoned() {
         Set<ReversableManagerImpl.Pair<EntityId>> garrisonedUnits = state.garrisonManager.getByType(entityId);
         if (garrisonedUnits == null || garrisonedUnits.isEmpty())
             return Collections.emptySet();
-        HashSet<EntityId> garrisoned = new HashSet<>();
+        HashSet<EntityReader> garrisoned = new HashSet<>();
         for (ReversableManagerImpl.Pair<EntityId> p : garrisonedUnits) {
-            garrisoned.add(p.entityId);
+            garrisoned.add(new EntityReader(state, p.entityId));
         }
         return garrisoned;
     }
 
 
     public int getNumGarrisonedUnits() {
-        Set<EntityId> garrisoned = getGarrisoned();
+        Set<EntityReader> garrisoned = getGarrisoned();
         if (garrisoned == null) return 0;
         return garrisoned.size();
     }
 
-    public EntityId getRiding() {
-        return state.ridingManager.get(entityId);
+    public EntityReader getRiding() {
+        EntityId entityId = state.ridingManager.get(this.entityId);
+        if (entityId == null) return null;
+        return new EntityReader(state, entityId);
     }
 
     public EntitySpec getType() {
@@ -113,12 +128,11 @@ public class EntityReader implements LocatedEntitySpec {
     }
 
     public double getMovementSpeed() {
-        EntityId ridingId = getRiding();
+        EntityReader riding = getRiding();
         double movementSpeed1 = getBaseMovementSpeed();
-        if (ridingId == null) {
+        if (riding == null) {
             return movementSpeed1;
         }
-        EntityReader riding = new EntityReader(state, ridingId);
         double movementSpeed2 = riding.getMovementSpeed();
         return Math.max(movementSpeed1, movementSpeed2);
     }
@@ -132,6 +146,7 @@ public class EntityReader implements LocatedEntitySpec {
     public PrioritizedCapacitySpec getCapacity() { return state.capacityManager.get(entityId); }
 
     public boolean canAccept(ResourceType resource) {
+        // null pointer?
         return getCapacity().amountPossibleToAccept(getCarrying(), resource) > 0;
     }
 
@@ -188,7 +203,10 @@ public class EntityReader implements LocatedEntitySpec {
         Load load = state.carryingManager.get(entityId);
         if (load == null) return true;
         Integer integer = load.quantities.get(resourceType);
-        return integer == null || integer == 0 || integer <= 0;
+        if (integer == null || integer == 0 || integer <= 0)
+            return true;
+        PrioritizedCapacitySpec capacity = getCapacity();
+        return capacity.getPrioritization(resourceType).desiredAmount >= integer;
     }
 
     public boolean isNotCarryingAnything() {

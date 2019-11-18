@@ -24,12 +24,12 @@ public class GameState implements Jsonable {
     public GameSpec gameSpec;
 
     // todo: rename to syncs
+    public LocationManager locationManager;
+
     public ManagerImpl<EmptyJsonable> entityManager;
     public ReversableManagerImpl<EntityId, EntityId> garrisonManager;
     public ManagerImpl<EntityId> ridingManager;
     public ReversableManagerImpl<GateInfo, Point> gateStateManager;
-    public LocationManager locationManager;
-
     public ManagerImpl<ConstructionZone> constructionManager;
     public ManagerImpl<Double> ageManager;
     public ReversableManagerImpl<Action, Action.ActionType> actionManager;
@@ -52,17 +52,10 @@ public class GameState implements Jsonable {
     public ManagerImpl<EvolutionSpec> evolutionManager;
     public ManagerImpl<WeaponSet> weaponsManager;
     public ManagerImpl<ProjectileLaunch> projectileManager;
-
-//    public ManagerImpl<Double> carryingManager;
-
 //    public ManagerImpl<Armor> armorManager;
-//    public ManagerImpl<AcceptingStatus> acceptingManager;
-//    public ManagerImpl<requests> economicsManager;
 
     public LineOfSightSpec lineOfSight;
-    public Occupancy occupancyState; // todo: Zoom.serverState.state.isOccupiedFor(p, player) everywhere...
-
-    // could add a manager for locking a unit while successive operations are being performed...
+    public Occupancy occupancyState;
 
     public static GameState createGameState(GameSpec spec, LineOfSightSpec los) {
         GameState gs = new GameState();
@@ -97,39 +90,6 @@ public class GameState implements Jsonable {
         gs.evolutionManager = new ManagerImpl<>(EvolutionSpec.Serializer);
         gs.gameSpec = spec;
         return gs;
-    }
-
-    public void updateAll(GameState newGameState) {
-        actionManager.updateAll(newGameState.actionManager);
-        carryingManager.updateAll(newGameState.carryingManager);
-        entityManager.updateAll(newGameState.entityManager);
-        healthManager.updateAll(newGameState.healthManager);
-        locationManager.updateAll(newGameState.locationManager);
-        playerManager.updateAll(newGameState.playerManager);
-        typeManager.updateAll(newGameState.typeManager);
-        occupancyState.updateAll(newGameState.occupancyState);
-        lineOfSight.updateAll(newGameState.lineOfSight);
-        constructionManager.updateAll(newGameState.constructionManager);
-        garrisonManager.updateAll(newGameState.garrisonManager);
-        ridingManager.updateAll(newGameState.ridingManager);
-        movementSpeedManager.updateAll(newGameState.movementSpeedManager);
-        hiddenManager.updateAll(newGameState.hiddenManager);
-        ageManager.updateAll(newGameState.ageManager);
-        gateStateManager.updateAll(newGameState.gateStateManager);
-        gatherPointManager.updateAll(newGameState.gatherPointManager);
-        attackSpeedManager.updateAll(newGameState.attackSpeedManager);
-        baseHealthManager.updateAll(newGameState.baseHealthManager);
-        rotationSpeedManager.updateAll(newGameState.rotationSpeedManager);
-        orientationManager.updateAll(newGameState.orientationManager);
-        weaponsManager.updateAll(newGameState.weaponsManager);
-        projectileManager.updateAll(newGameState.projectileManager);
-        capacityManager.updateAll(newGameState.capacityManager);
-        buildSpeedManager.updateAll(newGameState.buildSpeedManager);
-        lineOfSightManager.updateAll(newGameState.lineOfSightManager);
-        collectSpeedManager.updateAll(newGameState.collectSpeedManager);
-        depositSpeedManager.updateAll(newGameState.depositSpeedManager);
-        evolutionManager.updateAll(newGameState.evolutionManager);
-        gameSpec = newGameState.gameSpec;
     }
 
     public void updateAll(JsonReaderWrapperSpec reader, ReadOptions options) throws IOException {
@@ -233,7 +193,7 @@ public class GameState implements Jsonable {
         }
     }
 
-    // TODO: use
+    // TODO: use/move
     public boolean isOccupiedFor(Point p, Player player) {
         return occupancyState.isGloballyOccupied(p.x, p.y) || GateInfo.isOccupiedFor(p, player, gateStateManager, playerManager);
     }

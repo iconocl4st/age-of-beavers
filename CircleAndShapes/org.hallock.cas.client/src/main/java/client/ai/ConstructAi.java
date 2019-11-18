@@ -1,11 +1,10 @@
 package client.ai;
 
-import client.app.ClientContext;
+import client.state.ClientGameState;
 import common.Proximity;
+import common.state.EntityReader;
 import common.state.spec.ConstructionSpec;
 import common.state.spec.ResourceType;
-import common.state.EntityId;
-import common.state.EntityReader;
 import common.state.sst.sub.ConstructionZone;
 import common.state.sst.sub.Load;
 import common.util.DPoint;
@@ -17,9 +16,9 @@ public class ConstructAi extends Ai {
 
     private EntityReader constructionEntity;
 
-    public ConstructAi(ClientContext gameState, EntityId controlling, EntityId constructionZone) {
+    public ConstructAi(ClientGameState gameState, EntityReader controlling, EntityReader constructionZone) {
         super(gameState, controlling);
-        this.constructionEntity = new EntityReader(gameState.gameState, constructionZone);
+        this.constructionEntity = constructionZone;
     }
 
     public String toString() {
@@ -62,11 +61,11 @@ public class ConstructAi extends Ai {
 
             if (missingResources.isEmpty()) {
                 /* If all materials are present, then build. */
-                if (Proximity.closeEnoughToInteract(context.gameState, controlling.entityId, constructionEntity.entityId)) {
-                    ar.setUnitActionToBuild(controlling, constructionEntity.entityId);
+                if (Proximity.closeEnoughToInteract(controlling, constructionEntity)) {
+                    ar.setUnitActionToBuild(controlling, constructionEntity);
                     return AiAttemptResult.Successful;
                 }
-                return ar.setUnitActionToMove(controlling, constructionEntity.entityId);
+                return ar.setUnitActionToMove(controlling, constructionEntity);
             }
 
 
@@ -90,17 +89,18 @@ public class ConstructAi extends Ai {
                     // shouldn't happen
                     continue;
                 }
-                if (Proximity.closeEnoughToInteract(context.gameState, controlling.entityId, constructionEntity.entityId)) {
-                    ar.setUnitActionToDeposit(controlling, constructionEntity.entityId, entry.getKey(), requiredResources.get(entry.getKey()));
+                if (Proximity.closeEnoughToInteract(controlling, constructionEntity)) {
+                    ar.setUnitActionToDeposit(controlling, constructionEntity, entry.getKey(), requiredResources.get(entry.getKey()));
                     return AiAttemptResult.Successful;
                 }
-                return ar.setUnitActionToMove(controlling, constructionEntity.entityId);
+                return ar.setUnitActionToMove(controlling, constructionEntity);
             }
 
             /* Otherwise, collect the required resources from other storage locations*/
             for (Map.Entry<ResourceType, Integer> entry : missingResources.entrySet()) {
-                if (retrieveCollectedResources(ar, controlling.entityId, entry.getKey(), entry.getValue())) {
-                    return AiAttemptResult.Successful;
+                switch (retrieveCollectedResources(ar, controlling, entry.getKey(), entry.getValue())) {
+                    case Successful:
+                        return AiAttemptResult.Successful;
                 }
             }
 

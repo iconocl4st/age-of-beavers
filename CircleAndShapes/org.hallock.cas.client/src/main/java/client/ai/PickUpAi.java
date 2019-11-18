@@ -1,10 +1,9 @@
 package client.ai;
 
-import client.app.ClientContext;
+import client.state.ClientGameState;
 import common.Proximity;
-import common.state.spec.ResourceType;
-import common.state.EntityId;
 import common.state.EntityReader;
+import common.state.spec.ResourceType;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -15,9 +14,9 @@ public class PickUpAi extends Ai {
     private final ResourceType resource;
 
 
-    public PickUpAi(ClientContext gameState, EntityId worker, EntityId destination, ResourceType resource) {
+    public PickUpAi(ClientGameState gameState, EntityReader worker, EntityReader destination, ResourceType resource) {
         super(gameState, worker);
-        this.destination = new EntityReader(gameState.gameState, destination);
+        this.destination = destination;
         this.resource = resource;
     }
 
@@ -45,11 +44,11 @@ public class PickUpAi extends Ai {
             return AiAttemptResult.Completed;
         }
 
-        if (Proximity.closeEnoughToInteract(context.gameState, controlling.entityId, destination.entityId)) {
-            ar.setUnitActionToCollect(controlling, destination.entityId, resource, Integer.MAX_VALUE);
+        if (Proximity.closeEnoughToInteract(controlling, destination)) {
+            ar.setUnitActionToCollect(controlling, destination, resource, Integer.MAX_VALUE);
             return AiAttemptResult.Successful;
         } else {
-            return ar.setUnitActionToMove(controlling, destination.entityId);
+            return ar.setUnitActionToMove(controlling, destination);
         }
     }
 }

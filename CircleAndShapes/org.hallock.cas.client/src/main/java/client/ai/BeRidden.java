@@ -1,17 +1,16 @@
 package client.ai;
 
-import client.app.ClientContext;
+import client.state.ClientGameState;
 import common.Proximity;
-import common.state.EntityId;
 import common.state.EntityReader;
 
 public class BeRidden extends Ai {
 
     private final EntityReader rider;
 
-    public BeRidden(ClientContext state, EntityId controlling, EntityId riderLocation)  {
+    public BeRidden(ClientGameState state, EntityReader controlling, EntityReader rider)  {
         super(state, controlling);
-        this.rider = new EntityReader(state.gameState, riderLocation);
+        this.rider = rider;
     }
 
     public String toString() {
@@ -20,11 +19,11 @@ public class BeRidden extends Ai {
 
     @Override
     public Ai.AiAttemptResult setActions(ActionRequester ar) {
-        if (Proximity.closeEnoughToInteract(context.gameState, controlling.entityId, rider.entityId)) {
-            ar.setUnitActionToMount(rider, controlling.entityId);
+        if (Proximity.closeEnoughToInteract(controlling, rider)) {
+            ar.setUnitActionToMount(rider, controlling);
             return Ai.AiAttemptResult.Successful;
         } else {
-            return ar.setUnitActionToMove(controlling, rider.entityId);
+            return ar.setUnitActionToMove(controlling, rider);
         }
     }
 }

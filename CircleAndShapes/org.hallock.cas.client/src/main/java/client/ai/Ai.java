@@ -1,13 +1,14 @@
 package client.ai;
 
-import client.app.ClientContext;
-import common.AiEvent;
 import client.event.AiEventListener;
+import client.state.ClientGameState;
+import common.AiEvent;
 import common.Proximity;
-import common.state.spec.EntitySpec;
-import common.state.spec.ResourceType;
 import common.state.EntityId;
 import common.state.EntityReader;
+import common.state.Player;
+import common.state.spec.EntitySpec;
+import common.state.spec.ResourceType;
 import common.state.sst.sub.Load;
 import common.util.EntityQueryFilter;
 import common.util.GridLocationQuerier;
@@ -26,12 +27,12 @@ public abstract class Ai implements AiEventListener {
         ;
     }
 
-    protected final ClientContext context;
+    protected final ClientGameState context;
     protected final EntityReader controlling;
 
-    protected Ai(ClientContext context, EntityId controlling) {
+    protected Ai(ClientGameState context, EntityReader controlling) {
         this.context = context;
-        this.controlling = new EntityReader(context.gameState, controlling);
+        this.controlling = controlling;
     }
 
     public abstract String toString();
@@ -77,8 +78,8 @@ public abstract class Ai implements AiEventListener {
             System.out.println("No where to leave it.");
             return AiAttemptResult.Unsuccessful;
         }
-        if (Proximity.closeEnoughToInteract(context.gameState, controlling.entityId, results.entity)) {
-            ar.setUnitActionToDeposit(controlling, results.entity, resource, Integer.MAX_VALUE);
+        if (Proximity.closeEnoughToInteract(controlling, results.getEntity(context.gameState))) {
+            ar.setUnitActionToDeposit(controlling, results.getEntity(context.gameState), resource, Integer.MAX_VALUE);
         } else {
             ar.setUnitActionToMove(controlling, results.path);
         }
@@ -93,6 +94,8 @@ public abstract class Ai implements AiEventListener {
             if (entity.isHidden()) return false;
             if (!entity.canAccept(resource)) return false;
             if (!entity.getType().containsClass("storage")) return false;
+            if (!entity.getOwner().equals(context.currentPlayer) && !entity.getOwner().equals(Player.GAIA))
+                return false;
             return true;
         };
 
@@ -111,39 +114,57 @@ public abstract class Ai implements AiEventListener {
         ));
     }
 
-    protected boolean retrieveCollectedResources(ActionRequester ar, final EntityId constructor, final ResourceType resource, int amountToRetreive) {
-        EntityQueryFilter filter = entity -> {
-            // Should we make him cut trees?
-            EntitySpec type = context.gameState.typeManager.get(entity);
-            if (type == null || !type.containsClass("storage") || type.containsClass("construction-zone")) return false;
-//            Player player = c.gameState.playerManager.getOwner(constructor);
-//            if (player == null) return false;
-//            if (!c.gameState.playerManager.playerOwns(player, entity)) return false;
+    protected GridLocationQuerier.NearestEntityQueryResults locateCollectedResources(
+        EntityReader searcher,
+        ResourceType resource
+    ) {
 
-//            if (!type.containsClass("storage")) return false;
-            Load load = context.gameState.carryingManager.get(entity);
-            if (load == null) return false;
-            Integer quantity = load.quantities.get(resource);
-            return quantity != null && quantity > 0;
+        EntityQueryFilter filter = entityId -> {
+            if (entityId.equals(searcher.entityId))
+                return false;
+            EntityReader entity = new EntityReader(context.gameState, entityId);
+            if (!entity.getOwner().equals(context.currentPlayer) && !entity.getOwner().equals(Player.GAIA))
+                return  false;
+            EntitySpec type = entity.getType();
+            if (type == null || !type.containsClass("storage"))
+                return false;
+            /* if (type.containsClass("construction-zone")) return false; */
+            return !entity.doesNotHave(resource);
         };
 
-        GridLocationQuerier.NearestEntityQueryResults queryResults = context.gameState.locationManager.query(
+        return context.gameState.locationManager.query(
                 new GridLocationQuerier.NearestEntityQuery(context.gameState, controlling.getLocation(), filter, Double.MAX_VALUE, context.currentPlayer)
         );
-        if (!queryResults.successful()) {
-            return false;
-        }
-
-        if (Proximity.closeEnoughToInteract(context.gameState, constructor, queryResults.entity)) {
-            ar.setUnitActionToCollect(controlling, queryResults.entity, resource, amountToRetreive);
-            return true;
-        }
-
-        ar.setUnitActionToMove(controlling, queryResults.path);
-        return true;
     }
 
-    public static boolean anyAreNull(Object... objects) {
+    protected AiAttemptResult retrieveCollectedResources(
+            ActionRequester ar,
+            final EntityReader constructor,
+            final ResourceType resource,
+            int amountToRetreive
+    ) {
+        GridLocationQuerier.NearestEntityQueryResults results = locateCollectedResources(constructor, resource);
+        if (!results.successful()) {
+            return AiAttemptResult.Unsuccessful;
+        }
+
+        if (Proximity.closeEnoughToInteract(constructor, results.getEntity(context.gameState))) {
+            ar.setUnitActionToCollect(controlling, results.getEntity(context.gameState), resource, amountToRetreive);
+            return AiAttemptResult.Successful;
+        }
+
+        ar.setUnitActionToMove(controlling, results.path);
+        return AiAttemptResult.Successful;
+    }
+
+    void registerListeners() {
+        context.eventManager.listenForEventsFrom(this, controlling.entityId);
+    }
+    void removeListeners() {
+        context.eventManager.stopListeningTo(this, controlling.entityId);
+    }
+
+    static boolean anyAreNull(Object... objects) {
         for (Object o : objects) {
             if (o == null) {
                 return true;
@@ -151,4 +172,5 @@ public abstract class Ai implements AiEventListener {
         }
         return false;
     }
+
 }

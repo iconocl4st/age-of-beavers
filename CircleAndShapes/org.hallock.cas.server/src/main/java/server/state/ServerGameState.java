@@ -17,7 +17,7 @@ import common.state.sst.sub.Load;
 import common.state.sst.sub.WeaponSet;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
-import ai.GaiaAi;
+import client.ai.GaiaAi;
 import common.util.EvolutionSpec;
 import common.util.json.EmptyJsonable;
 
