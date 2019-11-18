@@ -23,101 +23,82 @@
     <SUITE FILE_PATH="coverage/CircleAndShapes$Testing__1_.ic" NAME="Testing (1) Coverage Results" MODIFIED="1573800932914" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/CircleAndShapes$Testing.ic" NAME="Testing Coverage Results" MODIFIED="1573186779711" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
-  <component name="DockManager">
-    <window id="1">
-      <content type="file-editors">
-        <state>
-          <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-            <file leaf-file-name="UiClientContext.java" pinned="false" current-in-tab="true">
-              <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/app/UiClientContext.java">
-                <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="72">
-                    <caret line="4" column="19" selection-start-line="4" selection-start-column="19" selection-end-line="4" selection-end-column="19" />
-                  </state>
-                </provider>
-              </entry>
-            </file>
-          </leaf>
-        </state>
-      </content>
-    </window>
-  </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Testing.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/org.hallock.cas.driver/src/main/java/driver/Testing.java">
+      <file leaf-file-name="org.hallock.cas.client.iml" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/org.hallock.cas.client.iml">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="846">
-              <caret line="55" column="21" selection-start-line="55" selection-start-column="21" selection-end-line="55" selection-end-column="21" />
+            <state relative-caret-position="396">
+              <caret line="22" column="9" selection-start-line="22" selection-start-column="9" selection-end-line="22" selection-end-column="9" />
             </state>
           </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="org.hallock.cas.uiclient.iml" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/org.hallock.cas.uiclient.iml">
-          <provider selected="true" editor-type-id="text-editor" />
-        </entry>
-      </file>
-      <file leaf-file-name="pom.xml" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/pom.xml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-78" />
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="pom.xml" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/pom.xml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-708" />
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/.idea/.gitignore">
-          <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
       <file leaf-file-name="compiler.xml" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/.idea/compiler.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="378">
-              <caret line="21" column="54" selection-start-line="21" selection-start-column="54" selection-end-line="21" selection-end-column="54" />
+            <state relative-caret-position="270">
+              <caret line="15" column="26" selection-start-line="15" selection-start-column="26" selection-end-line="15" selection-end-column="26" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Build.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/Build.java">
+      <file leaf-file-name="misc.xml" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/.idea/misc.xml">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file leaf-file-name="workspace.xml" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="36">
-              <caret line="2" column="16" selection-start-line="2" selection-start-column="16" selection-end-line="2" selection-end-column="16" />
+            <state relative-caret-position="252">
+              <caret line="116" column="17" selection-start-line="116" selection-start-column="17" selection-end-line="116" selection-end-column="17" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="DemandsView.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/DemandsView.java">
+      <file leaf-file-name="Testing.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/org.hallock.cas.driver/src/main/java/driver/Testing.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="486">
-              <caret line="42" column="4" selection-start-line="42" selection-start-column="4" selection-end-line="42" selection-end-column="4" />
+            <state relative-caret-position="324">
+              <caret line="95" column="41" selection-start-line="95" selection-start-column="41" selection-end-line="95" selection-end-column="41" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="RangeManager.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/event/RangeManager.java">
+      <file leaf-file-name="pom.xml" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/pom.xml">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file leaf-file-name="org.hallock.cas.ai.iml" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/org.hallock.cas.ai/org.hallock.cas.ai.iml">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file leaf-file-name="org.hallock.cas.uiclient.iml" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/org.hallock.cas.uiclient.iml">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="756">
-              <caret line="51" column="9" selection-start-line="51" selection-start-column="9" selection-end-line="51" selection-end-column="9" />
+            <state relative-caret-position="216">
+              <caret line="12" column="55" selection-start-line="12" selection-start-column="55" selection-end-line="12" selection-end-column="55" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="GamePainter.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/GamePainter.java">
+      <file leaf-file-name="modules.xml" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.idea/modules.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="522">
-              <caret line="53" column="27" selection-start-line="53" selection-start-column="27" selection-end-line="53" selection-end-column="27" />
+            <state relative-caret-position="108">
+              <caret line="6" column="62" selection-start-line="6" selection-start-column="62" selection-end-line="6" selection-end-column="62" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Images.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/org.hallock.cas.driver/src/main/java/driver/Images.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="72">
+              <caret line="8" column="13" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
             </state>
           </provider>
         </entry>
@@ -175,7 +156,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/Move.java" />
         <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/Hunt.java" />
         <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/Deliver.java" />
         <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/ContinuousCreate.java" />
@@ -226,6 +206,7 @@
         <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/DemandsView.java" />
         <option value="$PROJECT_DIR$/org.hallock.cas.driver/src/main/java/driver/Testing.java" />
         <option value="$PROJECT_DIR$/.idea/compiler.xml" />
+        <option value="$PROJECT_DIR$/.idea/modules.xml" />
       </list>
     </option>
   </component>
@@ -257,8 +238,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
-      <pane id="AndroidView" />
       <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
@@ -274,12 +253,24 @@
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
+              <item name="org.hallock.cas.ai" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
+              <item name="org.hallock.cas.uiclient" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
               <item name="Scratches and Consoles" type="1a2a3e82:ScratchProjectViewPane$MyProjectNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="AndroidView" />
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -289,7 +280,7 @@
     <property name="aspect.path.notification.shown" value="true" />
     <property name="extract.method.default.visibility" value="private" />
     <property name="last_directory_selection" value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/org.hallock.cas.uiclient" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="$USER_HOME$/.nvm/versions/node/v8.4.0/bin/node" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="panda.excluded.classes" value="" />
@@ -396,6 +387,16 @@
       </option>
       <patterns />
     </configuration>
+    <configuration default="true" type="JetRunConfigurationType" factoryName="Kotlin">
+      <module name="org.hallock.cas.client" />
+      <option name="VM_PARAMETERS" />
+      <option name="PROGRAM_PARAMETERS" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="WORKING_DIRECTORY" />
+    </configuration>
     <configuration default="true" type="TestNG" factoryName="TestNG">
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
       <option name="ALTERNATIVE_JRE_PATH" />
@@ -490,12 +491,13 @@
       <workItem from="1573959641367" duration="16851000" />
       <workItem from="1574014586506" duration="28715000" />
       <workItem from="1574053029323" duration="13489000" />
-      <workItem from="1574096585810" duration="584000" />
+      <workItem from="1574096585810" duration="1288000" />
+      <workItem from="1574097897065" duration="473000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="878783000" />
+    <option name="totallyTimeSpent" value="879960000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1987" y="25" width="1853" height="1055" extended-state="6" />
@@ -503,37 +505,37 @@
     <layout>
       <window_info anchor="right" id="Palette" order="4" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Messages" order="0" visible="true" weight="0.35449734" />
       <window_info anchor="right" id="Palette&#9;" order="9" />
       <window_info id="Image Layers" order="2" />
       <window_info anchor="right" id="Capture Analysis" order="5" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" weight="0.32910052" />
       <window_info anchor="right" id="Maven Projects" order="8" />
       <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.17671958" />
       <window_info anchor="bottom" id="Version Control" order="11" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.17671958" />
       <window_info anchor="bottom" id="Terminal" order="9" />
       <window_info id="Capture Tool" order="6" />
       <window_info anchor="right" id="Panda" order="10" weight="0.089584455" />
       <window_info id="Designer" order="3" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.22881813" />
-      <window_info anchor="bottom" id="Panda Executor" order="14" weight="0.6101695" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.3729088" />
       <window_info anchor="right" id="Database" order="7" />
+      <window_info anchor="bottom" id="Panda Executor" order="14" weight="0.6101695" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="right" id="Ant Build" order="2" weight="0.25" />
       <window_info id="UI Designer" order="4" />
       <window_info anchor="right" id="Theme Preview" order="6" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.44021165" />
       <window_info id="Favorites" order="5" side_tool="true" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.44021165" />
+      <window_info anchor="bottom" id="Messages" order="0" visible="true" weight="0.16296296" />
       <window_info anchor="bottom" id="Inspection" order="7" weight="0.4" />
       <window_info anchor="right" id="Commander" order="1" weight="0.4" />
       <window_info active="true" anchor="bottom" id="Analyze Dataflow to" order="12" visible="true" weight="0.32945737" />
-      <window_info anchor="right" id="Coverage" order="0" sideWeight="0.14179894" side_tool="true" visible="true" weight="0.04695089" />
+      <window_info anchor="bottom" id="Find" order="4" weight="0.6751323" />
       <window_info anchor="bottom" id="Cvs" order="5" weight="0.25" />
+      <window_info anchor="right" id="Coverage" order="0" sideWeight="0.14179894" side_tool="true" visible="true" weight="0.04695089" />
       <window_info anchor="bottom" id="Message" order="1" />
       <window_info anchor="bottom" id="JProfiler" order="13" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="3" sideWeight="0.8582011" visible="true" weight="0.20399353" />
-      <window_info anchor="bottom" id="Find" order="4" weight="0.6751323" />
     </layout>
     <layout-to-restore>
       <window_info id="Designer" order="3" />
@@ -551,23 +553,23 @@
       <window_info anchor="right" id="Commander" order="1" weight="0.4" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Messages" order="0" weight="0.26560846" />
-      <window_info anchor="right" id="Panda" order="10" weight="0.089584455" />
-      <window_info anchor="right" id="Theme Preview" order="6" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="3" sideWeight="0.8582011" weight="0.046875" />
       <window_info anchor="bottom" id="JProfiler" order="13" />
       <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="11" show_stripe_button="false" />
       <window_info anchor="right" id="Maven Projects" order="8" />
-      <window_info active="true" anchor="bottom" id="Analyze Dataflow to" order="12" visible="true" weight="0.32945737" />
+      <window_info anchor="bottom" id="Find" order="4" weight="0.6751323" />
+      <window_info anchor="right" id="Panda" order="10" weight="0.089584455" />
       <window_info content_ui="combo" id="Project" order="0" weight="0.16145833" />
       <window_info anchor="right" id="Database" order="7" />
       <window_info anchor="bottom" id="Message" order="1" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="right" id="Palette&#9;" order="9" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="3" sideWeight="0.8582011" weight="0.046875" />
+      <window_info anchor="right" id="Theme Preview" order="6" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="7" weight="0.4" />
       <window_info anchor="right" id="Coverage" order="0" sideWeight="0.14179894" side_tool="true" visible="true" weight="0.04695089" />
-      <window_info anchor="bottom" id="Find" order="4" weight="0.6751323" />
+      <window_info active="true" anchor="bottom" id="Analyze Dataflow to" order="12" visible="true" weight="0.32945737" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.32380953" />
     </layout-to-restore>
   </component>
@@ -671,83 +673,6 @@
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/msg/UnitUpdater.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="193">
-          <caret line="90" column="38" selection-start-line="90" selection-start-column="38" selection-end-line="90" selection-end-column="38" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/algo/UnGarrisonLocation.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="324">
-          <caret line="27" column="60" selection-start-line="27" selection-start-column="60" selection-end-line="27" selection-end-column="60" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/engine/Simulator.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="292">
-          <caret line="136" column="58" lean-forward="true" selection-start-line="136" selection-start-column="58" selection-end-line="136" selection-end-column="58" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/client/ai/RandomlyWaitAndMove.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="193">
-          <caret line="36" column="34" selection-start-line="36" selection-start-column="34" selection-end-line="36" selection-end-column="34" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/app/ServerMessageHandler.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="184">
-          <caret line="97" column="40" lean-forward="true" selection-start-line="97" selection-start-column="40" selection-end-line="97" selection-end-column="40" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/state/ServerStateManipulator.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="112">
-          <caret line="220" lean-forward="true" selection-start-line="220" selection-end-line="220" />
-          <folding>
-            <element signature="e#9503#9504#0" expanded="true" />
-            <element signature="e#9531#9532#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/Pickup.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="15" column="13" lean-forward="true" selection-start-line="15" selection-start-column="13" selection-end-line="15" selection-end-column="13" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/algo/HueristicPaintMarkedTiles.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="72">
-          <caret line="7" column="13" selection-start-line="7" selection-start-column="13" selection-end-line="7" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ConstructAi.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="562">
-          <caret line="57" lean-forward="true" selection-start-line="57" selection-end-line="57" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/PickUpAi.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="261">
-          <caret line="26" lean-forward="true" selection-start-line="26" selection-end-line="26" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/state/ClientGameMessageHandler.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="639">
@@ -766,9 +691,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="252">
           <caret line="14" column="46" lean-forward="true" selection-start-line="14" selection-start-column="46" selection-end-line="14" selection-end-column="46" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -783,11 +705,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="234">
           <caret line="25" column="33" selection-start-line="25" selection-start-column="33" selection-end-line="25" selection-end-column="33" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#555#556#0" expanded="true" />
-            <element signature="e#593#594#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -980,13 +897,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.driver/src/main/java/driver/Testing.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="846">
-          <caret line="55" column="21" selection-start-line="55" selection-start-column="21" selection-end-line="55" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.base_client/orghallockcasbase_client.iml" />
     <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/app/UiClientContext.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="72">
@@ -994,37 +905,91 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/org.hallock.cas.uiclient.iml">
-      <provider selected="true" editor-type-id="text-editor" />
+    <entry file="file://$PROJECT_DIR$/pom.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="391">
+          <caret line="51" column="20" selection-start-line="51" selection-start-column="20" selection-end-line="51" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.idea/uiDesigner.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1566" />
+      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/.idea/.gitignore">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/.idea/compiler.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="378">
-          <caret line="21" column="54" selection-start-line="21" selection-start-column="54" selection-end-line="21" selection-end-column="54" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.base_client/orghallockcasbase_client.iml">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/Build.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="36">
-          <caret line="2" column="16" selection-start-line="2" selection-start-column="16" selection-end-line="2" selection-end-column="16" />
+        <state relative-caret-position="414">
+          <caret line="25" column="5" selection-start-line="25" selection-start-column="5" selection-end-line="25" selection-end-column="5" />
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/pom.xml">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/pom.xml">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/orghallockcasclient.iml" />
     <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/pom.xml">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.idea/compiler.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-78" />
+        <state relative-caret-position="270">
+          <caret line="15" column="26" selection-start-line="15" selection-start-column="26" selection-end-line="15" selection-end-column="26" />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pom.xml">
+    <entry file="file://$PROJECT_DIR$/.idea/misc.xml">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/org.hallock.cas.client.iml">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-708" />
+        <state relative-caret-position="396">
+          <caret line="22" column="9" selection-start-line="22" selection-start-column="9" selection-end-line="22" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="252">
+          <caret line="116" column="17" selection-start-line="116" selection-start-column="17" selection-end-line="116" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.ai/org.hallock.cas.ai.iml">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.driver/src/main/java/driver/Images.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="72">
+          <caret line="8" column="13" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.driver/src/main/java/driver/Testing.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="324">
+          <caret line="95" column="41" selection-start-line="95" selection-start-column="41" selection-end-line="95" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/org.hallock.cas.uiclient.iml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="216">
+          <caret line="12" column="55" selection-start-line="12" selection-start-column="55" selection-end-line="12" selection-end-column="55" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.idea/modules.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="108">
+          <caret line="6" column="62" selection-start-line="6" selection-start-column="62" selection-end-line="6" selection-end-column="62" />
+        </state>
       </provider>
     </entry>
   </component>

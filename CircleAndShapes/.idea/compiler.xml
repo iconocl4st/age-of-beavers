@@ -11,15 +11,11 @@
         <module name="org.hallock.cas.driver" />
         <module name="org.hallock.cas.server" />
         <module name="org.hallock.cas.uiclient" />
-        <module name="orghallockcasai" />
-        <module name="orghallockcasclient" />
-        <module name="orghallockcascommon" />
-        <module name="orghallockcasdriver" />
-        <module name="orghallockcasserver" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="orghallockcasclient" target="8" />
+      <module name="org.hallock.cas.client" target="8" />
+      <module name="org.hallock.cas.uiclient" target="8" />
     </bytecodeTargetLevel>
   </component>
 </project>
