@@ -1,6 +1,7 @@
 package client.ai;
 
 import client.state.ClientGameState;
+import common.AiAttemptResult;
 import common.state.EntityReader;
 import common.util.DPoint;
 
@@ -24,7 +25,7 @@ public class MoveAi extends Ai {
         if (currentLocation != null && currentLocation.equals(location))
             return AiAttemptResult.Unsuccessful;
         currentLocation = location;
-        if (!ar.setUnitActionToMove(controlling, destination))
+        if (ar.setUnitActionToMove(controlling, destination).equals(AiAttemptResult.Unsuccessful))
             return AiAttemptResult.Unsuccessful;
         return AiAttemptResult.Successful;
     }

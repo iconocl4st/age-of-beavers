@@ -149,18 +149,28 @@ public class ServerGameState {
     }
 
     public GameState createGameState(Player player) {
-        LineOfSightSpec los = ((MultiLineOfSight) state.lineOfSight).lineOfSights[player.number];
+        System.out.println("Creating state for " + player);
+
+        LineOfSightSpec los;
+        if (player == null) {
+            los = new AllVisibleLineOfSight(state.gameSpec);
+        } else {
+            los = ((MultiLineOfSight) state.lineOfSight).lineOfSights[player.number];
+        }
+
 
         GameState gs = GameState.createGameState(state.gameSpec, los);
         for (EntityId entityId : state.entityManager.allKeys()) {
             addEntityTo(entityId, gs, los);
         }
 
-        gs.occupancyState.updateAll(this.state.occupancyState, los);
-        for (EntityId entity : GateInfo.getOccupancies(player, this.state.gateStateManager, state.playerManager)) {
-            Point p = state.locationManager.getLocation(entity).toPoint();
-            EntitySpec type = state.typeManager.get(entity);
-            gs.occupancyState.setOccupancy(p, type.size, true);
+        if (player != null) {
+            gs.occupancyState.updateAll(this.state.occupancyState, los);
+            for (EntityId entity : GateInfo.getOccupancies(player, this.state.gateStateManager, state.playerManager)) {
+                Point p = state.locationManager.getLocation(entity).toPoint();
+                EntitySpec type = state.typeManager.get(entity);
+                gs.occupancyState.setOccupancy(p, type.size, true);
+            }
         }
         return gs;
     }

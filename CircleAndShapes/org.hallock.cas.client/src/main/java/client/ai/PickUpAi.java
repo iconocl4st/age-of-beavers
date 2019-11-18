@@ -1,6 +1,7 @@
 package client.ai;
 
 import client.state.ClientGameState;
+import common.AiAttemptResult;
 import common.Proximity;
 import common.state.EntityReader;
 import common.state.spec.ResourceType;

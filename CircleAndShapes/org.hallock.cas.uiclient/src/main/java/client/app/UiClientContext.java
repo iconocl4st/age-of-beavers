@@ -6,12 +6,12 @@ import client.state.ClientGameState;
 import client.state.ImageCache;
 import client.state.SelectionManager;
 import common.msg.ConnectionWriter;
+import common.util.ExecutorServiceWrapper;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class UiClientContext {
-    public final ExecutorService executorService = Executors.newCachedThreadPool();
+    public final ExecutorServiceWrapper executorService = new ExecutorServiceWrapper(Executors.newCachedThreadPool());
     public final ImageCache imageCache = new ImageCache();
     public ConnectionWriter writer;
     final ClientMessageHandler messageHandler = new ClientMessageHandler(this);

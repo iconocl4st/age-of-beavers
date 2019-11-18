@@ -16,7 +16,7 @@ public abstract class UnitAction extends Action {
     public abstract void run(EntityReader entity);
 
     protected boolean defaultGuardStatement(EntityReader entity) {
-        return entity != null && !entity.isHidden() && entity.isOwnedBy(c.clientGameState.currentPlayer) && entity.getType() != null;
+        return !c.clientGameState.isSpectating() && entity != null && !entity.isHidden() && entity.isOwnedBy(c.clientGameState.currentPlayer) && entity.getType() != null;
     }
 
 

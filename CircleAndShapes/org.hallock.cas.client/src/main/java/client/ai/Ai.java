@@ -2,6 +2,7 @@ package client.ai;
 
 import client.event.AiEventListener;
 import client.state.ClientGameState;
+import common.AiAttemptResult;
 import common.AiEvent;
 import common.Proximity;
 import common.state.EntityId;
@@ -18,15 +19,6 @@ import java.util.Map;
 import java.util.Set;
 
 public abstract class Ai implements AiEventListener {
-
-    enum AiAttemptResult {
-        Successful, // action set
-        Unsuccessful,  // failure
-        NothingDone,
-        Completed,
-        ;
-    }
-
     protected final ClientGameState context;
     protected final EntityReader controlling;
 

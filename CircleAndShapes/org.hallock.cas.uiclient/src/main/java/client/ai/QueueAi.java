@@ -1,8 +1,7 @@
 package client.ai;
 
-import client.app.UiClientContext;
 import client.state.ClientGameState;
-import common.state.EntityId;
+import common.AiAttemptResult;
 import common.state.EntityReader;
 
 import java.util.Collection;

@@ -6,7 +6,6 @@ import client.app.UiClientContext;
 import client.event.AiEventListener;
 import client.event.supply.TransportRequest;
 import common.AiEvent;
-import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.spec.GameSpec;
 

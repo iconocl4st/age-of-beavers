@@ -35,9 +35,35 @@ public class GameScreen extends JPanel {
 
     }
 
-    public void setGameSpec(GameSpec spec) {
+    public void initialize(GameSpec spec) {
         zoom.initialize(spec);
         renderer.initialize(spec);
+
+        if (context.clientGameState.isSpectating()) {
+            commander = new CommandListener(
+                    zoom,
+                    context,
+                    new UnitToUnitAction[0],
+                    new UnitToLocationAction[0]
+            );
+        } else {
+            commander = new CommandListener(
+                    zoom,
+                    context,
+                    new UnitToUnitAction[]{
+                            new Gather(context),
+                            new Hunt(context),
+                            new Ride(context),
+                            new Build(context),
+                            new Deliver(context)
+                    },
+                    new UnitToLocationAction[]{
+                            new Move(context),
+                            new SetGatherPoint(context)
+                    }
+            );
+        }
+        addMouseListener(commander);
     }
 
 
@@ -74,15 +100,6 @@ public class GameScreen extends JPanel {
 
         gs.zoom = new Zoom(gs, context);
 
-
-//        Container container = gs;
-//        while (container != null) {
-//            gs.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, Collections.emptySet());
-//            gs.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, Collections.emptySet());
-//            gs.setFocusTraversalKeysEnabled(false);
-//            container = container.getParent();
-//        }
-
         gs.goToListener = new GoToListener(context);
         gs.addKeyListener(gs.goToListener);
         context.selectionManager.addListener(gs.goToListener);
@@ -93,23 +110,6 @@ public class GameScreen extends JPanel {
         gs.placer = new BuildingPlacer(context,  gs.zoom);
         gs.addMouseMotionListener(gs.placer);
         gs.addMouseListener(gs.placer);
-
-        gs.commander = new CommandListener(
-                gs.zoom,
-                context,
-                new UnitToUnitAction[] {
-                        new Gather(context),
-                        new Hunt(context),
-                        new Ride(context),
-                        new Build(context),
-                        new Deliver(context)
-                },
-                new UnitToLocationAction[] {
-                        new Move(context),
-                        new SetGatherPoint(context)
-                }
-        );
-        gs.addMouseListener(gs.commander);
 
         gs.selector = new SelectedListener(context);
         gs.addKeyListener(gs.selector);

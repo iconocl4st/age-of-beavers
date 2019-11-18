@@ -1,7 +1,8 @@
 package client.gui.actions;
 
-import client.ai.NetworkActionRequester;
+import client.ai.ResponsiveConnectionWriter;
 import client.app.UiClientContext;
+import client.ai.ActionRequester;
 import common.state.EntityReader;
 
 import java.util.Collection;
@@ -12,11 +13,11 @@ public abstract class Action {
 
     public final String label;
     protected final UiClientContext c;
-    protected final NetworkActionRequester ar;
+    protected final ActionRequester ar;
 
     protected Action(UiClientContext context, String label) {
         this.c = context;
-        this.ar = new NetworkActionRequester(context);
+        this.ar = new ActionRequester(new ResponsiveConnectionWriter(context.writer, context.executorService));
         this.label = label;
     }
 

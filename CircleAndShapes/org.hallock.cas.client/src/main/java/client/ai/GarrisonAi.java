@@ -1,8 +1,8 @@
 package client.ai;
 
 import client.state.ClientGameState;
+import common.AiAttemptResult;
 import common.Proximity;
-import common.state.EntityId;
 import common.state.EntityReader;
 
 public class GarrisonAi extends Ai {

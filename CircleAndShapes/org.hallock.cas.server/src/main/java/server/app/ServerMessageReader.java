@@ -37,6 +37,7 @@ public class ServerMessageReader {
             case STOP_RIDING: msg = Message.StopRiding.finishParsing(reader, readOptions); break;
             case SET_EVOLUTION_SELECTION: msg = Message.SetEvolutionSelection.finishParsing(reader, readOptions); break;
             case SET_DESIRED_CAPACITY: msg = Message.SetDesiredCapacity.finishParsing(reader, readOptions); break;
+            case SPECTATE: msg = Message.Spectate.finishParsing(reader, readOptions); break;
             default:
                 System.out.println("Server reader: Ignoring unknown message type: " + msgType);
                 reader.finishCurrentObject();

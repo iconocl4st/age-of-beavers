@@ -1,9 +1,11 @@
 package driver;
 
-import client.app.UiClientContext;
+import app.PlayerAiContext;
 import client.app.ClientDriver;
+import client.app.UiClientContext;
 import common.msg.Message;
 import org.json.simple.parser.ParseException;
+import server.app.AiConnection;
 import server.app.ServerContext;
 import server.app.ServerDriver;
 
@@ -109,14 +111,8 @@ public class Testing {
 
 
 
-        int numClients = 2;
-        ServerContext serverContext = ServerDriver.createServerContext();
-        UiClientContext[] clientContexts = new UiClientContext[numClients];
-        for (int i = 0; i < numClients; i++) {
-            clientContexts[i] = new UiClientContext();
-        }
-
         System.out.println("Starting server");
+        ServerContext serverContext = ServerDriver.createServerContext();
         new Thread(() -> {
             try {
                 ServerDriver.runServerContext(serverContext);
@@ -128,14 +124,25 @@ public class Testing {
 
         Thread.sleep(1000);
 
-        CountDownLatch clientsRunningLatch = new CountDownLatch(numClients);
 
+
+        int numClients = 1;
+        UiClientContext[] clientContexts = new UiClientContext[numClients];
+        for (int i = 0; i < numClients; i++) {
+            clientContexts[i] = new UiClientContext();
+        }
+        CountDownLatch clientsRunningLatch = new CountDownLatch(numClients);
         System.out.println("Starting clients");
         for (final UiClientContext clientContext : clientContexts)
             new Thread(() -> {
                 try {
                     ClientDriver.runClientContext(clientContext, clientsRunningLatch);
                 } catch (Throwable e) {
+                    for (int i = 0; i < clientContexts.length; i++) {
+                        if (clientContext.equals(clientContexts[i])) {
+                            System.out.println("Error in " + i);
+                        }
+                    }
                     e.printStackTrace();
                     System.exit(1);
                 }
@@ -146,17 +153,28 @@ public class Testing {
 
         System.out.println("Clients started");
 
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < clientContexts.length; i++) {
             clientContexts[i].writer.send(new Message.Join(serverContext.lobbies[0].getInfo()));
             clientContexts[i].writer.flush();
         }
 
         Thread.sleep(1000);
 
+        int numAis = 2;
+        for (int i = 0; i < numAis; i++) {
+            PlayerAiContext aiContext = new PlayerAiContext(ServerContext.executorService);
+            serverContext.lobbies[0].join(new AiConnection(aiContext));
+        }
+
+        clientContexts[0].writer.send(new Message.Spectate(true));
+        clientContexts[0].writer.flush();
+
+        Thread.sleep(1000);
+
         clientContexts[0].writer.send(new Message.Launch());
         clientContexts[0].writer.flush();
 
-        clientContexts[1].uiManager.mainWindowFrame.setLocation(1920, 50);
+//        clientContexts[0].uiManager.mainWindowFrame.setLocation(1920, 50);
 
         /////////////////////////
         /// TEMPLE IDEAS

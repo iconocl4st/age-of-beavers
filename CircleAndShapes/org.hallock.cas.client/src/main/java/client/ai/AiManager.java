@@ -1,6 +1,7 @@
 package client.ai;
 
 import client.state.ClientGameState;
+import common.AiAttemptResult;
 import common.state.EntityId;
 import common.state.EntityReader;
 
@@ -36,7 +37,7 @@ public class AiManager {
 
     public void startAi(EntityId entity, Ai ai) {
         setAi(entity, ai);
-        if (!ai.setActions(context.actionRequester).equals(Ai.AiAttemptResult.Successful)) {
+        if (!ai.setActions(context.actionRequester).equals(AiAttemptResult.Successful)) {
             removeAi(entity);
         }
     }

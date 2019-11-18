@@ -375,8 +375,8 @@ public class GameSpecParser {
                 }
                 canCreate.put(unitSpec.name, canCreateList);
             }
-            if (unitJson.containsKey("client.ai")) {
-                JSONObject aiObject = (JSONObject) unitJson.get("client.ai");
+            if (unitJson.containsKey("ai")) {
+                JSONObject aiObject = (JSONObject) unitJson.get("ai");
                 unitSpec.ai = (String) aiObject.get("name");
                 unitSpec.aiArgs = new HashMap<>();
                 JSONObject parameters = (JSONObject) aiObject.get("params");

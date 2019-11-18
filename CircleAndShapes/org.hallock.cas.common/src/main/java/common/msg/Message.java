@@ -123,6 +123,51 @@ public abstract class Message implements Jsonable {
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public static class Spectate extends Message {
+        public final boolean spectate;
+
+        public Spectate(boolean spectate) {
+            this.spectate = spectate;
+        }
+
+        public static Spectate finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
+            return new Spectate(reader.readBoolean("spectate"));
+        }
+
+        @Override
+        protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+            writer.write("spectate", spectate);
+        }
+
+        @Override
+        public MessageType getMessageType() {
+            return MessageType.SPECTATE;
+        }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public static class IsSpectating extends Message {
+        public final boolean isSpectating;
+
+        public IsSpectating(boolean isSpectating) {
+            this.isSpectating = isSpectating;
+        }
+
+        public static IsSpectating finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
+            return new IsSpectating(reader.readBoolean("spectate"));
+        }
+
+        @Override
+        protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+            writer.write("spectate", isSpectating);
+        }
+
+        @Override
+        public MessageType getMessageType() {
+            return MessageType.SPECTATING;
+        }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static class Joined extends Message {
         public final LobbyInfo lobby;
 
@@ -908,5 +953,7 @@ public abstract class Message implements Jsonable {
         DROP_ALL,
         SET_EVOLUTION_SELECTION,
         SET_DESIRED_CAPACITY,
+        SPECTATING,
+        SPECTATE,
     }
 }

@@ -39,10 +39,14 @@ public class UiManager {
         buildingSelector.initialize(spec);
         selectedUnitsBrowser.initialize(spec);
         unitActions.initialize(spec);
-        mainWindowFrame.setTitle("Player " + player.toString());
+        if (player == null) {
+            mainWindowFrame.setTitle("Spectating");
+        } else {
+            mainWindowFrame.setTitle("Player " + player.toString());
+        }
         mainWindowFrame.setVisible(true);
         minimap.setGameSpec(spec);
-        gameScreen.setGameSpec(spec);
+        gameScreen.initialize(spec);
 
         mainWindow.updateSplitPaneDividers();
     }

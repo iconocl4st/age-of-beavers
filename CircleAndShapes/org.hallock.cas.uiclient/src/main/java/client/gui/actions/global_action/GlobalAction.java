@@ -14,7 +14,7 @@ public abstract class GlobalAction extends Action {
 
     @Override
     public final boolean isEnabled(Collection<EntityReader> currentlySelected) {
-        return true;
+        return !c.clientGameState.isSpectating();
     }
 
     @Override

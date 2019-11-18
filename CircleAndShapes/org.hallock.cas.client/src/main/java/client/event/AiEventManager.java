@@ -3,6 +3,7 @@ package client.event;
 import client.state.ClientGameState;
 import common.AiEvent;
 import common.state.EntityId;
+import common.util.ExecutorServiceWrapper;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,12 +16,12 @@ public class AiEventManager {
     private final ClientGameState context;
     private final HashMap<EntityId, Set<AiEventListener>> listenersByEntity = new HashMap<>();
     private final HashMap<AiEvent.EventType, Set<AiEventListener>> listenersByType = new HashMap<>();
-    private final ExecutorService executorService;
+    private final ExecutorServiceWrapper executorService;
 
     // todo
 //    public RangeManager rangeManager;
 
-    public AiEventManager(ClientGameState context, ExecutorService service) {
+    public AiEventManager(ClientGameState context, ExecutorServiceWrapper service) {
         this.context = context;
         this.executorService = service;
     }

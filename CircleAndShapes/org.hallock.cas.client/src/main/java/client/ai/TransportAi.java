@@ -2,8 +2,8 @@ package client.ai;
 
 import client.event.supply.Transport;
 import client.state.ClientGameState;
+import common.AiAttemptResult;
 import common.AiEvent;
-import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.spec.ResourceType;
 import common.util.GridLocationQuerier;

@@ -1,26 +1,23 @@
 package server.app;
 
 import common.app.LobbyInfo;
-import common.msg.ConnectionReader;
-import common.msg.ConnectionWriter;
 import common.msg.Message;
+import common.msg.NetworkConnectionWriter;
+import common.util.ExecutorServiceWrapper;
 import common.util.json.JsonReaderWrapperSpec;
 import common.util.json.JsonWrapper;
 import common.util.json.JsonWriterWrapperSpec;
 import server.engine.Engine;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static common.util.json.JsonWrapper.createJacksonReaderWrapper;
 
 public class ServerContext {
-    public static final ExecutorService executorService = Executors.newCachedThreadPool();
+    public static final ExecutorServiceWrapper executorService = new ExecutorServiceWrapper(Executors.newCachedThreadPool());
 
     public final Lobby[] lobbies = new Lobby[ServerConfig.NUM_LOBBIES];
     final ServerMessageHandler messageHandler = new ServerMessageHandler(this);
@@ -30,22 +27,18 @@ public class ServerContext {
     void handleConnection(final Socket socket) {
         executorService.submit(() -> {
             try (
-//                    ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-//                    ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-
                     JsonReaderWrapperSpec inputStream = JsonWrapper.initializeStream(createJacksonReaderWrapper(socket.getInputStream()), "requests");
                     JsonWriterWrapperSpec outputStream = JsonWrapper.initializeStream(JsonWrapper.createJacksonWriterWrapper(socket.getOutputStream()), "messages");
             ) {
                 final ServerConnectionContext connectionContext = new ServerConnectionContext(
-                        socket.getInetAddress().getCanonicalHostName(),
-                        new ConnectionWriter(outputStream)
+                        new NetworkConnectionWriter(outputStream)
                 );
 
                 try {
                     ServerMessageReader reader = new ServerMessageReader(connectionContext);
                     while (messageHandler.handleMessage(connectionContext, reader.readMessage(inputStream)))
                         ;
-                    connectionContext.writer.send(new Message.Quit());
+                    connectionContext.getWriter().send(new Message.Quit());
 
                     JsonWrapper.finishStream(outputStream);
                     JsonWrapper.finishStream(inputStream);

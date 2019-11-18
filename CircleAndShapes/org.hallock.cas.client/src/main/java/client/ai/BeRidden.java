@@ -1,6 +1,7 @@
 package client.ai;
 
 import client.state.ClientGameState;
+import common.AiAttemptResult;
 import common.Proximity;
 import common.state.EntityReader;
 
@@ -18,10 +19,10 @@ public class BeRidden extends Ai {
     }
 
     @Override
-    public Ai.AiAttemptResult setActions(ActionRequester ar) {
+    public AiAttemptResult setActions(ActionRequester ar) {
         if (Proximity.closeEnoughToInteract(controlling, rider)) {
             ar.setUnitActionToMount(rider, controlling);
-            return Ai.AiAttemptResult.Successful;
+            return AiAttemptResult.Successful;
         } else {
             return ar.setUnitActionToMove(controlling, rider);
         }

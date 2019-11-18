@@ -26,10 +26,12 @@ import common.util.GridLocationQuerier;
 import common.util.json.EmptyJsonable;
 import server.algo.ConnectedSet;
 import server.algo.UnGarrisonLocation;
-import server.app.BroadCaster;
 import common.util.EvolutionSpec;
+import server.app.BroadCaster;
+import server.app.DefaultBroadCaster;
 
 import java.awt.*;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.LinkedList;
@@ -547,7 +549,7 @@ public class ServerStateManipulator {
 
         if (spec.ai != null) {
             switch (spec.ai) {
-                case "deer-client.ai":
+                case "deer-ai":
                     double maxWait = Double.valueOf(spec.aiArgs.get("max-wait"));
                     int maxSize = Integer.valueOf(spec.aiArgs.get("max-size"));
                     game.serverState.gaiaAi.setAi(
@@ -564,7 +566,7 @@ public class ServerStateManipulator {
                     );
                     break;
                 default:
-                    throw new RuntimeException("Unknown client.ai: " + spec.ai);
+                    throw new RuntimeException("Unknown ai: " + spec.ai);
             }
         } else {
             game.serverState.state.actionManager.set(id, new Action.Idle());

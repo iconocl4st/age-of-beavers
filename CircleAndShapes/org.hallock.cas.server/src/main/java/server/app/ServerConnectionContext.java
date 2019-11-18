@@ -5,18 +5,13 @@ import common.state.Player;
 import common.state.spec.GameSpec;
 import server.state.ServerStateManipulator;
 
-public class ServerConnectionContext {
-    final String connectionName;
-    public final ConnectionWriter writer;
+public class ServerConnectionContext implements PlayerConnection {
+    private final ConnectionWriter writer;
+    private GamePlayerMessageHandler messageHandler;
     private Lobby lobby;
 
-    ServerConnectionContext(String connectionName, ConnectionWriter writer) {
-        this.connectionName = connectionName;
+    ServerConnectionContext(ConnectionWriter writer) {
         this.writer = writer;
-    }
-
-    public Player getPlayer() {
-        return lobby.getPlayer(this);
     }
 
     void join(Lobby lobby) {
@@ -39,6 +34,13 @@ public class ServerConnectionContext {
         this.lobby = null;
     }
 
+    void spectate(boolean spectate) {
+        if (lobby == null) {
+            throw new RuntimeException("Not in a lobby!");
+        }
+        this.lobby.setSpectating(spectate, this);
+    }
+
     void launch() {
         if (lobby == null) {
             throw new RuntimeException("Not in a lobby!");
@@ -46,12 +48,27 @@ public class ServerConnectionContext {
         lobby.launch();
     }
 
-    ServerStateManipulator createStateManipulator(ServerConnectionContext context) {
-        return lobby.createStateManipulator(context);
-    }
-
     GameSpec getCurrentGameSpec() {
         if (lobby == null) return null;
         return lobby.spec;
+    }
+
+    @Override
+    public ConnectionWriter getWriter() {
+        return writer;
+    }
+
+    @Override
+    public void setMessageHandler(GamePlayerMessageHandler handler) {
+        this.messageHandler = handler;
+    }
+
+    @Override
+    public void ticked() {
+        /* Currently, messages are already handled. */
+    }
+
+    GamePlayerMessageHandler getMessageHandler() {
+        return messageHandler;
     }
 }

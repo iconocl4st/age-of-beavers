@@ -1,7 +1,6 @@
 package server.app;
 
 import common.msg.Message;
-import common.state.EntityReader;
 import server.state.ServerStateManipulator;
 
 import java.io.IOException;
@@ -23,8 +22,8 @@ public class ServerMessageHandler {
             case LIST_LOBBIES: {
                 System.out.println("Requested list.");
                 try {
-                    c.writer.send(new Message.LobbyList(context.getLobbyInfos()));
-                    c.writer.flush();
+                    c.getWriter().send(new Message.LobbyList(context.getLobbyInfos()));
+                    c.getWriter().flush();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -38,8 +37,8 @@ public class ServerMessageHandler {
                 c.join(lobby);
 
                 try {
-                    c.writer.send(new Message.Joined(lobby.getInfo()));
-                    c.writer.flush();
+                    c.getWriter().send(new Message.Joined(lobby.getInfo()));
+                    c.getWriter().flush();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -50,8 +49,21 @@ public class ServerMessageHandler {
                 c.leave();
 
                 try {
-                    c.writer.send(new Message.Left());
-                    c.writer.flush();
+                    c.getWriter().send(new Message.Left());
+                    c.getWriter().flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            break;
+            case SPECTATE: {
+                System.out.println("Requested spectate");
+                boolean spectate = ((Message.Spectate) message).spectate;
+                c.spectate(spectate);
+
+                try {
+                    c.getWriter().send(new Message.IsSpectating(spectate));
+                    c.getWriter().flush();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -62,78 +74,19 @@ public class ServerMessageHandler {
                 c.launch();
             }
             break;
-            case PLACE_BUILDING: {
-                Message.PlaceBuilding msg = (Message.PlaceBuilding) message;
-                ServerStateManipulator stateManipulator = c.createStateManipulator(c);
-                stateManipulator.placeBuilding(msg.spec, msg.location);
-            }
-            break;
-            case REQUEST_ACTION: {
-                Message.RequestAction msg = (Message.RequestAction) message;
-                ServerStateManipulator stateManipulator = c.createStateManipulator(c);
-                stateManipulator.setUnitAction(msg.performer, msg.action);
-            }
-            break;
-            case CHANGE_OCCUPANCY: {
-                Message.ChangeOccupancy msg = (Message.ChangeOccupancy) message;
-                ServerStateManipulator stateManipulator = c.createStateManipulator(c);
-                stateManipulator.setOccupancyState(msg.entity, msg.newState);
-            }
-            break;
-            case SET_GATHER_POINT: {
-                Message.SetGatherPoint msg = (Message.SetGatherPoint) message;
-                ServerStateManipulator stateManipulator = c.createStateManipulator(c);
-                stateManipulator.setGatherPoint(msg.entityId, msg.location);
-            }
-            break;
-            case GARRISON: {
-                Message.Garrison msg = (Message.Garrison) message;
-                ServerStateManipulator stateManipulator = c.createStateManipulator(c);
-                stateManipulator.garrison(msg.entity, msg.within);
-            }
-            break;
-            case UNGARRISON: {
-                Message.UnGarrison msg = (Message.UnGarrison) message;
-                ServerStateManipulator stateManipulator = c.createStateManipulator(c);
-                stateManipulator.ungarrison(msg.entity);
-            }
-            break;
-            case DIE: {
-                Message.Die msg = (Message.Die) message;
-                ServerStateManipulator stateManipulator = c.createStateManipulator(c);
-                stateManipulator.suicide(msg.entityId);
-            }
-            break;
-            case DROP_ALL: {
-                Message.DropAll msg = (Message.DropAll) message;
-                ServerStateManipulator stateManipulator = c.createStateManipulator(c);
-                stateManipulator.dropAll(msg.entityId);
-            }
-            break;
-            case RIDE: {
-                Message.Ride msg = (Message.Ride) message;
-                ServerStateManipulator stateManipulator = c.createStateManipulator(c);
-                stateManipulator.ride(msg.rider, msg.ridden);
-            }
-            break;
-            case STOP_RIDING: {
-                Message.StopRiding msg = (Message.StopRiding) message;
-                ServerStateManipulator stateManipulator = c.createStateManipulator(c);
-                stateManipulator.stopRiding(msg.rider);
-            }
-            break;
-            case SET_EVOLUTION_SELECTION: {
-                Message.SetEvolutionSelection msg = (Message.SetEvolutionSelection) message;
-                ServerStateManipulator stateManipulator = c.createStateManipulator(c);
-                stateManipulator.setEvolutionPreferences(msg.entity, msg.weights);
-            }
-            break;
-            case SET_DESIRED_CAPACITY: {
-                Message.SetDesiredCapacity msg = (Message.SetDesiredCapacity) message;
-                ServerStateManipulator stateManipulator = c.createStateManipulator(c);
-                stateManipulator.setDesiredCapacity(msg.entity, msg.resourceType, msg.priority, msg.desiredMinimum, msg.desiredMaximum);
-            }
-            break;
+            case PLACE_BUILDING:
+            case REQUEST_ACTION:
+            case CHANGE_OCCUPANCY:
+            case SET_GATHER_POINT:
+            case GARRISON:
+            case UNGARRISON:
+            case DIE:
+            case DROP_ALL:
+            case RIDE:
+            case STOP_RIDING:
+            case SET_EVOLUTION_SELECTION:
+            case SET_DESIRED_CAPACITY:
+                return c.getMessageHandler().send(message);
             default:
                 System.out.println("Server: Ignoring unknown message type " + message.getMessageType());
         }

@@ -10,15 +10,6 @@ import java.io.*;
 
 public class JsonWrapper {
 
-//    public static abstract class BsonWriterWrapper implements JsonWriterWrapperSpec {
-//        private final BsonWriter writer;
-//
-//        public BsonWriterWrapper(BsonWriter writer, boolean verbose) {
-//            this.writer = writer;
-//        }
-//
-//    }
-
     public static JsonWriterWrapperSpec initializeStream(JsonWriterWrapperSpec writer, String name) throws IOException {
         writer.writeBeginDocument();
         writer.writeBeginArray(name);
@@ -45,12 +36,12 @@ public class JsonWrapper {
     }
 
     public static JsonWriterWrapperSpec createJacksonWriterWrapper(OutputStream outputStream) throws IOException {
-        OutputStream outputStream2 = new FileOutputStream(new File("test_json/example_" + System.currentTimeMillis() + "_" + Math.random() + ".json"));
+//        OutputStream outputStream2 = new FileOutputStream(new File("test_json/example_" + System.currentTimeMillis() + "_" + Math.random() + ".json"));
         ObjectMapper writer = new ObjectMapper();
         JsonGenerator jGenerator = writer.getFactory().createGenerator(outputStream, JsonEncoding.UTF8);
-        JsonGenerator jGenerator2 = writer.getFactory().createGenerator(outputStream2, JsonEncoding.UTF8);
-        jGenerator2.useDefaultPrettyPrinter();
-        return new SplitJsonWriterWrapper(new JacksonWriterWrapper(jGenerator), new JacksonWriterWrapper(jGenerator2));
+//        JsonGenerator jGenerator2 = writer.getFactory().createGenerator(outputStream2, JsonEncoding.UTF8);
+//        jGenerator2.useDefaultPrettyPrinter();
+        return /*new SplitJsonWriterWrapper(*/new JacksonWriterWrapper(jGenerator)/*, new JacksonWriterWrapper(jGenerator2))*/;
     }
 
     public static JsonReaderWrapperSpec createJacksonReaderWrapper(InputStream inputStream) throws IOException {
@@ -59,8 +50,4 @@ public class JsonWrapper {
         return new JacksonReaderWrapper(jParser);
     }
 
-
-//    public static JsonWriterWrapperSpec createBsonWriterWrapper() throws IOException {
-//    public static JsonWriterWrapperSpec createJacksonReaderWrapper() throws IOException {
-//    public static JsonWriterWrapperSpec createBsonReaderWrapper() throws IOException {
 }

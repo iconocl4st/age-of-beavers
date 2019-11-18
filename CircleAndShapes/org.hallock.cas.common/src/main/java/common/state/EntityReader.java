@@ -38,6 +38,10 @@ public class EntityReader implements LocatedEntitySpec {
         return o.entityId.equals(entityId);
     }
 
+    public GameState getState() {
+        return state;
+    }
+
     public double getCurrentAge() {
         return state.currentTime - zin(state.ageManager.get(entityId));
     }
@@ -58,7 +62,11 @@ public class EntityReader implements LocatedEntitySpec {
     }
 
     public Player getOwner() {
-        return state.playerManager.get(entityId);
+        Player player = state.playerManager.get(entityId);
+//        if (player == null) {
+//            throw new NullPointerException();
+//        }
+        return player;
     }
 
     public ConstructionZone getConstructionZone() {

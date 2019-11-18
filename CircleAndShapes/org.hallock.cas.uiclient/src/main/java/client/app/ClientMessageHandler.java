@@ -1,7 +1,8 @@
 package client.app;
 
-import client.ai.NetworkActionRequester;
+import client.ai.ResponsiveConnectionWriter;
 import client.state.ClientGameState;
+import client.ai.ActionRequester;
 import common.msg.Message;
 import common.util.json.JsonReaderWrapperSpec;
 import common.util.json.ReadOptions;
@@ -43,11 +44,16 @@ class ClientMessageHandler {
                 Message.Launched launched = (Message.Launched) message;
                 context.clientGameState = ClientGameState.createClientGameState(
                         launched.spec,
-                        new NetworkActionRequester(context),
+                        new ActionRequester(new ResponsiveConnectionWriter(context.writer, context.executorService)),
                         launched.player,
                         context.executorService
                 );
                 context.uiManager.displayGame(launched.spec, launched.player);
+            }
+            break;
+            case SPECTATING: {
+                context.uiManager.log("Game launched");
+                context.uiManager.lobbyBrowser.setCurrentlySpectating(((Message.IsSpectating) message).isSpectating);
             }
             break;
             case GAME_OVER: {
@@ -94,6 +100,7 @@ class ClientMessageHandler {
             case TIME_CHANGE: ret = handleMessage(Message.TimeChange.finishParsing(reader, spec)); break;
             case PROJECTILE_LAUNCHED: ret = handleMessage(Message.ProjectileLaunched.finishParsing(reader, spec)); break;
             case PROJECTILE_LANDED: ret = handleMessage(Message.ProjectileLanded.finishParsing(reader, spec)); break;
+            case SPECTATING: ret = handleMessage(Message.IsSpectating.finishParsing(reader, spec)); break;
             case UPDATE_ENTIRE_GAME: {
                 if (context.clientGameState != null) {
                     reader.readName("state");

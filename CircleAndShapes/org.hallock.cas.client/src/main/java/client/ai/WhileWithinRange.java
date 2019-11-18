@@ -1,15 +1,16 @@
 package client.ai;
 
+import common.AiAttemptResult;
 import common.Proximity;
 
 public class WhileWithinRange {
 
 
-    public static Ai.AiAttemptResult whileWithinProximity() {
+    public static AiAttemptResult whileWithinProximity() {
         return whileWithinRange(Proximity.INTERACTION_DISTANCE);
     }
 
-    private static Ai.AiAttemptResult whileWithinRange(double interactionDistance) {
+    private static AiAttemptResult whileWithinRange(double interactionDistance) {
         return null;
     }
 }

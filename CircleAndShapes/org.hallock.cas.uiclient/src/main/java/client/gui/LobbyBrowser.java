@@ -86,4 +86,7 @@ public class LobbyBrowser {
         launchButton.setEnabled(currentLobby != null);
         leaveButton.setEnabled(currentLobby != null);
     }
+
+    public void setCurrentlySpectating(boolean isSpectating) {
+    }
 }

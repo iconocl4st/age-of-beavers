@@ -8,26 +8,32 @@ import common.state.Player;
 import common.state.spec.GameSpec;
 import server.algo.MapGenerator;
 import server.state.Game;
+import server.state.ServerGameState;
 import server.state.ServerStateManipulator;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 
-public class Lobby implements BroadCaster {
+public class Lobby {
 
     public Random random = new Random();
 
     private ServerContext context;
     private String name;
     public GameSpec spec;
-    public final LinkedList<ServerConnectionContext> connections = new LinkedList<>();
+
+    public final LinkedList<PlayerConnection> connections = new LinkedList<>();
+    private final ArrayList<LobbyPlayer> players = new ArrayList<>();
 
     private final Object statusSync = new Object();
     private LobbyInfo.LobbyStatus status = LobbyInfo.LobbyStatus.Waiting;
 
+    private DefaultBroadCaster broadCaster;
     private Game game;
-
 
     Lobby(ServerContext context, String lobbyName, GameSpec spec) {
         this.context = context;
@@ -35,35 +41,98 @@ public class Lobby implements BroadCaster {
         this.spec = spec;
     }
 
-    public Player getPlayer(ServerConnectionContext c) {
-        int index = connections.indexOf(c);
-        if (index < 0) return Player.NO_PLAYER;
-        return new Player(index + 1);
+    public Player getPlayer(PlayerConnection c) {
+        LobbyPlayer lobbyPlayer = getLobbyPlayer(c);
+        if (lobbyPlayer == null) return null;
+        return lobbyPlayer.player;
+    }
+
+    private LobbyPlayer getLobbyPlayer(PlayerConnection c) {
+        for (LobbyPlayer lobbyPlayer : players) {
+            if (lobbyPlayer.connection.equals(c))
+                return lobbyPlayer;
+        }
+        return null;
     }
 
     public int getNumPlayers() {
-        return connections.size();
+        return players.size();
     }
 
-    void join(ServerConnectionContext c) {
+    public void join(PlayerConnection c) {
         synchronized (statusSync) {
             ensureStatus(LobbyInfo.LobbyStatus.Waiting);
             connections.add(c);
+            addPlayer(c);
         }
     }
 
     void leave(ServerConnectionContext c) {
         synchronized (connections) {
             ensureStatus(LobbyInfo.LobbyStatus.Waiting);
+            removePlayer(c);
             connections.remove(c);
         }
+    }
+
+    private void addPlayer(PlayerConnection serverConnectionContext) {
+        if (isAPlayer(serverConnectionContext))
+            throw new IllegalStateException("Already a player");
+        LobbyPlayer player = new LobbyPlayer();
+        player.player = new Player(getNumPlayers() + 1);
+        player.connection = serverConnectionContext;
+        players.add(player);
+    }
+
+    private void removePlayer(PlayerConnection serverConnectionContext) {
+        players.removeIf(lp -> lp.connection.equals(serverConnectionContext));
+        for (int i = 0; i < players.size(); i++) {
+            players.get(i).player = new Player(i + 1);
+        }
+    }
+
+    void setSpectating(boolean spectate, ServerConnectionContext serverConnectionContext) {
+        boolean isAPlayer = isAPlayer(serverConnectionContext);
+        if (spectate && isAPlayer) {
+            removePlayer(serverConnectionContext);
+        } else if (!spectate && !isAPlayer) {
+            addPlayer(serverConnectionContext);
+        }
+    }
+
+    private boolean isAPlayer(PlayerConnection serverConnectionContext) {
+        for (LobbyPlayer lobbyPlayer : players) {
+            if (lobbyPlayer.connection.equals(serverConnectionContext)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void gameOver() {
         synchronized (statusSync) {
             ensureStatus(LobbyInfo.LobbyStatus.InGame);
             status = LobbyInfo.LobbyStatus.Waiting;
+
+            try {
+                broadCaster.broadCast(new Message.GameOver());
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+
+            for (PlayerConnection connection : connections) {
+                connection.setMessageHandler(null);
+            }
             game = null;
+            broadCaster = null;
+        }
+    }
+
+    public void ticked() {
+        broadCaster.flush();
+
+        for (PlayerConnection connection : connections) {
+            connection.ticked();
         }
     }
 
@@ -71,7 +140,7 @@ public class Lobby implements BroadCaster {
         synchronized (statusSync) {
             ensureStatus(LobbyInfo.LobbyStatus.Waiting);
             this.status = LobbyInfo.LobbyStatus.InGame;
-            spec.numPlayers = connections.size() + 1;
+            spec.numPlayers = getNumPlayers();
             game = Game.createGame(context, this);
 
             MapGenerator.randomlyGenerateMap(
@@ -83,22 +152,29 @@ public class Lobby implements BroadCaster {
                     createEmptyStateManipulator()
             );
 
-            for (final ServerConnectionContext connection: connections) {
-//                c.executorService.submit(
-//                        new Runnable() {
-//                            @Override
-//                            public void run() {
-                                try {
-                                    connection.writer.send(new Message.Launched(spec, getPlayer(connection)));
-                                    game.sendEntireState();
-                                    connection.writer.flush();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-//                            }
-//                        }
-//                );
+            broadCaster = createBroadCaster(game.serverState);
+
+            CountDownLatch latch = new CountDownLatch(connections.size());
+            for (final PlayerConnection connection : connections) {
+                try {
+                    Player player = getPlayer(connection);
+                    connection.setMessageHandler(new GamePlayerMessageHandler(new ServerStateManipulator(game, player, broadCaster)));
+                    connection.getWriter().send(new Message.Launched(spec, player));
+                    connection.getWriter().send(new Message.UpdateEntireGameState(game.serverState.createGameState(player)));
+                    connection.getWriter().flush();
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                } finally {
+                    latch.countDown();
+                }
             }
+
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             context.engine.schedule(game);
         }
     }
@@ -121,63 +197,54 @@ public class Lobby implements BroadCaster {
         return spec;
     }
 
-    public void broadCast(Message msg) {
-        for (ServerConnectionContext context : connections) {
-            try {
-                context.writer.send(msg);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void send(Player player, Message msg) {
-        if (player.equals(Player.GAIA)) {
-            return;
-        }
-        try {
-            connections.get(player.number - 1).writer.send(msg);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private BroadCaster getBroadCaster() {
+    private ConnectionWriter getFilter(ServerGameState state, LobbyPlayer player) {
         switch (spec.visibility) {
             case FOG:
             case EXPLORED:
-                return new SelectiveBroadcaster(game.serverState, getNumPlayers() ,this);
+                return new LineOfSightMessageFilter(state, player.connection.getWriter(), player.player);
             case ALL_VISIBLE:
-                return this;
+                return player.connection.getWriter();
             default:
                 throw new IllegalStateException("Unknown visibility selection: " + spec.visibility);
         }
     }
 
-    public ServerStateManipulator createStateManipulator(ServerConnectionContext context) {
-        return new ServerStateManipulator(game, getPlayer(context), getBroadCaster());
+    private DefaultBroadCaster createBroadCaster(ServerGameState state) {
+        ConnectionWriter[] filters = new ConnectionWriter[connections.size()];
+        HashMap<Player, ConnectionWriter> byPlayer = new HashMap<>();
+
+        int index = 0;
+        for (PlayerConnection context : connections) {
+            LobbyPlayer player = getLobbyPlayer(context);
+            if (player == null) {
+                filters[index++] = context.getWriter();
+            } else {
+                byPlayer.put(player.player, filters[index++] = getFilter(state, player));
+            }
+        }
+        return new DefaultBroadCaster(filters, byPlayer, (writer, t) -> {
+            t.printStackTrace();
+            System.exit(1); // TODO: just remove that player...
+        });
     }
 
     public ServerStateManipulator createMasterStateManipulator() {
-        return new ServerStateManipulator(game, Player.GOD, getBroadCaster());
+        return new ServerStateManipulator(game, Player.GOD, broadCaster);
     }
 
-    public ServerStateManipulator createEmptyStateManipulator() {
+    private ServerStateManipulator createEmptyStateManipulator() {
         return new ServerStateManipulator(game, Player.GOD, new BroadCaster() {
             @Override
             public void broadCast(Message msg) {}
+            @Override
+            public void flush() {}
             @Override
             public void send(Player losPlayer, Message unitRemoved) {}
         });
     }
 
-    public void flushAll() {
-        for (ServerConnectionContext c : connections) {
-            try {
-                c.writer.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    private static final class LobbyPlayer {
+        Player player;
+        PlayerConnection connection;
     }
 }

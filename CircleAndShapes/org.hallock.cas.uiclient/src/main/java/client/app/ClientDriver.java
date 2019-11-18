@@ -1,6 +1,6 @@
 package client.app;
 
-import common.msg.ConnectionWriter;
+import common.msg.NetworkConnectionWriter;
 import common.util.json.JsonReaderWrapperSpec;
 import common.util.json.JsonWrapper;
 import common.util.json.JsonWriterWrapperSpec;
@@ -19,7 +19,7 @@ public class ClientDriver {
                 JsonWriterWrapperSpec outputStream = JsonWrapper.initializeStream(JsonWrapper.createJacksonWriterWrapper(socket.getOutputStream()), "requests");
                 JsonReaderWrapperSpec inputStream = JsonWrapper.initializeStream(createJacksonReaderWrapper(socket.getInputStream()), "messages");
         ) {
-            context.writer = new ConnectionWriter(outputStream);
+            context.writer = new NetworkConnectionWriter(outputStream);
             context.uiManager.displayLobbyBrowser();
 
             if (latch != null) {

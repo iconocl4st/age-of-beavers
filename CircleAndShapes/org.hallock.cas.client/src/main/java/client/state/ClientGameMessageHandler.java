@@ -144,7 +144,7 @@ public class ClientGameMessageHandler {
             }
             break;
             default:
-                throw new RuntimeException("Unkown message type");
+                throw new RuntimeException("Unkown message type: " + message.getMessageType());
         }
         return true;
     }
