@@ -10,6 +10,7 @@ public class GenerationSpec implements Jsonable {
     public List<ResourceGen> resources = new LinkedList<>();
     public List<UnitGen> gaia = new LinkedList<>();
     public List<UnitGen> perPlayerUnits = new LinkedList<>();
+    public List<ResourceGen> perPlayerResources = new LinkedList<>();
 
     public static final class ResourceGen implements Jsonable {
         public EntitySpec type;

@@ -1,8 +1,8 @@
 package common.util;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Random;
+import common.state.spec.ResourceType;
+
+import java.util.*;
 
 public class Util {
     private static String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUIVWXYZ0123456789";

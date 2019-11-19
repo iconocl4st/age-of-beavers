@@ -11,10 +11,15 @@ import common.util.ExecutorServiceWrapper;
 public class PlayerAiContext implements PlayerAiInterface {
 
     private final ExecutorServiceWrapper executorService;
-    private ClientGameState clientGameState;
-    private QueueConnectionWriter msgQueue = new QueueConnectionWriter();
+
+    ClientGameState clientGameState;
+
+    QueueConnectionWriter msgQueue = new QueueConnectionWriter(); // one odd call
+
+
     private ActionRequester actionRequester = new ActionRequester(msgQueue);
-    private PlayerAiImplementation ai = new PlayerAiImplementation(this);
+    private AiUtitlities utils;
+    private PlayerAiImplementation ai;
 
     // TODO: should be some way to not need this...
     private Player currentPlayer;
@@ -41,6 +46,8 @@ public class PlayerAiContext implements PlayerAiInterface {
                         currentPlayer,
                         executorService
                 );
+                utils = new AiUtitlities(clientGameState.gameState);
+                ai = new PlayerAiImplementation(this);
                 break;
             }
             default:

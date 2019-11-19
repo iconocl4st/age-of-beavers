@@ -3,6 +3,7 @@ package common.state.sst.sub;
 import common.state.EntityId;
 import common.state.Player;
 import common.state.sst.manager.ManagerImpl;
+import common.state.sst.manager.RevPair;
 import common.state.sst.manager.ReversableManagerImpl;
 import common.util.json.*;
 
@@ -44,7 +45,7 @@ public class GateInfo implements Jsonable {
     }
 
     public static boolean isOccupiedFor(Point location, Player player, ReversableManagerImpl<GateInfo, Point> gateManager, ManagerImpl<Player> pManager) {
-        Set<ReversableManagerImpl.Pair<GateInfo>> byType = gateManager.getByType(location);
+        Set<RevPair<GateInfo>> byType = gateManager.getByType(location);
         if (byType.isEmpty()) return false;
         if (byType.size() != 1) throw new RuntimeException("Two gates in the same spot?");
         EntityId entityId = byType.iterator().next().entityId;

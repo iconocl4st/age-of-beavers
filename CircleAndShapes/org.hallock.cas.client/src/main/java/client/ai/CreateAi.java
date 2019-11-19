@@ -18,6 +18,10 @@ public class CreateAi extends Ai {
         this.spec = spec;
     }
 
+    public CreationSpec getCreating() {
+        return spec;
+    }
+
     @Override
     public String toString() {
         return "Continuously create " + spec.createdType.name;

@@ -7,7 +7,7 @@ import common.state.EntityReader;
 import common.state.Player;
 import common.state.spec.EntitySpec;
 import common.state.spec.GameSpec;
-import common.state.sst.manager.ReversableManagerImpl;
+import common.state.sst.manager.RevPair;
 import common.util.DPoint;
 
 import javax.swing.*;
@@ -40,7 +40,7 @@ public class Minimap extends JPanel {
         g.fillRect(0, 0, w, h);
 
         for (int i = 1; i < spec.numPlayers; i++) {
-            for (ReversableManagerImpl.Pair<Player> pair : context.clientGameState.gameState.playerManager.getByType(new Player(i))) {
+            for (RevPair<Player> pair : context.clientGameState.gameState.playerManager.getByType(new Player(i))) {
                 g.setColor(Colors.PLAYER_COLORS[i]);
                 drawUnit(g, pair);
             }
@@ -62,20 +62,20 @@ public class Minimap extends JPanel {
 
     private void drawUnitType(Graphics g, Color color, String typeName) {
         g.setColor(color);
-        for (ReversableManagerImpl.Pair<EntitySpec> pair : context.clientGameState.gameState.typeManager.getByType(spec.getUnitSpec(typeName))) {
+        for (RevPair<EntitySpec> pair : context.clientGameState.gameState.typeManager.getByType(spec.getUnitSpec(typeName))) {
             drawUnit(g, pair);
         }
     }
 
     private void drawResource(Graphics g, Color color, String resourceName) {
         g.setColor(color);
-        for (ReversableManagerImpl.Pair<EntitySpec> pair : context.clientGameState.gameState.typeManager.getByType(spec.getNaturalResource(resourceName))) {
+        for (RevPair<EntitySpec> pair : context.clientGameState.gameState.typeManager.getByType(spec.getNaturalResource(resourceName))) {
             drawUnit(g, pair);
         }
     }
 
     private static final int UNIT_SIZE = 0;
-    private void drawUnit(Graphics g, ReversableManagerImpl.Pair pair) {
+    private void drawUnit(Graphics g, RevPair pair) {
         EntityReader entity = new EntityReader(context.clientGameState.gameState, pair.entityId);
         EntitySpec type = entity.getType();
         DPoint location = entity.getLocation();

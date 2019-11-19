@@ -27,7 +27,6 @@ public class ActionRequester {
         writer.send(new Message.StopRiding(entityId.entityId));
     }
 
-
     public void setUnitActionToAttack(EntityReader entityId, EntityReader currentPrey, Weapon weapon) {
         writer.send(new Message.RequestAction(entityId.entityId, new Action.Attack(currentPrey.entityId, weapon.weaponType.name)));
     }

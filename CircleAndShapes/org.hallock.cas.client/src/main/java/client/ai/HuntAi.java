@@ -31,6 +31,8 @@ public class HuntAi extends Ai {
     public HuntAi(ClientGameState state, EntityReader hunter, EntityReader prey, EntitySpec preyType) {
         super(state, hunter);
         this.preyType = preyType;
+        if (!preyType.containsClass("prey"))
+            throw new IllegalStateException("Cannot hunt this: " +  preyType.name);
         setCurrentPrey(prey);
     }
 
@@ -154,6 +156,7 @@ public class HuntAi extends Ai {
                 ResourceType resourceType = currentCarcass.getCarrying().getNonzeroResource();
                 if (resourceType == null) {
                     currentCarcass = null;
+                    continue;
                 }
                 if (Proximity.closeEnoughToInteract(controlling, currentCarcass)) {
                     ar.setUnitActionToCollect(controlling, currentCarcass, resourceType);
@@ -166,10 +169,10 @@ public class HuntAi extends Ai {
             GridLocationQuerier.NearestEntityQueryResults results = context.gameState.locationManager.query(
                     new GridLocationQuerier.NearestEntityQuery(
                             context.gameState,
-                            controlling.getCenterLocation(),
+                            controlling.getLocation(),
                             entity -> {
                                 EntitySpec type = context.gameState.typeManager.get(entity);
-                                return type != null && type.containsClass("prey");
+                                return type != null && type.name.equals(preyType.name);
                             },
                             Double.MAX_VALUE,
                             context.currentPlayer

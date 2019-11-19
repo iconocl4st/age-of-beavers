@@ -1,11 +1,8 @@
 package common.state.sst.manager;
 
 import common.state.EntityId;
-import common.state.spec.GameSpec;
-import common.state.sst.sub.GateInfo;
 import common.util.json.*;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -26,11 +23,11 @@ public class ReversableManagerImpl<T, K> extends ManagerImpl<T> {
         }
     }
 
-    public Set<Pair<T>> getByType(K k) {
-        Set<Pair<T>> ret = new HashSet<>();
+    public Set<RevPair<T>> getByType(K k) {
+        Set<RevPair<T>> ret = new HashSet<>();
         synchronized (map) {
             for (EntityId entityId : reverseMap.getOrDefault(k, Collections.emptySet())) {
-                ret.add(new Pair<>(entityId, map.get(entityId)));
+                ret.add(new RevPair<>(entityId, map.get(entityId)));
             }
         }
         return ret;
@@ -70,24 +67,5 @@ public class ReversableManagerImpl<T, K> extends ManagerImpl<T> {
 
     public interface Getter<T, K> extends Serializable {
         K get(T t);
-    }
-
-    public static final class Pair<T> {
-        public final EntityId entityId;
-        public final T value;
-
-        public Pair(EntityId entityId, T value) {
-            this.entityId = entityId;
-            this.value = value;
-        }
-
-        public int hashCode() {
-            return entityId.hashCode();
-        }
-
-        public boolean equals(Object other) {
-            if (!(other instanceof Pair)) return false;
-            return ((Pair<T>) other).entityId.equals(entityId);
-        }
     }
 }

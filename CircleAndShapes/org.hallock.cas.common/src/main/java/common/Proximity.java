@@ -14,6 +14,7 @@ public class Proximity {
 
 
     public static boolean closeEnoughToInteract(EntityReader unit, EntityReader storage) {
+        if (unit == null || storage == null) return false;
         EntitySpec type1 = unit.getType();
         if (type1 == null) return false;
         DPoint location1 = unit.getLocation();

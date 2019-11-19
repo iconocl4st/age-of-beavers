@@ -3,10 +3,9 @@ package client.gui.actions.global_action;
 
 import client.app.UiClientContext;
 import client.gui.actions.Action;
-import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.Player;
-import common.state.sst.manager.ReversableManagerImpl;
+import common.state.sst.manager.RevPair;
 import common.util.EntityReaderFilter;
 
 import java.util.Collection;
@@ -25,8 +24,8 @@ public class FilterAllPlayerUnits extends Action {
     // TODO: rethink how this works
     @Override
     public final boolean isEnabled(Collection<EntityReader> currentlySelected) {
-        Set<ReversableManagerImpl.Pair<Player>> byType = c.clientGameState.gameState.playerManager.getByType(c.clientGameState.currentPlayer);
-        for (ReversableManagerImpl.Pair<Player> pair : byType) {
+        Set<RevPair<Player>> byType = c.clientGameState.gameState.playerManager.getByType(c.clientGameState.currentPlayer);
+        for (RevPair<Player> pair : byType) {
             if (filter.include(new EntityReader(c.clientGameState.gameState, pair.entityId)))
                 return true;
         }
@@ -36,8 +35,8 @@ public class FilterAllPlayerUnits extends Action {
     @Override
     public void run(Collection<EntityReader> currentlySelected) {
         Set<EntityReader> set = new HashSet<>();
-        Set<ReversableManagerImpl.Pair<Player>> byType = c.clientGameState.gameState.playerManager.getByType(c.clientGameState.currentPlayer);
-        for (ReversableManagerImpl.Pair<Player> pair : byType) {
+        Set<RevPair<Player>> byType = c.clientGameState.gameState.playerManager.getByType(c.clientGameState.currentPlayer);
+        for (RevPair<Player> pair : byType) {
             EntityReader entityReader = new EntityReader(c.clientGameState.gameState, pair.entityId);
             if (filter.include(entityReader))
                 set.add(entityReader);

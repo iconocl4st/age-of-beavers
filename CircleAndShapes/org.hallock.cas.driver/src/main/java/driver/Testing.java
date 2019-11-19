@@ -110,6 +110,9 @@ public class Testing {
         //          could also do intersections of all corners of the unit
 
 
+        int numSpectators = 1;
+        int numGames = 1;
+        int numAis = 1;
 
         System.out.println("Starting server");
         ServerContext serverContext = ServerDriver.createServerContext();
@@ -124,9 +127,7 @@ public class Testing {
 
         Thread.sleep(1000);
 
-
-
-        int numClients = 1;
+        int numClients = numSpectators + numGames;
         UiClientContext[] clientContexts = new UiClientContext[numClients];
         for (int i = 0; i < numClients; i++) {
             clientContexts[i] = new UiClientContext();
@@ -160,14 +161,15 @@ public class Testing {
 
         Thread.sleep(1000);
 
-        int numAis = 2;
         for (int i = 0; i < numAis; i++) {
             PlayerAiContext aiContext = new PlayerAiContext(ServerContext.executorService);
             serverContext.lobbies[0].join(new AiConnection(aiContext));
         }
 
-        clientContexts[0].writer.send(new Message.Spectate(true));
-        clientContexts[0].writer.flush();
+        for (int i = 0; i < numSpectators; i++) {
+            clientContexts[i].writer.send(new Message.Spectate(true));
+            clientContexts[i].writer.flush();
+        }
 
         Thread.sleep(1000);
 

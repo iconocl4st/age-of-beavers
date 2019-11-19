@@ -4,6 +4,7 @@ import common.msg.Message;
 import common.msg.NoExceptionsConnectionWriter;
 
 import java.util.LinkedList;
+import java.util.List;
 
 public class QueueConnectionWriter implements NoExceptionsConnectionWriter {
 
@@ -11,12 +12,19 @@ public class QueueConnectionWriter implements NoExceptionsConnectionWriter {
 
     @Override
     public boolean send(Message message) {
-        messages.addLast(message);
+        synchronized (messages) {
+            messages.addLast(message);
+        }
         return true;
     }
 
     void writeTo(NoExceptionsConnectionWriter requester) {
-        for (Message msg : messages) {
+        List<Message> toWrite;
+        synchronized (messages) {
+            toWrite = (List<Message>)  messages.clone();
+            messages.clear();
+        }
+        for (Message msg : toWrite) {
             requester.send(msg);
         }
     }

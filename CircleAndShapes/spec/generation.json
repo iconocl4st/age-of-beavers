@@ -34,7 +34,7 @@
       },
       {
         "type": "horse",
-        "number": 10
+        "number": 5
       },
       {
         "type": "cow",
@@ -58,6 +58,28 @@
         {
           "type": "wagon",
           "number": 2
+        }
+      ],
+      "resources": [
+        {
+          "type": "berry",
+          "num-patches": 2,
+          "patch-size": 6
+        },
+        {
+          "type": "tree",
+          "num-patches": 1,
+          "patch-size": 10
+        },
+        {
+          "type": "rocks",
+          "num-patches": 1,
+          "patch-size": 5
+        },
+        {
+          "type": "gold stone",
+          "num-patches": 1,
+          "patch-size": 5
         }
       ]
     }

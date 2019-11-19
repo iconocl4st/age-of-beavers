@@ -4,7 +4,7 @@ import common.action.Action;
 import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
 import common.state.sst.GameState;
-import common.state.sst.manager.ReversableManagerImpl;
+import common.state.sst.manager.RevPair;
 import common.state.sst.sub.ConstructionZone;
 import common.state.sst.sub.GateInfo;
 import common.state.sst.sub.Load;
@@ -80,11 +80,11 @@ public class EntityReader implements LocatedEntitySpec {
     }
 
     public Set<EntityReader> getGarrisoned() {
-        Set<ReversableManagerImpl.Pair<EntityId>> garrisonedUnits = state.garrisonManager.getByType(entityId);
+        Set<RevPair<EntityId>> garrisonedUnits = state.garrisonManager.getByType(entityId);
         if (garrisonedUnits == null || garrisonedUnits.isEmpty())
             return Collections.emptySet();
         HashSet<EntityReader> garrisoned = new HashSet<>();
-        for (ReversableManagerImpl.Pair<EntityId> p : garrisonedUnits) {
+        for (RevPair<EntityId> p : garrisonedUnits) {
             garrisoned.add(new EntityReader(state, p.entityId));
         }
         return garrisoned;

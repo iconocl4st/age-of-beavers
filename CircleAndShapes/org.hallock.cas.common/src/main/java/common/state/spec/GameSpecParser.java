@@ -4,7 +4,6 @@ import common.state.spec.attack.DamageType;
 import common.state.spec.attack.ProjectileSpec;
 import common.state.spec.attack.WeaponClass;
 import common.state.spec.attack.WeaponSpec;
-import common.state.sst.sub.capacity.Prioritization;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -157,6 +156,25 @@ public class GameSpecParser {
         spec.naturalResources = parsedResources.toArray(new EntitySpec[0]);
     }
 
+    private static GenerationSpec.ResourceGen parseResourceGen(GameSpec spec, JSONObject patch) {
+        GenerationSpec.ResourceGen g = new GenerationSpec.ResourceGen();
+        g.type = spec.getNaturalResource((String) patch.get("type"));
+        if (g.type == null)
+            throw new IllegalStateException("Unknown resource type: " + patch.get("type"));
+        g.numberOfPatches = (int) (long) patch.get("num-patches");
+        g.patchSize = (int) (long) patch.get("patch-size");
+        return g;
+    }
+
+    private static GenerationSpec.UnitGen parseUnitGen(GameSpec spec, JSONObject patch) {
+        GenerationSpec.UnitGen g = new GenerationSpec.UnitGen();
+        g.type = spec.getUnitSpec((String) patch.get("type"));
+        if (g.type == null)
+            throw new IllegalStateException("Unknown unit type: " + patch.get("type"));
+        g.number = (int) (long) patch.get("number");
+        return g;
+    }
+
     private static void parseMapGenerator(Path location, GameSpec spec) throws IOException, ParseException {
         JSONObject generation =(JSONObject) getJson(location.resolve("generation.json")).get("generation");
         spec.generationSpec = new GenerationSpec();
@@ -164,40 +182,28 @@ public class GameSpecParser {
         {
             JSONArray patches = (JSONArray) generation.get("patches");
             for (int j = 0; j < patches.size(); j++) {
-                JSONObject patch = (JSONObject) patches.get(j);
-                GenerationSpec.ResourceGen g = new GenerationSpec.ResourceGen();
-                g.type = spec.getNaturalResource((String) patch.get("type"));
-                if (g.type == null)
-                    throw new IllegalStateException("Unknown resource type: " + patch.get("type"));
-                g.numberOfPatches = (int) (long) patch.get("num-patches");
-                g.patchSize = (int) (long) patch.get("patch-size");
-                spec.generationSpec.resources.add(g);
+                spec.generationSpec.resources.add(parseResourceGen(spec, (JSONObject) patches.get(j)));
             }
         }
 
         {
             JSONArray gaia = (JSONArray) generation.get("gaia");
             for (int j = 0; j < gaia.size(); j++) {
-                JSONObject patch = (JSONObject) gaia.get(j);
-                GenerationSpec.UnitGen g = new GenerationSpec.UnitGen();
-                g.type = spec.getUnitSpec((String) patch.get("type"));
-                if (g.type == null)
-                    throw new IllegalStateException("Unknown unit type: " + patch.get("type"));
-                g.number = (int) (long) patch.get("number");
-                spec.generationSpec.gaia.add(g);
+                spec.generationSpec.gaia.add(parseUnitGen(spec, (JSONObject) gaia.get(j)));
             }
         }
 
         {
             JSONArray perPlayer = (JSONArray) ((JSONObject) generation.get("per-player")).get("units");
             for (int j = 0; j < perPlayer.size(); j++) {
-                JSONObject patch = (JSONObject) perPlayer.get(j);
-                GenerationSpec.UnitGen g = new GenerationSpec.UnitGen();
-                g.type = spec.getUnitSpec((String) patch.get("type"));
-                if (g.type == null)
-                    throw new IllegalStateException("Unknown unit type: " + patch.get("type"));
-                g.number = (int) (long) patch.get("number");
-                spec.generationSpec.perPlayerUnits.add(g);
+                spec.generationSpec.perPlayerUnits.add(parseUnitGen(spec, (JSONObject) perPlayer.get(j)));
+            }
+        }
+
+        {
+            JSONArray perPlayer = (JSONArray) ((JSONObject) generation.get("per-player")).get("resources");
+            for (int j = 0; j < perPlayer.size(); j++) {
+                spec.generationSpec.perPlayerResources.add(parseResourceGen(spec, (JSONObject) perPlayer.get(j)));
             }
         }
     }

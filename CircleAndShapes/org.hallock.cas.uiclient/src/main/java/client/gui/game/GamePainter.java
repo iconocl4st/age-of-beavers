@@ -8,13 +8,13 @@ import client.state.ClientGameState;
 import common.CommonConstants;
 import common.state.Player;
 import common.state.spec.GameSpec;
+import common.state.sst.manager.RevPair;
 import common.util.Marked;
 import common.action.Action;
 import common.state.spec.EntitySpec;
 import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.sst.GameState;
-import common.state.sst.manager.ReversableManagerImpl;
 import common.state.sst.sub.ProjectileLaunch;
 import common.util.DPoint;
 import common.util.GridLocation;
@@ -301,7 +301,7 @@ public class GamePainter {
     }
 
     private void paintPaths(Graphics2D g, Zoom zoom) {
-        for (ReversableManagerImpl.Pair<Action> entry : state.actionManager.getByType(Action.ActionType.Move)) {
+        for (RevPair<Action> entry : state.actionManager.getByType(Action.ActionType.Move)) {
             EntityReader reader = new EntityReader(state, entry.entityId);
             EntitySpec type = reader.getType();
             if (type == null) continue;
@@ -400,7 +400,7 @@ public class GamePainter {
 
     private interface EntityGetter { EntityReader getEntity(Action action); }
     private void paintAction(Graphics2D g, Color color, Action.ActionType actionType, EntityGetter getter, Zoom zoom) {
-        for (ReversableManagerImpl.Pair<Action> entry : state.actionManager.getByType(actionType)) {
+        for (RevPair<Action> entry : state.actionManager.getByType(actionType)) {
             EntityReader target = getter.getEntity(entry.value);
             EntityReader source = new EntityReader(state, entry.entityId);
             DPoint sourceLocation = source.getLocation();
