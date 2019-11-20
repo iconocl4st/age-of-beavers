@@ -8,7 +8,8 @@ import common.state.EntityReader;
 import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
 import common.state.sst.sub.Load;
-import common.util.GridLocationQuerier;
+import common.util.query.GridLocationQuerier;
+import common.util.query.NearestEntityQueryResults;
 
 public class Gather extends Ai {
 
@@ -28,9 +29,17 @@ public class Gather extends Ai {
         currentState = GatherState.Delivering;
     }
 
+    public EntityReader getCurrentResource() {
+        return currentTarget;
+    }
+
     private ResourceType getResourceType() {
         // TODO: what if there are more than one? (like seeds...)
-        return naturalResourceSpec.carrying.iterator().next().type;
+        try {
+            return naturalResourceSpec.carrying.iterator().next().type;
+        } catch (RuntimeException e) {
+            throw e;
+        }
     }
 
     public String toString() {
@@ -81,7 +90,7 @@ public class Gather extends Ai {
                 return AiAttemptResult.Successful;
             }
 
-            GridLocationQuerier.NearestEntityQueryResults results = findNearestResource(naturalResourceSpec.name);
+            NearestEntityQueryResults results = findNearestResource(naturalResourceSpec.name);
             if (!results.successful()) {
                 return AiAttemptResult.Unsuccessful; // or successful?
             }

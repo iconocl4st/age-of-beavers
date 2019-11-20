@@ -1,13 +1,12 @@
 package server.algo;
 
 import common.algo.AStar;
-import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.Player;
 import common.state.spec.EntitySpec;
 import common.state.sst.GameState;
 import common.util.DPoint;
-import common.util.GridLocationQuerier;
+import common.util.query.GridLocationQuerier;
 
 import java.util.Set;
 

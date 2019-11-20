@@ -6,7 +6,7 @@ import client.gui.actions.Action;
 import common.state.EntityReader;
 import common.state.Player;
 import common.state.sst.manager.RevPair;
-import common.util.EntityReaderFilter;
+import common.util.query.EntityReaderFilter;
 
 import java.util.Collection;
 import java.util.HashSet;

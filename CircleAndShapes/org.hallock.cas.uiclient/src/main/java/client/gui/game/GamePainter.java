@@ -1,28 +1,30 @@
 package client.gui.game;
 
-import client.app.UiClientContext;
 import client.algo.HueristicPaintMarkedTiles;
+import client.app.UiClientContext;
 import client.gui.mouse.BuildingPlacer;
 import client.gui.mouse.SelectionListener;
 import client.state.ClientGameState;
 import common.CommonConstants;
-import common.state.Player;
-import common.state.spec.GameSpec;
-import common.state.sst.manager.RevPair;
-import common.util.Marked;
+import common.DebugGraphics;
 import common.action.Action;
-import common.state.spec.EntitySpec;
 import common.state.EntityId;
 import common.state.EntityReader;
+import common.state.Player;
+import common.state.spec.EntitySpec;
+import common.state.spec.GameSpec;
 import common.state.sst.GameState;
+import common.state.sst.manager.RevPair;
 import common.state.sst.sub.ProjectileLaunch;
 import common.util.DPoint;
 import common.util.GridLocation;
+import common.util.Marked;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -129,6 +131,29 @@ public class GamePainter {
                         zoom.mapGameToScreenX(r.rectangle.getX() + r.rectangle.getWidth() / 2),
                         zoom.mapGameToScreenY(r.rectangle.getY() + r.rectangle.getHeight() / 2)
                 );
+            }
+
+            // should be here...
+        }
+
+        synchronized (DebugGraphics.byPlayer) {
+            for (Map.Entry<Player, List<DebugGraphics>> entry : DebugGraphics.byPlayer.entrySet()) {
+                for (DebugGraphics debug : entry.getValue()) {
+                    int cx = zoom.mapGameToScreenX(debug.center.x);
+                    int cy = zoom.mapGameToScreenY(debug.center.y);
+                    g.setColor(Colors.PLAYER_COLORS[entry.getKey().number]);
+                    g.fillOval(cx - 2, cy - 2, 4, 4);
+
+                    g.setColor(new Color((int)(255 * Math.random()), (int)(255 * Math.random()), (int)(255 * Math.random())));
+                    for (Point rec : debug.list) {
+                        g.drawLine(
+                                cx,
+                                cy,
+                                zoom.mapGameToScreenX(rec.x),
+                                zoom.mapGameToScreenY(rec.y)
+                        );
+                    }
+                }
             }
         }
 

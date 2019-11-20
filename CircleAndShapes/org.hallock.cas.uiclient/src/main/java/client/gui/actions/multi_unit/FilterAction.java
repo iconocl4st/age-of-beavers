@@ -2,9 +2,8 @@ package client.gui.actions.multi_unit;
 
 import client.app.UiClientContext;
 import client.gui.actions.Action;
-import common.state.EntityId;
 import common.state.EntityReader;
-import common.util.EntityReaderFilter;
+import common.util.query.EntityReaderFilter;
 
 import java.util.Collection;
 import java.util.HashSet;

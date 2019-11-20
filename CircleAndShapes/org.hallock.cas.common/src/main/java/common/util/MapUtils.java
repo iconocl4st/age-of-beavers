@@ -52,12 +52,8 @@ public class MapUtils {
         }
         return map;
     }
-    public static Map<ResourceType, Integer> abs(Map<ResourceType, Integer> map) {
-        for (Map.Entry<ResourceType, Integer> entry : map.entrySet()) {
-            if (entry.getValue() == null || entry.getValue() == 0)
-                continue;
-            entry.setValue(Math.abs(entry.getValue()));
-        }
+    public static Map<ResourceType, Integer> positivePart(Map<ResourceType, Integer> map) {
+        map.entrySet().removeIf(e -> e.getValue() == null || e.getValue() <= 0);
         return map;
     }
 
@@ -91,7 +87,7 @@ public class MapUtils {
 //    }
 
 //    public static List<Reassignment> getReassignments(Map<ResourceType, Integer> current, Map<ResourceType, Integer> desired) {
-//        LinkedList<Map.Entry<ResourceType, Integer>> missing = new LinkedList<>(abs(subtract(copy(desired), current)).entrySet());
+//        LinkedList<Map.Entry<ResourceType, Integer>> missing = new LinkedList<>(positivePart(subtract(copy(desired), current)).entrySet());
 //
 //        excess.sort(CMP);
 //        missing.sort(CMP);

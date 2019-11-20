@@ -10,7 +10,8 @@ import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
 import common.state.spec.attack.Weapon;
 import common.util.DPoint;
-import common.util.GridLocationQuerier;
+import common.util.query.NearestEntityQuery;
+import common.util.query.NearestEntityQueryResults;
 
 import java.util.*;
 
@@ -166,8 +167,8 @@ public class HuntAi extends Ai {
                 }
             }
 
-            GridLocationQuerier.NearestEntityQueryResults results = context.gameState.locationManager.query(
-                    new GridLocationQuerier.NearestEntityQuery(
+            NearestEntityQueryResults results = context.gameState.locationManager.query(
+                    new NearestEntityQuery(
                             context.gameState,
                             controlling.getLocation(),
                             entity -> {

@@ -122,7 +122,7 @@ public class ClientGameMessageHandler {
                         }
                     }
                     if (msg.capacity != null || msg.load != null || msg.owner != null) {
-                        context.supplyAndDemandManager.update(new EntityReader(context.gameState, msg.unitId));
+                        context.supplyAndDemandManager.update(new EntityReader(context.gameState, msg.unitId), true);
                     }
                 }
             }

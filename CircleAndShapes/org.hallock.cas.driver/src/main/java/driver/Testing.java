@@ -66,7 +66,7 @@ public class Testing {
         //      make a testing framework
         //      update the spec on the fly
 
-        // make the action have a timestamp of when it was set by the server (to enable multiple client renders  for one server tick)
+        // make the action have a timestamp of when it was setResourceLocation by the server (to enable multiple client renders  for one server tick)
         // image manager
         // make the game time also depend on the current time (as an option)
 
@@ -101,6 +101,8 @@ public class Testing {
 
 
         // BUGS
+        // transporting before demand is set?
+        //
         // don't let extra resources be in construction zone.
         // players can move to a spot, but still not be close enough to interact...
         //  To finish astar:
@@ -111,8 +113,8 @@ public class Testing {
 
 
         int numSpectators = 1;
-        int numGames = 1;
-        int numAis = 1;
+        int numGames = 0;
+        int numAis = 2;
 
         System.out.println("Starting server");
         ServerContext serverContext = ServerDriver.createServerContext();

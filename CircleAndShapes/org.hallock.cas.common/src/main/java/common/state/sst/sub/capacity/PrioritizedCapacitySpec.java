@@ -21,6 +21,13 @@ public class PrioritizedCapacitySpec implements Jsonable {
     }
     private PrioritizedCapacitySpec() {}
 
+    public PrioritizedCapacitySpec(PrioritizedCapacitySpec other) {
+        this.totalWeight = other.totalWeight;
+        for (Map.Entry<ResourceType, Prioritization> rt : other.prioritizations.entrySet()) {
+            prioritizations.put(rt.getKey(), new Prioritization(rt.getValue()));
+        }
+    }
+
     public Prioritization getPrioritization(ResourceType resourceType) {
         return prioritizations.get(resourceType);
     }
@@ -104,5 +111,9 @@ public class PrioritizedCapacitySpec implements Jsonable {
             prioritizedCapacitySpec.prioritizations.put(entry.getKey(), prioritization);
         }
         return prioritizedCapacitySpec;
+    }
+
+    public int getMaximumWeightHoldable() {
+        return Math.min(totalWeight, sumAllowedResources());
     }
 }

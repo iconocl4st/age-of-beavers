@@ -1,14 +1,14 @@
 package client.ai;
 
 import common.action.Action;
-import server.algo.ConnectedSet;
+import common.algo.ConnectedSet;
 import common.state.spec.GameSpec;
 import common.state.EntityId;
 import common.state.Player;
 import common.state.sst.GameState;
 import common.algo.AStar;
 import common.util.DPoint;
-import common.util.GridLocationQuerier;
+import common.util.query.GridLocationQuerier;
 import server.state.ServerStateManipulator;
 
 import java.awt.*;

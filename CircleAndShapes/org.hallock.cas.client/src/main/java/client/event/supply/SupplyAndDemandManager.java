@@ -1,6 +1,8 @@
 package client.event.supply;
 
+import client.ai.ActionRequester;
 import client.ai.TransportAi;
+import client.event.AiEventListener;
 import client.state.ClientGameState;
 import common.AiEvent;
 import common.state.EntityId;
@@ -13,7 +15,9 @@ import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 
 import java.util.*;
 
-public class SupplyAndDemandManager {
+public class SupplyAndDemandManager implements AiEventListener {
+
+    // should this listen to buildings being placed?
 
     private final Object sync = new Object();
     private final HashMap<ResourceType, Set<EntityId>> currentlyExceeding = new HashMap<>();
@@ -34,7 +38,7 @@ public class SupplyAndDemandManager {
 
     public void stopServicing(TransportAi transportAi, Transport transport) {
         remove(transport.getRequester());
-        update(transport.getRequester());
+        update(transport.getRequester(), true);
     }
 
     public Transport commitToNextTransportationRequest(TransportAi transportAi) {
@@ -136,10 +140,10 @@ public class SupplyAndDemandManager {
         return hasUpdate;
     }
 
-    public void update(EntityReader reader) {
+    public void update(EntityReader reader, boolean checkOwner) {
         Object sync = reader.getSync();
         synchronized (sync) {
-            if (reader.noLongerExists() || !reader.getType().containsClass("storage") || !reader.getOwner().equals(context.currentPlayer)) {
+            if (reader.noLongerExists() || !reader.getType().containsClass("storage") || (checkOwner && !reader.getOwner().equals(context.currentPlayer))) {
                 remove(reader);
                 return;
             }
@@ -176,5 +180,16 @@ public class SupplyAndDemandManager {
         if (hasUpdate) {
             context.eventManager.notifyListeners(new AiEvent.DemandsChanged(unitId.entityId));
         }
+    }
+
+    @Override
+    public void receiveEvent(AiEvent event, ActionRequester ar) {
+        if (!event.type.equals(AiEvent.EventType.BuildingPlacementChanged))
+            return;
+        AiEvent.BuildingPlacementChanged buildingPlacementChanged = (AiEvent.BuildingPlacementChanged) event;
+        if (buildingPlacementChanged.constructionZone == null) {
+            return;
+        }
+        update(new EntityReader(context.gameState, buildingPlacementChanged.constructionZone), false);
     }
 }

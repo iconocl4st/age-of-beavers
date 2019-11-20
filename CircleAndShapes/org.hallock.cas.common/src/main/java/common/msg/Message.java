@@ -226,16 +226,19 @@ public abstract class Message implements Jsonable {
     public static class Launched extends Message {
         public final GameSpec spec;
         public final Player player;
+        public final Point playerStart;
 
-        public Launched(GameSpec spec, Player player) {
+        public Launched(GameSpec spec, Player player, Point playerStart) {
             this.spec = spec;
             this.player = player;
+            this.playerStart = playerStart;
         }
 
         public static Launched finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
             return new Launched(
                 reader.read("spec", GameSpec.Serializer, spec),
-                reader.read("player", Player.Serializer, spec)
+                reader.read("player", Player.Serializer, spec),
+                reader.read("location", DataSerializer.PointSerializer, spec)
             );
         }
 
@@ -243,6 +246,7 @@ public abstract class Message implements Jsonable {
         protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions verbose) throws IOException {
             writer.write("spec", spec, GameSpec.Serializer, verbose);
             writer.write("player", player, Player.Serializer, verbose);
+            writer.write("location", playerStart, DataSerializer.PointSerializer, verbose);
         }
 
         @Override

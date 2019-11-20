@@ -1,4 +1,4 @@
-package common.util;
+package common.util.query;
 
 import common.algo.AStar;
 import common.state.EntityReader;
@@ -6,6 +6,7 @@ import common.state.spec.EntitySpec;
 import common.state.EntityId;
 import common.state.Player;
 import common.state.sst.GameState;
+import common.util.DPoint;
 
 import java.awt.*;
 import java.util.HashSet;
@@ -42,28 +43,6 @@ public class GridLocationQuerier {
             EntitySpec type = state.typeManager.get(entity);
             return type.containsClass("natural-resource") && type.name.equals(name);
         };
-    }
-
-    public static class NearestEntityQuery {
-        EntityQueryFilter filter;
-        DPoint location;
-        GameState state;
-        double maxDistance;
-        Player playerPerspective;
-        boolean needsPath;
-
-        public  NearestEntityQuery(GameState state, DPoint entity, EntityQueryFilter filter, double maxDistance, Player perspective) {
-            this.location = entity;
-            this.filter = filter;
-            this.maxDistance = maxDistance;
-            this.state = state;
-            this.playerPerspective = perspective;
-            needsPath = perspective != null;
-        }
-
-        public AStar.PathSearch findPath(DPoint location, EntityId entity) {
-            return GridLocationQuerier.findPath(state, location, entity, state.playerManager.get(entity));
-        }
     }
 
     public static AStar.PathSearch findPath(GameState state, DPoint location, DPoint destination, Player player) {
@@ -119,30 +98,6 @@ public class GridLocationQuerier {
     public static AStar.PathSearch findPath(GameState state, EntityId start, EntityId stop, Player player) {
         return findPath(state, state.locationManager.getLocation(start), stop, player);
     }
-
-    public static class NearestEntityQueryResults {
-        public final AStar.Path path;
-        public final DPoint location;
-        public final EntityId entity;
-        public final double distance;
-
-        NearestEntityQueryResults(EntityId entityId, DPoint location, AStar.Path path, double distance) {
-            this.entity = entityId;
-            this.path = path;
-            this.distance = distance;
-            this.location = location;
-        }
-
-        public boolean successful() {
-            return entity != null;
-        }
-
-        public EntityReader getEntity(GameState state) {
-            if (entity == null) return null;
-            return new EntityReader(state, entity);
-        }
-    }
-
 
 
 //    static final class KeepSmallest<T> {

@@ -1,60 +1,41 @@
 package app;
 
+import app.algo.KMeans;
 import client.ai.*;
 import client.state.ClientGameState;
+import common.AiEvent;
+import common.DebugGraphics;
 import common.msg.Message;
-import common.state.EntityId;
 import common.state.EntityReader;
-import common.state.Player;
-import common.state.spec.CreationMethod;
 import common.state.spec.CreationSpec;
 import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
 import common.state.sst.GameState;
-import common.state.sst.manager.RevPair;
-import common.state.sst.sub.capacity.Prioritization;
 import common.util.DPoint;
-import common.util.GridLocationQuerier;
 import common.util.MapUtils;
-import org.junit.rules.Verifier;
+import sun.security.ssl.Debug;
 
-import java.util.*;
+import java.awt.geom.Rectangle2D;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 class PlayerAiImplementation {
     private final PlayerAiContext context;
 
-    UnitAssignment hunters;
-    UnitAssignment berryGatherers;
-    UnitAssignment lumberJacks;
-    UnitAssignment stoneGatherers;
-
-    UnitAssignment transporters;
-    UnitAssignment builders;
-    UnitAssignment garrisoners;
-
-    HashMap<EntityReader, EntityReader> garrisonServicers;
-    HashMap<EntityReader, EntityReader> constructionServicers;
-
-    // need to retrieve building ids from server when requested...
-    // this will be an ai event...
-    LinkedList<EntityReader> constructionZones = new LinkedList<>();
-
-    LinkedList<EntityReader> startingGaiaUnits = null;
+    private EntityTracker tracker;
+    private PersistentAiState persistentState;
+    private TickProcessingState tickState;
 
     PlayerAiImplementation(PlayerAiContext playerAiContext) {
         this.context = playerAiContext;
+        tracker = new EntityTracker(context);
+        tracker.add(context.utils.locateByType("brothel"));
+        tracker.add(context.utils.locateByType("storage-yard"));
+        persistentState = new PersistentAiState(playerAiContext);
+        tickState = new TickProcessingState(playerAiContext, new PeoplePuller(persistentState));
 
-        hunters = new UnitAssignment(context, state().gameSpec.getResourceType("food"), UnitAssignment.aiIsNotOfClass(clientGameState(), HuntAi.class));
-        berryGatherers = new UnitAssignment(context, state().gameSpec.getResourceType("food"), UnitAssignment.aiIsNotOfClass(clientGameState(), HuntAi.class));
-        lumberJacks = new UnitAssignment(context, state().gameSpec.getResourceType("wood"), UnitAssignment.aiIsNotOfClass(clientGameState(), HuntAi.class));
-        stoneGatherers = new UnitAssignment(context, state().gameSpec.getResourceType("stone"), UnitAssignment.aiIsNotOfClass(clientGameState(), HuntAi.class));
-
-        transporters = new UnitAssignment(context, null, UnitAssignment.aiIsNotOfClass(clientGameState(), TransportAi.class));
-        builders = new UnitAssignment(context, null, UnitAssignment.aiIsNotOfClass(clientGameState(), ConstructAi.class));
-        garrisoners = new UnitAssignment(context, null, e -> e.noLongerExists() || !e.isHidden());
-
-        garrisonServicers = new HashMap<>();
-        constructionServicers = new HashMap<>();
+        context.clientGameState.eventManager.listenForEvents(tracker, AiEvent.EventType.BuildingPlacementChanged);
     }
 
 
@@ -65,244 +46,189 @@ class PlayerAiImplementation {
         return context.clientGameState;
     }
 
-    private static final Comparator<Map.Entry<ResourceType, Integer>> CMP = (a, b) -> -Integer.compare(a.getValue(), b.getValue());
-
-
-    // could have the game spec send the starting location...
-    private EntityReader locateGaiaByType(DPoint point, String type) {
-        GridLocationQuerier.NearestEntityQueryResults query = state().locationManager.query(new GridLocationQuerier.NearestEntityQuery(
-                state(),
-                point,
-                e -> state().typeManager.get(e).name.equals(type) && state().playerManager.get(e).equals(Player.GAIA),
-                80,
-                clientGameState().currentPlayer
-        ));
-        if (query.successful()) {
-            return query.getEntity(state());
-        }
-        return null;
-    }
-
-    // need to add the initial carts...
+    // need to addIdle the initial carts...
     synchronized void updateActions(ActionRequester actionRequester) {
-        hunters.verify();
-        berryGatherers.verify();
-        lumberJacks.verify();
-        stoneGatherers.verify();
-        transporters.verify();
-        builders.verify();
-        garrisoners.verify();
+        // get on a horse
+        // build a corral
+        // build a stable
+        // build another brothel
+        // build weapons
+        // fight
+        // build more storage
+        // detect when resources run out
 
-        // Need to verify the two maps as well...
+        persistentState.verifyCounts();
+        tickState.reset(persistentState);
+        persistentState.update(tickState.peopleOnResource);
 
-        HashMap<ResourceType, Integer> peopleOnResource = new HashMap<>();
-        hunters.addNumContributing(peopleOnResource);
-        berryGatherers.addNumContributing(peopleOnResource);
-        lumberJacks.addNumContributing(peopleOnResource);
-        stoneGatherers.addNumContributing(peopleOnResource);
+        persistentState.assignDropOffCarts(tickState.resourceClusters[0].getCenters());
 
-        HashMap<ResourceType, Integer> desiredResources = new HashMap<>();
-        HashMap<ResourceType, Integer> collectedResources = new HashMap<>();
-        LinkedList<EntityReader> idleHumans = new LinkedList<>();
-
-        LinkedList<EntityReader> garrisonsToService = new LinkedList<>();
-        LinkedList<EntityReader> constructionToService = new LinkedList<>();
-
-        // this loop needs to include nearby buildings from the start
-        int pop = 0;
-        for (RevPair<Player> pair : state().playerManager.getByType(clientGameState().currentPlayer)) {
-            EntityReader entity = new EntityReader(state(),  pair.entityId);
-
-            if (startingGaiaUnits == null) {
-                startingGaiaUnits = new LinkedList<>();
-                EntityReader unit;
-                unit = locateGaiaByType(entity.getLocation(), "brothel");
-                if (unit != null) startingGaiaUnits.add(unit);
-                // don't really need to add this...
-                unit = locateGaiaByType(entity.getLocation(), "storage-yard");
-                if (unit != null) startingGaiaUnits.add(unit);
-            }
-
-            boolean isHuman = entity.getType().name.equals("human");
-            if (isHuman) pop += 1;
-
-            if (entity.isIdle() && !clientGameState().aiManager.isControlling(entity)) {
-                if (isHuman) {
-                    idleHumans.add(entity);
-                } else if (!entity.getType().canCreate.isEmpty()) {
-                    CreationSpec spec = getBestCreation(entity.getType().canCreate);
-                    context.clientGameState.aiManager.startAi(entity.entityId, new CreateAi(clientGameState(), entity, spec));
+        for (EntityReader entityReader : tracker.getTracked()) {
+            Object sync = entityReader.getSync();
+            if (sync == null) continue;
+            synchronized (sync) {
+                if (entityReader.noLongerExists()) {
+                    continue;
                 }
-            }
-
-            if (entity.getType().containsClass("storage")) {
-                MapUtils.add(collectedResources, entity.getCarrying().quantities);
-            }
-            // TODO: set demands...
-            Ai currentAi = context.clientGameState.aiManager.getCurrentAi(entity.entityId);
-            if (currentAi instanceof CreateAi) {
-                CreateAi createAi = (CreateAi) currentAi;
-                if (createAi.getCreating().method.equals(CreationMethod.Garrison) && getNumGarrisonsDesired(entity) > entity.getNumGarrisonedUnits()) {
-                    garrisonsToService.add(entity);
-                }
-                Map<ResourceType, Integer> creationResources = MapUtils.multiply(MapUtils.copy(createAi.getCreating().createdType.requiredResources), 2);
-                for (Map.Entry<ResourceType, Integer> entry : creationResources.entrySet()) {
-                    Prioritization prioritization = entity.getCapacity().getPrioritization(entry.getKey());
-                    int desiredMinimum = Math.min(prioritization.maximumAmount, entry.getValue());
-                    if (prioritization.desiredAmount < desiredMinimum) {
-                        context.msgQueue.send(new Message.SetDesiredCapacity(entity.entityId, entry.getKey(), 1, desiredMinimum, prioritization.maximumAmount));
-                    }
-                }
-                MapUtils.add(desiredResources, creationResources);
+                tickState.update(entityReader, persistentState);
             }
         }
 
-        for (EntityReader reader : startingGaiaUnits) {
-            if (reader.getNumGarrisonedUnits() == 0  && garrisonServicers.get(reader) == null) {
-                garrisonsToService.add(reader);
-            }
+        for (KMeans resourceCluster : tickState.resourceClusters) {
+            resourceCluster.update(20);
         }
 
-        for (EntityReader constructionZone : constructionZones) {
-            MapUtils.add(desiredResources, constructionZone.getMissingConstructionResources());
-            if (constructionServicers.get(constructionZone) == null)
-                constructionToService.add(constructionZone);
-        }
+        double cost1 = tickState.resourceClusters[0].totalCost();
+        double cost2 = tickState.resourceClusters[1].totalCost();
+        EntityReader gatherCart = persistentState.getShiftToGatherCart(cost1, cost2);
 
-        int numShiftingToTransport = (int) (Math.max(1, 0.2 * pop) - transporters.size());
+        Set<EntityReader> wagons = persistentState.getShiftsToTransport(tickState.population, tickState);
+        int numShiftingToConstruction = persistentState.getRequiredToShiftToConstruction(tickState.constructionToService.size(), tickState.peoplePuller);
+
+
         int numShiftableHumans = (
-                + MapUtils.sum(peopleOnResource)
-                + idleHumans.size()
-                - garrisonsToService.size()
-                - constructionToService.size()
-                - numShiftingToTransport
+                + MapUtils.sum(tickState.peopleOnResource)
+                + tickState.peoplePuller.idles.size()
+                - wagons.size()
+                - tickState.garrisonsToService.size()
+                - numShiftingToConstruction
+                - (gatherCart == null ? 0 : 1)
         );
 
+        if (numShiftableHumans < 0) {
+            throw new RuntimeException("Not enough humans");
+        }
 
-        Map<ResourceType, Integer> missingResources = MapUtils.abs(MapUtils.subtract(MapUtils.copy(desiredResources), collectedResources));
-
+        Map<ResourceType, Integer> missingResources = tickState.getMissingResources();
         Map<ResourceType, Integer> desiredAllocations = MapUtils.getDesired(numShiftableHumans, missingResources);
-        LinkedList<Map.Entry<ResourceType, Integer>> excessPeople = new LinkedList<>(MapUtils.abs(MapUtils.subtract(MapUtils.copy(peopleOnResource), desiredAllocations)).entrySet());
-        excessPeople.sort(CMP);
-        PeoplePuller puller = new PeoplePuller(this, idleHumans, excessPeople);
 
-        if (numShiftingToTransport < 0) {
-            for (int i = 0; i < -numShiftingToTransport; i++) {
-                EntityReader exTransporter = transporters.pop();
-                puller.add(exTransporter);
-            }
-        } else if (numShiftingToTransport > 0) {
-            for (int i = 0; i < numShiftingToTransport; i++) {
-                EntityReader pull = pull(puller.next());
-                clientGameState().aiManager.startAi(pull.entityId, new TransportAi(clientGameState(), pull));
-                transporters.assigned(pull);
-            }
+        tickState.determineShiftableVillagers(desiredAllocations);
+
+        for (EntityReader wagon : wagons) {
+            EntityReader next = tickState.peoplePuller.next();
+            pull(actionRequester, next);
+            clientGameState().aiManager.startAi(next.entityId, new BeRidden(clientGameState(), next, wagon));
+            persistentState.transporters.assigned(next);
+            persistentState.allocatedCarts.add(wagon.entityId);
         }
 
-        for (EntityReader reader : garrisonsToService) {
-            EntityReader pull = pull(puller.next());
-            garrisoners.assigned(pull);
+        if (gatherCart != null) {
+            EntityReader next = tickState.peoplePuller.next();
+            pull(actionRequester, next);
+            clientGameState().aiManager.startAi(next.entityId, new BeRidden(clientGameState(), next, gatherCart));
+            persistentState.dropOffs.assigned(next);
+            persistentState.allocatedCarts.add(gatherCart.entityId);
+        }
+
+        for (EntityReader reader : tickState.garrisonsToService) {
+            EntityReader pull = pull(actionRequester, tickState.peoplePuller.next());
+            persistentState.garrisoners.assigned(pull);
             clientGameState().aiManager.startAi(pull.entityId, new GarrisonAi(clientGameState(), pull, reader));
-            garrisonServicers.put(reader, pull); // TODO: when is this removed?
+            persistentState.garrisonServicers.put(reader, pull);
         }
 
-        for (EntityReader reader : constructionToService) {
-            EntityReader pull = pull(puller.next());
-            clientGameState().aiManager.startAi(pull.entityId, new ConstructAi(clientGameState(), pull, reader));
-            constructionServicers.put(reader, pull); // TODO: when is this removed?
+        persistentState.constructionZones.addAll(tickState.constructionToService);
+        for (int i = 0; i < numShiftingToConstruction; i++) {
+            EntityReader pull = pull(actionRequester, tickState.peoplePuller.next());
+            clientGameState().aiManager.startAi(pull.entityId, new ConstructAi(clientGameState(), pull, persistentState.getNextConstructionZone()));
+            persistentState.constructionWorkers.add(pull);
         }
 
-        LinkedList<Map.Entry<ResourceType, Integer>> missingPeople = new LinkedList<>(MapUtils.abs(MapUtils.subtract(MapUtils.copy(desiredAllocations), peopleOnResource)).entrySet());
-        for (Map.Entry<ResourceType, Integer> missingEntry : missingPeople) {
+        for (Map.Entry<ResourceType, Integer> missingEntry : tickState.determineMissingAllocations(desiredAllocations)) {
             if (missingEntry.getValue() <= 1)
                 continue;
             for (int i = 0; i < missingEntry.getValue(); i++) {
-                addTo(pull(puller.next()), missingEntry.getKey());
+                persistentState.addTo(pull(actionRequester, tickState.peoplePuller.next()), missingEntry.getKey(), this);
             }
         }
 
         // if people are still idle...
-        for (EntityReader entity : idleHumans) {
-            addTo(entity, state().gameSpec.getResourceType("food"));
+        EntityReader idle;
+        while ((idle = tickState.peoplePuller.getNextIdle()) != null) {
+            persistentState.addTo(idle, state().gameSpec.getResourceType("food"), this);
         }
 
+
+        if (tickState.determineStoragePercentage() > 0.5 && !tickState.currentlyBuilding.contains("storage-yard")) {
+            EntitySpec buildingType = state().gameSpec.getUnitSpec("storage-yard");
+            DPoint location = context.utils.getSpaceForBuilding(buildingType);
+            if (location != null)
+                context.msgQueue.send(new Message.PlaceBuilding(buildingType, (int) location.x, (int) location.y));
+        }
+
+        if ((persistentState.desiresMoreDropoffWagons || persistentState.desiredNumTransportWagons > persistentState.transporters.size())
+                && !tickState.currentlyBuilding.contains("carpenter-shop")
+                && !tickState.currentlyOwned.contains("carpenter-shop")) {
+            EntitySpec buildingType = state().gameSpec.getUnitSpec("carpenter-shop");
+            DPoint location = context.utils.getSpaceForBuilding(buildingType);
+            if (location != null)
+                context.msgQueue.send(new Message.PlaceBuilding(buildingType, (int) location.x, (int) location.y));
+        }
+
+
         // spend extra resources...
-        Map<ResourceType, Integer> excessResources = MapUtils.abs(MapUtils.subtract(MapUtils.copy(collectedResources), desiredResources));
-        // spend them
+
+        Map<ResourceType, Integer> excessResources = tickState.determineExcessResources();
+        if (excessResources.getOrDefault(state().gameSpec.getResourceType("food"), 0) > 500 && !tickState.currentlyBuilding.contains("brothel")) {
+            EntitySpec buildingType = state().gameSpec.getUnitSpec("brothel");
+            DPoint location = context.utils.getSpaceForBuilding(buildingType);
+            if (location != null)
+                context.msgQueue.send(new Message.PlaceBuilding(buildingType, (int) location.x, (int) location.y));
+        }
     }
+
+//    private void transport(EntityReader pull, EntityReader wagon) {
+//        if (wagon != null) {
+//            clientGameState().aiManager.startAi(pull.entityId, new BeRidden(clientGameState(), pull, wagon));
+//            persistentState.transporters.assigned(pull);
+//            return;
+//        }
+//        clientGameState().aiManager.startAi(pull.entityId, new TransportAi(clientGameState(), pull));
+//        persistentState.transporters.assigned(pull);
+//    }
 
     private int getNumGarrisonsDesired(EntityReader entity) {
-        return 1;
+        switch (entity.getType().name) {
+            case "brothel": return 1;
+            case "storage-yard": return 0;
+        }
+        return 0;
     }
 
-    private EntityReader pull(EntityReader reader) {
-        hunters.remove(reader);
-        berryGatherers.remove(reader);
-        lumberJacks.remove(reader);
-        stoneGatherers.remove(reader);
-        transporters.remove(reader);
-        builders.remove(reader);
-        garrisoners.remove(reader);
-        garrisonServicers.remove(reader);
-        constructionServicers.remove(reader);
+    private EntityReader pull(ActionRequester requester, EntityReader reader) {
+        EntityReader rider = reader.getRider();
+        if (rider != null && rider.getType().name.equals("wagon")) {
+            requester.setUnitActionToDismount(rider);
+        }
+        persistentState.remove(reader);
         return reader;
     }
 
 
-    public EntityReader getUnitOn(ResourceType key) {
-        switch (key.name) {
-            case "food":
-                if (Math.random() < 0.5 && hunters.size() > 0) {
-                    return hunters.peek();
-                }
-                return berryGatherers.peek();
-            case "stone":
-                return stoneGatherers.peek();
-            case "wood":
-                return lumberJacks.peek();
-            default:
-                throw new RuntimeException("Uh oh");
-        }
-    }
-
-    private void addTo(EntityReader entity, ResourceType resource) {
-        switch (resource.name) {
-            case "food":
-                if (Math.random() < 0.5) {
-                    hunt(entity);
-                    hunters.assigned(entity);
-                } else {
-                    gather(entity, "berry");
-                    berryGatherers.assigned(entity);
-                }
-                break;
-            case "stone":
-                gather(entity, "stone mine");
-                stoneGatherers.assigned(entity);
-                break;
-            case "wood":
-                gather(entity, "tree");
-                lumberJacks.assigned(entity);
-                break;
-            default:
-                throw new RuntimeException("Uh oh");
-        }
-    }
-
-    private void hunt(EntityReader entity) {
+    void hunt(EntityReader entity) {
         if (!entity.getType().containsClass("hunter"))
             throw new RuntimeException("Can't hunt");
         EntitySpec deer = state().gameSpec.getUnitSpec("deer");
         clientGameState().aiManager.startAi(entity.entityId, new HuntAi(clientGameState(), entity, null, deer));
     }
-    private void gather(EntityReader entity, String name) {
+
+    void gather(EntityReader entity, String name) {
         if (!entity.getType().containsClass("gatherer"))
             throw new RuntimeException("Can't gather");
         EntitySpec type = state().gameSpec.getNaturalResource(name);
+        if (type == null) throw new NullPointerException("Cannot find " + name);
         clientGameState().aiManager.startAi(entity.entityId, new Gather(clientGameState(), entity, null, type));
     }
 
     private CreationSpec getBestCreation(Set<CreationSpec> canCreate) {
         return canCreate.iterator().next();
+    }
+
+    void setDebugGraphics() {
+        List<DebugGraphics> debugGraphics = tickState.resourceClusters[0].getDebugGraphics();
+        if (debugGraphics == null || debugGraphics.isEmpty()) return;
+        synchronized (DebugGraphics.byPlayer) {
+            DebugGraphics.byPlayer.put(context.clientGameState.currentPlayer, debugGraphics);
+        }
     }
 }

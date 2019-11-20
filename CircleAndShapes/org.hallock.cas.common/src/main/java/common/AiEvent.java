@@ -65,6 +65,30 @@ public abstract class AiEvent implements Jsonable {
         }
     }
 
+    public static class BuildingPlacementChanged extends AiEvent {
+        public final EntityId constructionZone;
+        public final EntityId newBuildingId;
+
+        public BuildingPlacementChanged(EntityId c, EntityId b) {
+            super(EntityId.NONE, EventType.BuildingPlacementChanged);
+            constructionZone = c;
+            newBuildingId = b;
+        }
+
+        public static BuildingPlacementChanged finishParsing(JsonReaderWrapperSpec reader, ReadOptions opt, EntityId entityId) throws IOException {
+            return new BuildingPlacementChanged(
+                    reader.read("construction-zone", EntityId.Serializer, opt),
+                    reader.read("building", EntityId.Serializer, opt)
+            );
+        }
+
+        @Override
+        protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+            writer.write("construction-zone", constructionZone, EntityId.Serializer, options);
+            writer.write("building", newBuildingId, EntityId.Serializer, options);
+        }
+    }
+
 //    public static class TargetWithinRange extends AiEvent {
 //        public final EntityId listener;
 //        public final EntityId target;
@@ -125,6 +149,7 @@ public abstract class AiEvent implements Jsonable {
         GarrisonChange,
         ResourceChange,
         DemandsChanged,
+        BuildingPlacementChanged,
     }
 
 
@@ -152,6 +177,7 @@ public abstract class AiEvent implements Jsonable {
                 case ResourceChange: event = ResourcesChanged.finishParsing(reader, spec, entityId); break;
                 case TargetKilled: event = TargetKilled.finishParsing(reader, spec, entityId); break;
                 case DemandsChanged: event = DemandsChanged.finishParsing(reader, spec, entityId); break;
+                case BuildingPlacementChanged: event = BuildingPlacementChanged.finishParsing(reader, spec, entityId); break;
 //                case TargetWithinRange: event = TargetWithinRange.finishParsing(reader, spec, entityId); break;
             }
             reader.readEndDocument();

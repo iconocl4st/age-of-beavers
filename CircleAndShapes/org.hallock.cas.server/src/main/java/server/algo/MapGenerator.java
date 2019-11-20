@@ -217,13 +217,13 @@ public class MapGenerator {
     }
 
     public static ServerGameState randomlyGenerateMap(ServerGameState gameState, GameSpec spec, int numPlayers, Random random, IdGenerator idGenerator, ServerStateManipulator ssm) {
-        Point[] playerLocations = new Point[numPlayers];
+        gameState.playerStarts = new Point[numPlayers];
         for (int i = 0; i < numPlayers; i++) {
             int x = spec.width / 2 + (int) (0.75 * spec.width / 2 * Math.cos(2 * Math.PI * i / (double) numPlayers));
             int y = spec.height / 2 + (int) (0.75 * spec.height / 2 * Math.sin(2 * Math.PI * i / (double) numPlayers));
-            playerLocations[i] = new Point(x, y);
+            gameState.playerStarts[i] = new Point(x, y);
         }
-        MapGenerator gen = new MapGenerator(playerLocations, gameState, random, idGenerator, ssm);
+        MapGenerator gen = new MapGenerator(gameState.playerStarts, gameState, random, idGenerator, ssm);
         gen.generateResources(gameState);
         gen.generatePlayers(numPlayers);
         gen.generateGaia();

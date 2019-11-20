@@ -6,7 +6,7 @@ import common.AiAttemptResult;
 import common.AiEvent;
 import common.state.EntityReader;
 import common.state.spec.ResourceType;
-import common.util.GridLocationQuerier;
+import common.util.query.NearestEntityQueryResults;
 
 public class TransportAi extends Ai {
 
@@ -68,8 +68,12 @@ public class TransportAi extends Ai {
                 EntityReader pickupLocation = transport.getPickupLocation();
                 AiAttemptResult result;
                 if (pickupLocation == null) {
-                    GridLocationQuerier.NearestEntityQueryResults results = locateCollectedResources(controlling, resourceType);
+                    NearestEntityQueryResults results = locateCollectedResources(controlling, resourceType);
                     if (!results.successful()) {
+                        if (!controlling.doesNotHave(resourceType)) {
+                            state = TransportState.Delivering;
+                            continue;
+                        }
                         nowhere = true;
                         return AiAttemptResult.Successful;
                     }
@@ -94,7 +98,7 @@ public class TransportAi extends Ai {
                 EntityReader dropOffLocation = transport.getDropOffLocation();
                 AiAttemptResult result;
                 if (dropOffLocation == null) {
-                    GridLocationQuerier.NearestEntityQueryResults nearestDropOff = findNearestDropOff(resourceType, controlling.entityId);
+                    NearestEntityQueryResults nearestDropOff = findNearestDropOff(resourceType, controlling.entityId);
                     if (!nearestDropOff.successful()) {
                         nowhere = true;
                         return AiAttemptResult.Successful;

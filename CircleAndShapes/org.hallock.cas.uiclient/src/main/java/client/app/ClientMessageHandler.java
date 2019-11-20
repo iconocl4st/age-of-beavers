@@ -46,6 +46,7 @@ class ClientMessageHandler {
                         launched.spec,
                         new ActionRequester(new ResponsiveConnectionWriter(context.writer, context.executorService)),
                         launched.player,
+                        launched.playerStart,
                         context.executorService
                 );
                 context.uiManager.displayGame(launched.spec, launched.player);

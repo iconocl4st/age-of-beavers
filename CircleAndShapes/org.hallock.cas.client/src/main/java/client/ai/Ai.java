@@ -11,8 +11,10 @@ import common.state.Player;
 import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
 import common.state.sst.sub.Load;
-import common.util.EntityQueryFilter;
-import common.util.GridLocationQuerier;
+import common.util.query.EntityQueryFilter;
+import common.util.query.GridLocationQuerier;
+import common.util.query.NearestEntityQuery;
+import common.util.query.NearestEntityQueryResults;
 
 import java.util.Collections;
 import java.util.Map;
@@ -65,7 +67,7 @@ public abstract class Ai implements AiEventListener {
 
     // TODO cleanup, dry
     protected AiAttemptResult deliverToNearestDropOff(ActionRequester ar, ResourceType resource, EntityId avoid) {
-        GridLocationQuerier.NearestEntityQueryResults results = findNearestDropOff(resource, avoid);
+        NearestEntityQueryResults results = findNearestDropOff(resource, avoid);
         if (!results.successful()) {
             System.out.println("No where to leave it.");
             return AiAttemptResult.Unsuccessful;
@@ -78,7 +80,7 @@ public abstract class Ai implements AiEventListener {
         return AiAttemptResult.Successful;
     }
 
-    protected GridLocationQuerier.NearestEntityQueryResults findNearestDropOff(final ResourceType resource, final EntityId avoid) {
+    protected NearestEntityQueryResults findNearestDropOff(final ResourceType resource, final EntityId avoid) {
         EntityQueryFilter filter = entityId -> {
             if (entityId.equals(avoid)) return false;
             EntityReader entity = new EntityReader(context.gameState, entityId);
@@ -92,12 +94,12 @@ public abstract class Ai implements AiEventListener {
         };
 
         // TODO: limit max value?
-        GridLocationQuerier.NearestEntityQuery query = new GridLocationQuerier.NearestEntityQuery(context.gameState, controlling.getCenterLocation(), filter, Double.MAX_VALUE, context.currentPlayer);
+        NearestEntityQuery query = new NearestEntityQuery(context.gameState, controlling.getCenterLocation(), filter, Double.MAX_VALUE, context.currentPlayer);
         return context.gameState.locationManager.query(query);
     }
 
-    protected GridLocationQuerier.NearestEntityQueryResults findNearestResource(String type) {
-        return context.gameState.locationManager.query(new GridLocationQuerier.NearestEntityQuery(
+    protected NearestEntityQueryResults findNearestResource(String type) {
+        return context.gameState.locationManager.query(new NearestEntityQuery(
                 context.gameState,
                 controlling.getCenterLocation(),
                 GridLocationQuerier.createNaturalResourceFilter(context.gameState, type),
@@ -106,7 +108,7 @@ public abstract class Ai implements AiEventListener {
         ));
     }
 
-    protected GridLocationQuerier.NearestEntityQueryResults locateCollectedResources(
+    protected NearestEntityQueryResults locateCollectedResources(
         EntityReader searcher,
         ResourceType resource
     ) {
@@ -125,7 +127,7 @@ public abstract class Ai implements AiEventListener {
         };
 
         return context.gameState.locationManager.query(
-                new GridLocationQuerier.NearestEntityQuery(context.gameState, controlling.getLocation(), filter, Double.MAX_VALUE, context.currentPlayer)
+                new NearestEntityQuery(context.gameState, controlling.getLocation(), filter, Double.MAX_VALUE, context.currentPlayer)
         );
     }
 
@@ -135,7 +137,7 @@ public abstract class Ai implements AiEventListener {
             final ResourceType resource,
             int amountToRetreive
     ) {
-        GridLocationQuerier.NearestEntityQueryResults results = locateCollectedResources(constructor, resource);
+        NearestEntityQueryResults results = locateCollectedResources(constructor, resource);
         if (!results.successful()) {
             return AiAttemptResult.Unsuccessful;
         }

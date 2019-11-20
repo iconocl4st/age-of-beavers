@@ -19,7 +19,8 @@ import common.state.sst.sub.ProjectileLaunch;
 import common.state.sst.sub.capacity.Prioritization;
 import common.util.DPoint;
 import common.util.EvolutionSpec;
-import common.util.GridLocationQuerier;
+import common.util.query.NearestEntityQuery;
+import common.util.query.NearestEntityQueryResults;
 import server.algo.UnGarrisonLocation;
 import server.app.ServerContext;
 import server.state.ServerGameState;
@@ -306,11 +307,11 @@ public class Simulator {
                 return;
             }
 
-            // TODO: move any units out of the way...
-
             ssm.killUnit(action.constructionId);
             EntitySpec resultingStructure = constructionZone.constructionSpec.resultingStructure;
-            ssm.createUnit(generator.generateId(), resultingStructure, new EvolutionSpec(resultingStructure), constructionZone.location, Player.GAIA);
+            EntityId buildingId = generator.generateId();
+            ssm.createUnit(buildingId, resultingStructure, new EvolutionSpec(resultingStructure), constructionZone.location, Player.GAIA);
+            ssm.constructionChanged(entity.getOwner(), action.constructionId, buildingId);
 
             ssm.done(entity, AiEvent.ActionCompletedReason.Successful);
         }
@@ -406,7 +407,7 @@ public class Simulator {
                     // TODO: should there be a more natural way of handling this?
                     // die on empty?
                     if (amountLeft <= 0 && collected.getType().containsClass("natural-resource")) {
-                        context.executorService.submit(() -> ssm.killUnit(action.resourceCarrier));
+                        ssm.killUnit(action.resourceCarrier);
                     }
                 }
             }
@@ -530,7 +531,7 @@ public class Simulator {
             return;
         }
 
-        GridLocationQuerier.NearestEntityQueryResults queryResults = state.state.locationManager.query(new GridLocationQuerier.NearestEntityQuery(
+        NearestEntityQueryResults queryResults = state.state.locationManager.query(new NearestEntityQuery(
                 state.state,
                 currentLocation,
                 entity -> {
@@ -544,7 +545,7 @@ public class Simulator {
         ));
 
         if (queryResults.successful() && launch.hit(entityId)) {
-            ssm.receiveDamage(queryResults.entity, launch.damage, launch.damageType);
+            ssm.receiveDamage(queryResults.entityId, launch.damage, launch.damageType);
 
             if (launch.projectile.stopsOnFirst) {
                 ssm.removeProjectile(entityId);

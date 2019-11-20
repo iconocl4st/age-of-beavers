@@ -28,7 +28,7 @@ public class GameState implements Jsonable {
 
     public ManagerImpl<EmptyJsonable> entityManager;
     public ReversableManagerImpl<EntityId, EntityId> garrisonManager;
-    public ManagerImpl<EntityId> ridingManager;
+    public ReversableManagerImpl<EntityId, EntityId> ridingManager;
     public ReversableManagerImpl<GateInfo, Point> gateStateManager;
     public ManagerImpl<ConstructionZone> constructionManager;
     public ManagerImpl<Double> ageManager;
@@ -70,7 +70,7 @@ public class GameState implements Jsonable {
         gs.lineOfSight = los;
         gs.constructionManager = new ManagerImpl<>(ConstructionZone.Serializer);
         gs.garrisonManager = new ReversableManagerImpl<>(e -> e, EntityId.Serializer);
-        gs.ridingManager = new ManagerImpl<>(EntityId.Serializer);
+        gs.ridingManager = new ReversableManagerImpl<>(e->e,EntityId.Serializer);
         gs.movementSpeedManager = new ManagerImpl<>(DataSerializer.DoubleSerializer);
         gs.hiddenManager = new BooleanManager();
         gs.ageManager = new ManagerImpl<>(DataSerializer.DoubleSerializer);

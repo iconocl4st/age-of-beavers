@@ -4,6 +4,7 @@ import client.ai.ActionRequester;
 import client.ai.AiManager;
 import client.event.AiEventManager;
 import client.event.supply.SupplyAndDemandManager;
+import common.AiEvent;
 import common.state.Player;
 import common.state.los.AllVisibleLineOfSight;
 import common.state.los.LineOfSightSpec;
@@ -14,10 +15,13 @@ import common.util.ExecutorServiceWrapper;
 import common.util.json.JsonReaderWrapperSpec;
 import common.util.json.ReadOptions;
 
+import java.awt.*;
 import java.io.IOException;
 
 public class ClientGameState {
     public Player currentPlayer;
+    public Point startingLocation;
+
     public GameState gameState;
     public AiManager aiManager;
     public AiEventManager eventManager;
@@ -45,11 +49,13 @@ public class ClientGameState {
         }
     }
 
-    public static ClientGameState createClientGameState(GameSpec spec, ActionRequester requester, Player player, ExecutorServiceWrapper service) {
+    public static ClientGameState createClientGameState(GameSpec spec, ActionRequester requester, Player player, Point startingLocation, ExecutorServiceWrapper service) {
         ClientGameState state = new ClientGameState();
+        state.startingLocation = startingLocation;
         state.aiManager = new AiManager(state);
         state.eventManager = new AiEventManager(state, service);
         state.supplyAndDemandManager = new SupplyAndDemandManager(state, spec);
+        state.eventManager.listenForEvents(state.supplyAndDemandManager, AiEvent.EventType.BuildingPlacementChanged);
         state.actionRequester = requester;
         state.currentPlayer = player;
         state.messageHandler = new ClientGameMessageHandler(state);
@@ -57,11 +63,13 @@ public class ClientGameState {
         return state;
     }
 
-    public static ClientGameState createClientGameState(GameState gameState, ActionRequester requester, Player player, ExecutorServiceWrapper service) {
+    public static ClientGameState createClientGameState(GameState gameState, ActionRequester requester, Player player, Point startingLocation, ExecutorServiceWrapper service) {
         ClientGameState state = new ClientGameState();
+        state.startingLocation = startingLocation;
         state.aiManager = new AiManager(state);
         state.eventManager = new AiEventManager(state, service);
         state.supplyAndDemandManager = new SupplyAndDemandManager(state, gameState.gameSpec);
+        state.eventManager.listenForEvents(state.supplyAndDemandManager, AiEvent.EventType.BuildingPlacementChanged);
         state.actionRequester = requester;
         state.currentPlayer = player;
         state.messageHandler = new ClientGameMessageHandler(state);

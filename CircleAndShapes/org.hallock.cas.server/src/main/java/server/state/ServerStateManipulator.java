@@ -22,16 +22,14 @@ import common.state.sst.sub.*;
 import common.state.sst.sub.capacity.Prioritization;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
-import common.util.GridLocationQuerier;
+import common.util.query.GridLocationQuerier;
 import common.util.json.EmptyJsonable;
-import server.algo.ConnectedSet;
+import common.algo.ConnectedSet;
 import server.algo.UnGarrisonLocation;
 import common.util.EvolutionSpec;
 import server.app.BroadCaster;
-import server.app.DefaultBroadCaster;
 
 import java.awt.*;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.LinkedList;
@@ -169,7 +167,9 @@ public class ServerStateManipulator {
         }
         System.out.println("Building created.");
 
-        createUnit(game.idGenerator.generateId(), spec, new EvolutionSpec(spec), new DPoint(location), Player.GAIA);
+        EntityId constructionId = game.idGenerator.generateId();
+        createUnit(constructionId, spec, new EvolutionSpec(spec), new DPoint(location), Player.GAIA);
+        constructionChanged(player, constructionId, null);
     }
 
 
@@ -504,6 +504,7 @@ public class ServerStateManipulator {
         state.orientationManager.set(id, 0.0);
         if (eSpec.initialRotationSpeed != 0.0) state.rotationSpeedManager.set(id, eSpec.initialRotationSpeed);
         if (eSpec.carryCapacity != null) state.capacityManager.set(id, eSpec.carryCapacity);
+        else state.capacityManager.set(id, new PrioritizedCapacitySpec(spec.carryCapacity));
         if (eSpec.initialAttackSpeed != 0.0) state.attackSpeedManager.set(id, eSpec.initialAttackSpeed);
         if (eSpec.initialBuildSpeed != 0.0) state.buildSpeedManager.set(id, eSpec.initialBuildSpeed);
         if (eSpec.initialDepositSpeed != 0.0) state.depositSpeedManager.set(id, eSpec.initialDepositSpeed);
@@ -912,6 +913,10 @@ public class ServerStateManipulator {
         return usedUp;
     }
 
+    public void constructionChanged(Player owner, EntityId constructionId, EntityId buildingId) {
+        broadCaster.send(owner, new Message.AiEventMessage(new AiEvent.BuildingPlacementChanged(constructionId, buildingId)));
+    }
+
 
 //
 //    public void die(EntityId entityId) {
@@ -1000,8 +1005,8 @@ public class ServerStateManipulator {
 //                return;
 //            }
 //
-//            Set<EntityId> entityIds = Zoom.serverState.state.garrisonManager.ungarrisonAllFrom(toUnGarrison);
-//            for (EntityId entity : entityIds) {
+//            Set<EntityId> entityId = Zoom.serverState.state.garrisonManager.ungarrisonAllFrom(toUnGarrison);
+//            for (EntityId entity : entityId) {
 //                DPoint location = Zoom.serverState.state.locationManager.getLocation(entity);
 //                UnitSpec type = (UnitSpec) Zoom.serverState.state.typeManager.getType(entity);
 //                changeUnitLocation(entity, location, unGarrisonLocation, type.initialLineOfSight);

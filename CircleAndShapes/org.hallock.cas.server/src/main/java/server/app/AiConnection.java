@@ -5,10 +5,14 @@ import common.msg.ConnectionWriter;
 import common.msg.Message;
 import common.msg.NoExceptionsConnectionWriter;
 
+import java.awt.geom.Rectangle2D;
+import java.util.List;
+
 public class AiConnection implements PlayerConnection {
 
     private final PlayerAiInterface context;
     private NoExceptionsConnectionWriter actionRequester;
+    private TickCounter tickCounter =  new TickCounter(5);
 
     public AiConnection(PlayerAiInterface context) {
         this.context = context;
@@ -34,6 +38,8 @@ public class AiConnection implements PlayerConnection {
 
     @Override
     public void ticked() {
-        context.writeActions(actionRequester);
+        if (tickCounter.ticked()) {
+            context.writeActions(actionRequester);
+        }
     }
 }

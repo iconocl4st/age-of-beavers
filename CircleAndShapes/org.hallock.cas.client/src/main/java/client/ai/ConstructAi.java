@@ -9,7 +9,8 @@ import common.state.spec.ResourceType;
 import common.state.sst.sub.ConstructionZone;
 import common.state.sst.sub.Load;
 import common.util.DPoint;
-import common.util.GridLocationQuerier;
+import common.util.query.NearestEntityQuery;
+import common.util.query.NearestEntityQueryResults;
 
 import java.util.Map;
 
@@ -30,7 +31,7 @@ public class ConstructAi extends Ai {
     public AiAttemptResult setActions(ActionRequester ar) {
         while (true) {
             if (constructionEntity == null) {
-                GridLocationQuerier.NearestEntityQueryResults query = context.gameState.locationManager.query(new GridLocationQuerier.NearestEntityQuery(
+                NearestEntityQueryResults query = context.gameState.locationManager.query(new NearestEntityQuery(
                         context.gameState,
                         controlling.getCenterLocation(),
                         entity -> context.gameState.constructionManager.get(entity) != null,
@@ -41,7 +42,7 @@ public class ConstructAi extends Ai {
                 if (!query.successful()) {
                     return AiAttemptResult.Successful;
                 }
-                constructionEntity = new EntityReader(context.gameState, query.entity);
+                constructionEntity = query.getEntity(context.gameState);
             }
 
             DPoint constructorLocation = controlling.getLocation();

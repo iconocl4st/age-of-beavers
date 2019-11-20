@@ -9,7 +9,7 @@ import java.util.TimerTask;
 
 public class Engine {
     private final Timer timer = new Timer();
-    private double gameSpeed = ServerConfig.UPDATE_FREQUENCY / 1000.0;
+    private double gameSpeed = 3.0 * ServerConfig.UPDATE_FREQUENCY / 1000.0;
     private double currentTime = 0;
 
     public void schedule(Game game) {

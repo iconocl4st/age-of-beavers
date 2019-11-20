@@ -8,21 +8,29 @@ import common.msg.NoExceptionsConnectionWriter;
 import common.state.Player;
 import common.util.ExecutorServiceWrapper;
 
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+
 public class PlayerAiContext implements PlayerAiInterface {
+    final Random random = new Random();
 
     private final ExecutorServiceWrapper executorService;
 
     ClientGameState clientGameState;
+    AiUtitlities utils;
 
     QueueConnectionWriter msgQueue = new QueueConnectionWriter(); // one odd call
 
 
     private ActionRequester actionRequester = new ActionRequester(msgQueue);
-    private AiUtitlities utils;
     private PlayerAiImplementation ai;
 
     // TODO: should be some way to not need this...
     private Player currentPlayer;
+    Point startingLocation;
 
     public PlayerAiContext(ExecutorServiceWrapper executorService) {
         this.executorService = executorService;
@@ -34,6 +42,7 @@ public class PlayerAiContext implements PlayerAiInterface {
             case LAUNCHED: {
                 Message.Launched launchMsg = (Message.Launched) message;
                 currentPlayer = launchMsg.player;
+                startingLocation = launchMsg.playerStart;
             }
             break;
             case UPDATE_ENTIRE_GAME: {
@@ -44,9 +53,10 @@ public class PlayerAiContext implements PlayerAiInterface {
                         gameStateMsg.gameState,
                         actionRequester,
                         currentPlayer,
+                        startingLocation,
                         executorService
                 );
-                utils = new AiUtitlities(clientGameState.gameState);
+                utils = new AiUtitlities(this);
                 ai = new PlayerAiImplementation(this);
                 break;
             }
@@ -63,5 +73,6 @@ public class PlayerAiContext implements PlayerAiInterface {
         ai.updateActions(actionRequester);
         msgQueue.exportActions();
         msgQueue.writeTo(requester);
+        ai.setDebugGraphics();
     }
 }

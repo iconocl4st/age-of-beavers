@@ -6,6 +6,7 @@ import common.state.EntityReader;
 import common.state.LocatedEntitySpec;
 import common.state.sst.GameState;
 import common.util.json.*;
+import common.util.query.*;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -389,41 +390,63 @@ public class GridLocation implements Serializable {
                 getMinDistanceFrom(startingLocation, x, y) < successfulDistance;
     }
 
-    public GridLocationQuerier.NearestEntityQueryResults query(GridLocationQuerier.NearestEntityQuery query) {
-        GridLocationQuerier.NearestEntityQueryResults failed = new GridLocationQuerier.NearestEntityQueryResults(null, null, null, Double.MAX_VALUE);
+    private static class UnPathEntityQueryResults {
+        EntityId entityId;
+        DPoint location;
+        double  distance;
+
+        public UnPathEntityQueryResults(EntityId entityId, DPoint location, double distance) {
+            this.entityId = entityId;
+            this.location = location;
+            this.distance = distance;
+        }
+    }
+    public NearestEntityQueryResults query(NearestEntityQuery query) {
+        if (query.numToReturn != 1) throw new IllegalArgumentException();
+        List<NearestEntityQueryResults> nearestEntityQueryResults = multiQuery(query);
+        if (nearestEntityQueryResults.isEmpty()) return new NearestEntityQueryResults(
+                null,
+                null,
+                null,
+                Double.MAX_VALUE
+        );
+        return nearestEntityQueryResults.iterator().next();
+    }
+
+    public List<NearestEntityQueryResults> multiQuery(NearestEntityQuery query) {
+        KeepSmallest<NearestEntityQueryResults> smallest = new KeepSmallest<>(query.numToReturn);
         DPoint startingLocation = query.location;
         Point index = getIndex(startingLocation);
-        GridLocationQuerier.NearestEntityQueryResults best = failed;
         for (int r = 0; r < Math.max(numGridX, numGridY); r++) {
             boolean tooFar = true;
             Set<Point> toSearch = new HashSet<>();
             for (int i = -r; i <= r; i++) {
                 // adds four points twice
-                if (shouldCheck(index.x + i, index.y - r, startingLocation, query.maxDistance, best.distance)) {
+                if (shouldCheck(index.x + i, index.y - r, startingLocation, query.maxDistance, smallest.bound())) {
                     tooFar = false;
                     if (!grid[index.x + i][index.y - r].entityIds.isEmpty())
                         toSearch.add(new Point(index.x + i, index.y - r));
                 }
-                if (shouldCheck(index.x + i, index.y + r, startingLocation, query.maxDistance, best.distance)) {
+                if (shouldCheck(index.x + i, index.y + r, startingLocation, query.maxDistance, smallest.bound())) {
                     tooFar = false;
                     if (!grid[index.x + i][index.y + r].entityIds.isEmpty())
                         toSearch.add(new Point(index.x + i, index.y + r));
                 }
-                if (shouldCheck(index.x - r, index.y + i, startingLocation, query.maxDistance, best.distance)) {
+                if (shouldCheck(index.x - r, index.y + i, startingLocation, query.maxDistance, smallest.bound())) {
                     tooFar = false;
                     if (!grid[index.x - r][index.y + i].entityIds.isEmpty())
                         toSearch.add(new Point(index.x - r, index.y + i));
                 }
-                if (shouldCheck(index.x + r, index.y + i, startingLocation, query.maxDistance, best.distance)) {
+                if (shouldCheck(index.x + r, index.y + i, startingLocation, query.maxDistance, smallest.bound())) {
                     tooFar = false;
                     if (!grid[index.x + r][index.y + i].entityIds.isEmpty())
                         toSearch.add(new Point(index.x + r, index.y + i));
                 }
             }
             if (tooFar)
-                return best;
+                break;
 
-            TreeSet<GridLocationQuerier.NearestEntityQueryResults> ordered = new TreeSet<>(Comparator.comparingDouble(a -> a.distance));
+            TreeSet<UnPathEntityQueryResults> ordered = new TreeSet<>(Comparator.comparingDouble(a -> a.distance));
             for (Point point : toSearch) {
                 synchronized (grid[point.x][point.y]) {
                     for (LocatedEntity lc : grid[point.x][point.y].entityIds) {
@@ -440,25 +463,22 @@ public class GridLocation implements Serializable {
                         if (!query.filter.include(lc.entityId)) {
                             continue;
                         }
-                        ordered.add(new GridLocationQuerier.NearestEntityQueryResults(lc.entityId, lc.location, null, startingLocation.distanceTo(lc.locationCenter())));
+                        ordered.add(new UnPathEntityQueryResults(lc.entityId, lc.location, startingLocation.distanceTo(lc.locationCenter())));
                     }
                 }
             }
-            for (GridLocationQuerier.NearestEntityQueryResults results : ordered) {
+            for (UnPathEntityQueryResults results : ordered) {
                 AStar.Path path = null;
                 if (query.needsPath) {
-                    AStar.PathSearch pathSearch = query.findPath(startingLocation, results.entity);
+                    AStar.PathSearch pathSearch = query.findPath(startingLocation, results.entityId);
                     if (pathSearch == null) {
                         continue;
                     }
                     path = pathSearch.path;
                 }
-                if (results.distance < best.distance) {
-                    best = new GridLocationQuerier.NearestEntityQueryResults(results.entity, results.location, path, results.distance);
-                }
-                break;
+                smallest.add(results.distance, new NearestEntityQueryResults(results.entityId, results.location, path, results.distance));
             }
         }
-        return failed;
+        return smallest.toList();
     }
 }

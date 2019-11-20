@@ -10,7 +10,7 @@ import common.state.spec.CreationSpec;
 import common.state.spec.ResourceType;
 import common.state.spec.attack.Weapon;
 import common.util.DPoint;
-import common.util.GridLocationQuerier;
+import common.util.query.GridLocationQuerier;
 
 public class ActionRequester {
     private final NoExceptionsConnectionWriter writer;

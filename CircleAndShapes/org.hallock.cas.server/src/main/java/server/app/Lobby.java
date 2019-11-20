@@ -159,7 +159,7 @@ public class Lobby {
                 try {
                     Player player = getPlayer(connection);
                     connection.setMessageHandler(new GamePlayerMessageHandler(new ServerStateManipulator(game, player, broadCaster)));
-                    connection.getWriter().send(new Message.Launched(spec, player));
+                    connection.getWriter().send(new Message.Launched(spec, player, player != null ? game.serverState.playerStarts[player.number-1] : null));
                     connection.getWriter().send(new Message.UpdateEntireGameState(game.serverState.createGameState(player)));
                     connection.getWriter().flush();
                 } catch (Throwable e) {

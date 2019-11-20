@@ -9,6 +9,9 @@ import common.util.json.JsonReaderWrapperSpec;
 import common.util.json.JsonWriterWrapperSpec;
 import common.util.json.ReadOptions;
 import common.util.json.WriteOptions;
+import common.util.query.EntityQueryFilter;
+import common.util.query.NearestEntityQuery;
+import common.util.query.NearestEntityQueryResults;
 
 import java.awt.*;
 import java.io.IOException;
@@ -76,9 +79,15 @@ public class LocationManager implements Serializable /* implements ManagerSpec<D
         }
     }
 
-    public GridLocationQuerier.NearestEntityQueryResults query(GridLocationQuerier.NearestEntityQuery query) {
+    public NearestEntityQueryResults query(NearestEntityQuery query) {
         synchronized (gridLocations) {
             return gridLocations.query(query);
+        }
+    }
+
+    public List<NearestEntityQueryResults> multiQuery(NearestEntityQuery query) {
+        synchronized (gridLocations) {
+            return gridLocations.multiQuery(query);
         }
     }
 

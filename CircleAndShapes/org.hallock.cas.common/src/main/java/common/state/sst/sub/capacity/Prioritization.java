@@ -10,6 +10,15 @@ public class Prioritization implements Jsonable {
     public int maximumAmount = Integer.MAX_VALUE;
     public int priority = 0;
 
+    Prioritization() {}
+
+    Prioritization(Prioritization value) {
+        this.desiredAmount = value.desiredAmount;
+        this.desiredMaximum = value.desiredMaximum;
+        this.maximumAmount = value.maximumAmount;
+        this.priority = value.priority;
+    }
+
     private static String f(Integer i) {
         if (i == Integer.MAX_VALUE) return "inf";
         return String.valueOf(i);

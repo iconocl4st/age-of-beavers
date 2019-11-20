@@ -103,6 +103,16 @@ public class EntityReader implements LocatedEntitySpec {
         return new EntityReader(state, entityId);
     }
 
+    public EntityReader getRider() {
+        Set<RevPair<EntityId>> byType = state.ridingManager.getByType(entityId);
+        if (byType == null || byType.isEmpty()) {
+            return null;
+        }
+        if (byType.size() > 1)
+            throw new IllegalStateException("too many riding");
+        return new EntityReader(getState(), byType.iterator().next().value);
+    }
+
     public EntitySpec getType() {
         return state.typeManager.get(entityId);
     }
@@ -229,7 +239,10 @@ public class EntityReader implements LocatedEntitySpec {
 
     public DPoint getCenterLocation() {
         DPoint location = getLocation();
-        Dimension size = getType().size;
+        if (location == null) return null;
+        EntitySpec type = getType();
+        if (type == null) return null;
+        Dimension size = type.size;
         return new  DPoint(location.x + size.width / 2.0, location.y + size.height / 2.0);
     }
 

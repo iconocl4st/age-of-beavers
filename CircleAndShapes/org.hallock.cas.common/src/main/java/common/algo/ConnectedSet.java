@@ -1,4 +1,4 @@
-package server.algo;
+package common.algo;
 
 import common.state.spec.GameSpec;
 import common.state.sst.GameState;

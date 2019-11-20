@@ -26,6 +26,7 @@ import java.awt.*;
 public class ServerGameState {
     public GameState state;
     public GaiaAi gaiaAi;
+    public Point[] playerStarts;
 
     public static LineOfSightSpec createServerLineOfSightSpec(GameSpec spec, int numberOfPlayers) {
         LineOfSightSpec[] lineOfSights = new LineOfSightSpec[numberOfPlayers+1];

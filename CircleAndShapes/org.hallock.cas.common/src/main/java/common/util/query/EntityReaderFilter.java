@@ -1,4 +1,4 @@
-package common.util;
+package common.util.query;
 
 import common.state.EntityReader;
 
