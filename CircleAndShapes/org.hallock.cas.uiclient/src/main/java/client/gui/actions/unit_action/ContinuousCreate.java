@@ -1,6 +1,6 @@
 package client.gui.actions.unit_action;
 
-import client.ai.CreateAi;
+import client.ai.ai2.Produce;
 import client.app.UiClientContext;
 import common.state.spec.CreationSpec;
 import common.state.EntityReader;
@@ -21,6 +21,6 @@ public class ContinuousCreate extends UnitAction {
 
     @Override
     public void run(EntityReader entity) {
-        c.actionQueuer.maybeQueue(entity.entityId, new CreateAi(c.clientGameState, entity, spec));
+        c.actionQueuer.maybeQueue(entity, new Produce(entity, spec));
     }
 }

@@ -1,6 +1,6 @@
 package client.gui.actions.unit_action;
 
-import client.ai.DeliverAi;
+import client.ai.ai2.OneTripTransportTo;
 import client.app.UiClientContext;
 import common.state.EntityReader;
 
@@ -23,6 +23,6 @@ public class Deliver extends UnitToUnitAction {
 
     @Override
     public void run(EntityReader entity, EntityReader target) {
-        c.actionQueuer.maybeQueue(entity.entityId, new DeliverAi(c.clientGameState, entity, target));
+        c.actionQueuer.maybeQueue(entity, new OneTripTransportTo(entity, target));
     }
 }

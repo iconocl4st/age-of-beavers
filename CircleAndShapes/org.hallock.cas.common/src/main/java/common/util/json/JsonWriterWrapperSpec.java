@@ -62,6 +62,10 @@ public abstract class JsonWriterWrapperSpec implements AutoCloseable {
 
     public <T> void write(String keyName, Collection<T> map, DataSerializer<T> serializer, WriteOptions options) throws IOException {
         writeName(keyName);
+        if (map == null) {
+            writeNull();
+            return;
+        }
         writeBeginArray();
         for (T t : map) {
             serializer.write(t, this, options);
@@ -76,6 +80,10 @@ public abstract class JsonWriterWrapperSpec implements AutoCloseable {
 
     public <T, G> void write(String keyName, Map<T, G> map, DataSerializer<T> keySerializer, DataSerializer<G> valueSerializer, WriteOptions options) throws IOException {
         writeName(keyName);
+        if (map == null) {
+            writeNull();
+            return;
+        }
         writeBeginArray();
         for (Map.Entry<T, G> entry : map.entrySet()) {
             writeBeginDocument();

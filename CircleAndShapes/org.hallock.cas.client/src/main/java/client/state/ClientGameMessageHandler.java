@@ -1,6 +1,7 @@
 package client.state;
 
-import common.AiEvent;
+import common.event.GarrisonedChanged;
+import common.event.ResourcesChanged;
 import common.msg.Message;
 import common.state.EntityId;
 import common.state.EntityReader;
@@ -42,25 +43,26 @@ public class ClientGameMessageHandler {
                 Message.UnitUpdated msg = (Message.UnitUpdated) message;
                 if (msg.unitId == null)
                     break;
-                EmptyJsonable sync = context.gameState.entityManager.get(msg.unitId);
+                EntityReader entity = new EntityReader(context.gameState, msg.unitId);
+                Object sync = entity.getSync();
                 if (sync == null) {
-                    sync = new EmptyJsonable();
+                    sync = new Object();
                     context.gameState.entityManager.set(msg.unitId, sync);
                 }
                 synchronized (sync) {
-                    if (context.gameState.entityManager.get(msg.unitId) == null)
+                    if (entity.noLongerExists())
                         break;
                     if (msg.isNowOfType != null)
                         context.gameState.typeManager.set(msg.unitId, msg.isNowOfType);
                     if (msg.location != null) {
                         context.gameState.locationManager.setLocation(new EntityReader(context.gameState, msg.unitId), msg.location);
-                        context.eventManager.entityMoved(msg.unitId);
+                        context.eventManager.entityMoved(entity);
                     }
                     if (msg.action != null)
                         context.gameState.actionManager.set(msg.unitId, msg.action);
                     if (msg.load != null) {
                         context.gameState.carryingManager.set(msg.unitId, msg.load);
-                        context.eventManager.notifyListeners(new AiEvent.ResourcesChanged(msg.unitId));
+                        context.eventManager.notifyListeners(new ResourcesChanged(msg.unitId));
                     }
                     if (msg.health != null)
                         context.gameState.healthManager.set(msg.unitId, msg.health);
@@ -73,10 +75,10 @@ public class ClientGameMessageHandler {
                             EntityId currentHolder = context.gameState.garrisonManager.get(msg.unitId);
                             context.gameState.garrisonManager.remove(msg.unitId);
                             if (currentHolder != null)
-                                context.eventManager.notifyListeners(new AiEvent.GarrisonedChanged(currentHolder));
+                                context.eventManager.notifyListeners(new GarrisonedChanged(currentHolder));
                         } else {
                             context.gameState.garrisonManager.set(msg.unitId, msg.isWithin);
-                            context.eventManager.notifyListeners(new AiEvent.GarrisonedChanged(msg.isWithin));
+                            context.eventManager.notifyListeners(new GarrisonedChanged(msg.isWithin));
                         }
                     }
                     if (msg.buildSpeed != null)
@@ -122,7 +124,7 @@ public class ClientGameMessageHandler {
                         }
                     }
                     if (msg.capacity != null || msg.load != null || msg.owner != null) {
-                        context.supplyAndDemandManager.update(new EntityReader(context.gameState, msg.unitId), true);
+                        context.supplyAndDemandManager.update(new EntityReader(context.gameState, msg.unitId));
                     }
                 }
             }

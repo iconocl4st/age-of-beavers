@@ -1,7 +1,10 @@
 package client.gui.actions;
 
+import client.ai.ai2.AiContext;
 import client.app.UiClientContext;
+import client.event.AiEventListener;
 import client.state.SelectionManager;
+import common.event.AiEvent;
 import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.spec.GameSpec;
@@ -14,7 +17,7 @@ import java.awt.event.ComponentEvent;
 import java.util.*;
 import java.util.List;
 
-public class UnitActions extends JPanel implements SelectionManager.SelectionListener {
+public class UnitActions extends JPanel implements SelectionManager.SelectionListener, AiEventListener {
 
     private final Object sync = new Object();
 
@@ -105,12 +108,18 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
         for (Action action : actions) {
             CreatedButton created = new CreatedButton();
             created.button = new JButton("(" + keys.charAt(index++) + ") " + action.label);
-            created.button.addActionListener(e -> action.run(currentlySelected));
+            created.button.addActionListener(e -> {
+                action.run(currentlySelected);
+                updateButtons();
+            });
             created.action = action;
             currentButtons.add(created);
             add(created.button);
 
-            currentHotkeys[idx1][idx2] = () -> action.run(currentlySelected);
+            currentHotkeys[idx1][idx2] = () -> {
+                action.run(currentlySelected);
+                updateButtons();
+            };
             ++idx2; if (idx2 >= NUM_COLS) { idx2 = 0; ++idx1; }
             if (idx1 >= NUM_ROWS) throw new IllegalStateException("Adjust the constants here...");
         }
@@ -142,6 +151,11 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
             }
             updateButtons();
         }
+    }
+
+    @Override
+    public void receiveEvent(AiContext aiContext, AiEvent event) {
+        drawCurrentButtons(false);
     }
 
     public void drawCurrentButtons(boolean recreate) {
@@ -217,8 +231,15 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
     @Override
     public void selectionChanged(List<EntityReader> newSelectedUnits) {
         synchronized (sync) {
+            for (EntityReader reader : currentlySelected) {
+                context.clientGameState.eventManager.stopListeningTo(this, reader.entityId);
+            }
             currentlySelected.clear();
             currentlySelected.addAll(newSelectedUnits);
+
+            for (EntityReader reader : currentlySelected) {
+                context.clientGameState.eventManager.listenForEventsFrom(this, reader.entityId);
+            }
 
             stack.clear();
             stack.add(StackItem.GlobalActions);
@@ -254,20 +275,6 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
         });
         return ret;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     public enum StackItem {
         GlobalActions,

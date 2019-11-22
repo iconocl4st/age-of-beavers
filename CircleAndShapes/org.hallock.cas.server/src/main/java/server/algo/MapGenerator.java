@@ -188,13 +188,16 @@ public class MapGenerator {
             Player player = new Player(p + 1);
             for (GenerationSpec.UnitGen uGen : spec.generationSpec.perPlayerUnits) {
                 for (int i = 0; i < uGen.number; i++) {
+                    EntityId generatedId = idGenerator.generateId();
                     ssm.createUnit(
-                            idGenerator.generateId(),
+                            generatedId,
                             uGen.type,
                             new EvolutionSpec(uGen.type),
                             getFreeLocation(uGen.type.size, playerLocation, MIN_DISTANCE_TO_PLAYER, unionFind),
                             player
                     );
+                    gameState.startingUnits.get(p).add(generatedId);
+                    // TODO: make it explored, at least...
                 }
             }
         }
@@ -222,6 +225,10 @@ public class MapGenerator {
             int x = spec.width / 2 + (int) (0.75 * spec.width / 2 * Math.cos(2 * Math.PI * i / (double) numPlayers));
             int y = spec.height / 2 + (int) (0.75 * spec.height / 2 * Math.sin(2 * Math.PI * i / (double) numPlayers));
             gameState.playerStarts[i] = new Point(x, y);
+        }
+        gameState.startingUnits = new ArrayList<>(numPlayers + 1);
+        for (int i = 0; i < numPlayers + 1; i++) {
+            gameState.startingUnits.add(new HashSet<>());
         }
         MapGenerator gen = new MapGenerator(gameState.playerStarts, gameState, random, idGenerator, ssm);
         gen.generateResources(gameState);

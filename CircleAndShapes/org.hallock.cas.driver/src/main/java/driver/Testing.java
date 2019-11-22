@@ -14,6 +14,14 @@ import java.util.concurrent.CountDownLatch;
 
 public class Testing {
     public static void main(String[] args) throws InterruptedException, IOException, ParseException {
+        // update client actions
+        // direction changed
+        // chase ai
+        // while refactoring ai, make sure it uses the entity tracker
+
+
+        // create a listeners debug view
+
         // TODO
 
         // TODO: stance
@@ -111,10 +119,12 @@ public class Testing {
         //          this is still slightly too conservative
         //          could also do intersections of all corners of the unit
 
+        // fix the unit/building creation
+
 
         int numSpectators = 1;
         int numGames = 0;
-        int numAis = 2;
+        int numAis = 1;
 
         System.out.println("Starting server");
         ServerContext serverContext = ServerDriver.createServerContext();

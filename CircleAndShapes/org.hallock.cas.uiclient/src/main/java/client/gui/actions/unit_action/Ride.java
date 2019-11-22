@@ -1,6 +1,6 @@
 package client.gui.actions.unit_action;
 
-import client.ai.RideAi;
+import client.ai.ai2.WhileWithinProximity;
 import client.app.UiClientContext;
 import common.state.EntityReader;
 import common.state.sst.GameStateHelper;
@@ -22,6 +22,6 @@ public class Ride extends UnitToUnitAction {
 
     @Override
     public void run(EntityReader entity, EntityReader target) {
-        c.actionQueuer.maybeQueue(entity.entityId, new RideAi(c.clientGameState, entity, target));
+        c.actionQueuer.maybeQueue(entity, WhileWithinProximity.createRide(entity, target));
     }
 }

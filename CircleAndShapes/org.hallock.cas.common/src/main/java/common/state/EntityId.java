@@ -1,8 +1,10 @@
 package common.state;
 
+import common.state.sst.GameState;
 import common.util.json.*;
 
 import java.io.IOException;
+import java.util.*;
 
 public class EntityId implements Jsonable {
     public final int id;
@@ -26,10 +28,7 @@ public class EntityId implements Jsonable {
         if (!(other instanceof EntityId)) {
             return false;
         }
-        if (((EntityId) other).id != id) {
-            return false;
-        }
-        return true;
+        return ((EntityId) other).id == id;
     }
 
     @Override
@@ -43,4 +42,16 @@ public class EntityId implements Jsonable {
             return new EntityId(reader.readInt32());
         }
     };
+
+
+    public static Set<EntityReader> getReaders(GameState state, Collection<EntityId> entityIds) {
+        if (entityIds == null || entityIds.isEmpty()) return Collections.emptySet();
+        HashSet<EntityReader> ret = new HashSet<>();
+        for (EntityId id : entityIds) {
+            ret.add(new EntityReader(state, id));
+        }
+        return ret;
+    }
+
+    public static final Comparator<EntityId> COMPARATOR = Comparator.comparingInt(entityId -> entityId.id);
 }

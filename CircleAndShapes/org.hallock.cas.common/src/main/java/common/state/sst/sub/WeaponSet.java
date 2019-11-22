@@ -5,10 +5,7 @@ import common.state.spec.attack.Weapon;
 import common.util.json.*;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.*;
 
 /** We can remove this class again, I think **/
 public class WeaponSet implements Jsonable {
@@ -58,7 +55,7 @@ public class WeaponSet implements Jsonable {
         public WeaponSet parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
             WeaponSet set = new WeaponSet();
             reader.readBeginDocument();
-            reader.read("weapons", spec, set.ohMy(), Weapon.Serializer);
+            reader.read("weapons", set.ohMy(), Weapon.Serializer, spec);
             reader.readEndDocument();
             return set;
         }

@@ -1,6 +1,6 @@
 package server.engine;
 
-import common.AiEvent;
+import common.event.ActionCompleted;
 import common.Proximity;
 import common.action.Action;
 import common.algo.AStar;
@@ -100,7 +100,7 @@ public class Simulator {
 
             action.remainingTime = action.remainingTime - timeDelta;
             if (action.remainingTime <= 0) {
-                ssm.done(entity, AiEvent.ActionCompletedReason.Successful);
+                ssm.done(entity, ActionCompleted.ActionCompletedReason.Successful);
             }
         }
     }
@@ -138,14 +138,14 @@ public class Simulator {
             EntityId createdUnit = generator.generateId();
             ssm.createUnit(createdUnit, action.spec.createdType, evolution.createEvolvedSpec(contributingUnits), unGarrisonLocation.point, entity.getOwner());
             ssm.setUnitAction(new EntityReader(state.state, createdUnit), new Action.MoveSeq(unGarrisonLocation.path));
-            ssm.done(entity, AiEvent.ActionCompletedReason.Successful);
+            ssm.done(entity, ActionCompleted.ActionCompletedReason.Successful);
         }
     }
 
     private void attack(EntityReader attacker, ServerStateManipulator ssm, Action.Attack action, double prevTime, double timeDelta) {
         Object[] syncs = GameStateHelper.getSynchronizationObjects(state.state.entityManager, attacker.entityId, action.target);
         if (syncs == null) {
-            ssm.done(attacker, AiEvent.ActionCompletedReason.Invalid);
+            ssm.done(attacker, ActionCompleted.ActionCompletedReason.Invalid);
             return;
         }
 
@@ -162,7 +162,7 @@ public class Simulator {
                     }
                 }
                 if (weapon == null) {
-                    ssm.done(attacker, AiEvent.ActionCompletedReason.Invalid);
+                    ssm.done(attacker, ActionCompleted.ActionCompletedReason.Invalid);
                     return;
                 }
 
@@ -171,23 +171,23 @@ public class Simulator {
                 WeaponSpec weaponSpec = weapon.weaponType;
 
                 if (attackerLocation.distanceTo(attackedLocation) > weapon.weaponType.rangeCanFinishAttackFrom) {
-                    ssm.done(attacker, AiEvent.ActionCompletedReason.TooFar);
+                    ssm.done(attacker, ActionCompleted.ActionCompletedReason.TooFar);
                     return;
                 }
 
                 if (weapon.weaponType.weaponClass.equals(WeaponClass.Instant)) {
                     Load load = attacker.getCarrying();
                     if (!load.canAfford(weaponSpec.fireResources)) {
-                        ssm.done(attacker, AiEvent.ActionCompletedReason.OverCapacity);
+                        ssm.done(attacker, ActionCompleted.ActionCompletedReason.OverCapacity);
                         return;
                     }
                     ssm.subtractFromPayload(attacker, load, weaponSpec.fireResources);
                     if (ssm.receiveDamage(attacked.entityId, weaponSpec.damage * timeDelta * attacker.getCurrentAttackSpeed(), weaponSpec.damageType)) {
-                        ssm.done(attacker, AiEvent.ActionCompletedReason.Successful);
+                        ssm.done(attacker, ActionCompleted.ActionCompletedReason.Successful);
                         return;
                     }
                     if (ssm.decreaseWeaponCondition(attacker, weapon, weaponSpec.decrementConditionPerUseBy)) {
-                        ssm.done(attacker, AiEvent.ActionCompletedReason.OverCapacity);
+                        ssm.done(attacker, ActionCompleted.ActionCompletedReason.OverCapacity);
                         return;
                     }
                     return;
@@ -232,7 +232,7 @@ public class Simulator {
                 Load load = attacker.getCarrying();
                 for (Double attackEventTime : attackTimes) {
                     if (!load.canAfford(weaponSpec.fireResources)) {
-                        ssm.done(attacker, AiEvent.ActionCompletedReason.OverCapacity);
+                        ssm.done(attacker, ActionCompleted.ActionCompletedReason.OverCapacity);
                         return;
                     }
                     ssm.subtractFromPayload(attacker, load, weaponSpec.fireResources);
@@ -255,12 +255,12 @@ public class Simulator {
                     }
 
                     if (ssm.decreaseWeaponCondition(attacker, weapon, weaponSpec.decrementConditionPerUseBy)) {
-                        ssm.done(attacker, AiEvent.ActionCompletedReason.OverCapacity);
+                        ssm.done(attacker, ActionCompleted.ActionCompletedReason.OverCapacity);
                         return;
                     }
 
                     if (died) {
-                        ssm.done(attacker, AiEvent.ActionCompletedReason.Successful);
+                        ssm.done(attacker, ActionCompleted.ActionCompletedReason.Successful);
                         return;
                     }
                 }
@@ -271,7 +271,7 @@ public class Simulator {
     private void build(EntityReader entity, ServerStateManipulator ssm, Action.Build action, double timeDelta) {
         Object synchronizationObject = entity.getSync();
         if (synchronizationObject == null) {
-            ssm.done(entity, AiEvent.ActionCompletedReason.Invalid);
+            ssm.done(entity, ActionCompleted.ActionCompletedReason.Invalid);
             return;
         }
         synchronized (synchronizationObject) {
@@ -282,18 +282,18 @@ public class Simulator {
 
             if (entity.getBuildSpeed() <= 0) {
                 // can't build it anyway
-                ssm.done(entity, AiEvent.ActionCompletedReason.Invalid);
+                ssm.done(entity, ActionCompleted.ActionCompletedReason.Invalid);
                 return;
             }
 
             ConstructionZone constructionZone = constructionEntity.getConstructionZone();
             if (constructionZone == null || !constructionEntity.getMissingConstructionResources().isEmpty()) {
-                ssm.done(entity, AiEvent.ActionCompletedReason.Invalid);
+                ssm.done(entity, ActionCompleted.ActionCompletedReason.Invalid);
                 return;
             }
 
             if (!Proximity.closeEnoughToInteract(entity, constructionEntity)) {
-                ssm.done(entity, AiEvent.ActionCompletedReason.TooFar);
+                ssm.done(entity, ActionCompleted.ActionCompletedReason.TooFar);
                 return;
             }
 
@@ -313,7 +313,7 @@ public class Simulator {
             ssm.createUnit(buildingId, resultingStructure, new EvolutionSpec(resultingStructure), constructionZone.location, Player.GAIA);
             ssm.constructionChanged(entity.getOwner(), action.constructionId, buildingId);
 
-            ssm.done(entity, AiEvent.ActionCompletedReason.Successful);
+            ssm.done(entity, ActionCompleted.ActionCompletedReason.Successful);
         }
     }
 
@@ -353,7 +353,7 @@ public class Simulator {
             synchronized (syncs[1]) {
                 EntityReader depositLocation = new EntityReader(state.state, action.location);
                 if (!Proximity.closeEnoughToInteract(entity, depositLocation)) {
-                    ssm.done(entity, AiEvent.ActionCompletedReason.TooFar);
+                    ssm.done(entity, ActionCompleted.ActionCompletedReason.TooFar);
                     return;
                 }
                 double nextProgress = action.progress + entity.getDepositSpeed() * timeDelta * 100 / (double) action.resource.weight;
@@ -361,7 +361,7 @@ public class Simulator {
                 action.progress = Math.max(0.0, Math.min(1.0, nextProgress - amount));
                 ssm.setActionProgress(entity.entityId, action);
                 if (!transfer(ssm, entity, new EntityReader(state.state, action.location), action.resource, amount, action.maxAmount)) {
-                    ssm.done(entity, AiEvent.ActionCompletedReason.OverCapacity); // ?
+                    ssm.done(entity, ActionCompleted.ActionCompletedReason.OverCapacity); // ?
                 }
             }
         }
@@ -376,7 +376,7 @@ public class Simulator {
                 // it is the collector...
                 return;
             synchronized (sync) {
-                ssm.done(entity, AiEvent.ActionCompletedReason.Invalid);
+                ssm.done(entity, ActionCompleted.ActionCompletedReason.Invalid);
             }
             return;
         }
@@ -387,7 +387,7 @@ public class Simulator {
                     return;
                 }
                 if (!Proximity.closeEnoughToInteract(entity, collected)) {
-                    ssm.done(entity, AiEvent.ActionCompletedReason.TooFar);
+                    ssm.done(entity, ActionCompleted.ActionCompletedReason.TooFar);
                     return;
                 }
 
@@ -401,7 +401,7 @@ public class Simulator {
                 action.progress = Math.max(0.0, Math.min(1.0, nextProgress - amount));
                 ssm.setActionProgress(entity.entityId, action);
                 if (!transfer(ssm, collected, entity, action.resource, amount, action.maximumAmountToCollect)) {
-                    ssm.done(entity, AiEvent.ActionCompletedReason.OverCapacity);
+                    ssm.done(entity, ActionCompleted.ActionCompletedReason.OverCapacity);
 
                     double amountLeft = collected.getCarrying().getWeight();
                     // TODO: should there be a more natural way of handling this?
@@ -457,7 +457,7 @@ public class Simulator {
 //
 //            ssm.changeUnitLocation(entity, desiredLocation);
 //            if (done)
-//                ssm.done(entity, AiEvent.ActionCompletedReason.Successful);
+//                ssm.done(entity, AiEvent.ActionCompletedReason.RequestedAction);
 //        }
 //    }
 
@@ -467,7 +467,7 @@ public class Simulator {
 
         synchronized (synchronizationObject) {
             if (action.path == null || action.path.isEmpty()) {
-                ssm.done(entity, AiEvent.ActionCompletedReason.Successful);
+                ssm.done(entity, ActionCompleted.ActionCompletedReason.Successful);
                 return;
             }
             DPoint destination = action.path.points.get(action.progress);
@@ -483,6 +483,7 @@ public class Simulator {
             double n = Math.sqrt(dx * dx + dy * dy);
             double distanceToTravel = timeDelta * speed;
 
+            boolean changedDirection = false;
             boolean done = false;
             final DPoint desiredLocation;
             if (n > distanceToTravel) {
@@ -492,6 +493,7 @@ public class Simulator {
                 );
             } else {
                 desiredLocation = destination;
+                changedDirection = true;
                 if (action.progress < action.path.points.size() - 1) {
                     action.progress++;
                 } else {
@@ -501,7 +503,8 @@ public class Simulator {
 
             Point gridPoint = desiredLocation.toPoint();
             if (state.state.isOccupiedFor(gridPoint, entity.getOwner())) {
-                ssm.done(entity, AiEvent.ActionCompletedReason.Invalid);
+                ssm.done(entity, ActionCompleted.ActionCompletedReason.Invalid);
+                ssm.unitChangedDirection(entity.entityId, location, location, 0);
                 return;
             }
             if (true || state.state.locationManager.getEntitiesWithin(
@@ -509,8 +512,13 @@ public class Simulator {
                     qEntity -> !entity.entityId.equals(qEntity)).isEmpty()) {
                 action.blockedCount = 0;
                 ssm.changeUnitLocation(entity, desiredLocation);
-                if (done)
-                    ssm.done(entity, AiEvent.ActionCompletedReason.Successful);
+                if (done) {
+                    ssm.done(entity, ActionCompleted.ActionCompletedReason.Successful);
+                    ssm.unitChangedDirection(entity.entityId, location, location, 0);
+                } else if (changedDirection) {
+                    ssm.unitChangedDirection(entity.entityId, desiredLocation, action.path.points.get(action.progress), speed);
+                }
+
                 return;
             }
             if (action.blockedCount++ < 3) {
@@ -518,7 +526,7 @@ public class Simulator {
             }
             AStar.PathSearch path = AStar.findPath(location, destination, state.state.locationManager.createOccupancyView(entity.entityId));
             if (!path.successful) {
-                ssm.done(entity, AiEvent.ActionCompletedReason.Invalid);
+                ssm.done(entity, ActionCompleted.ActionCompletedReason.Invalid);
                 return;
             }
         }

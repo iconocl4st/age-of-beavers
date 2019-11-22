@@ -1,8 +1,6 @@
 package common.state.sst.manager;
 
 import common.state.EntityId;
-import common.state.spec.EntitySpec;
-import common.state.spec.GameSpec;
 import common.util.json.JsonReaderWrapperSpec;
 import common.util.json.JsonWriterWrapperSpec;
 import common.util.json.ReadOptions;
@@ -58,7 +56,7 @@ public class BooleanManager implements ManagerSpec<Boolean> {
         synchronized (set) {
             set.clear();
             reader.readBeginDocument();
-            reader.read("set", spec, set, EntityId.Serializer);
+            reader.read("set", set, EntityId.Serializer, spec);
             reader.readEndDocument();
         }
     }

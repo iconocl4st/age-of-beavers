@@ -46,7 +46,7 @@ public class GameStateHelper {
         return player.equals(dOwner) || dOwner.equals(Player.GAIA);
     }
 
-    public static Object[] getSynchronizationObjects(ManagerImpl<EmptyJsonable> entityIdManager, EntityId e1, EntityId e2) {
+    public static Object[] getSynchronizationObjects(ManagerImpl<Object> entityIdManager, EntityId e1, EntityId e2) {
         Object o1 = entityIdManager.get(e1);
         if (o1 == null) return null;
         Object o2 = entityIdManager.get(e2);

@@ -162,15 +162,15 @@ public class EntitySpec implements Serializable {
             ret.initialBuildSpeed = reader.readDouble("initial-build-speed");
             ret.creationTime = reader.readDouble("creation-time");
             ret.garrisonCapacity = reader.readInt32("garrison-capacity");
-            reader.read("drop-on-death", spec, ret.dropOnDeath, EntitySpec.Serializer);
-            reader.read("classes", spec, ret.classes, DataSerializer.StringSerializer);
+            reader.read("drop-on-death", ret.dropOnDeath, EntitySpec.Serializer, spec);
+            reader.read("classes", ret.classes, DataSerializer.StringSerializer, spec);
             ret.carryCapacity = reader.read("carry-capacity", PrioritizedCapacitySpec.Serializer, spec);
             reader.read("required-resources", ret.requiredResources, ResourceType.Serializer, DataSerializer.IntegerSerializer, spec);
             reader.read("client.ai-arguments", ret.aiArgs, DataSerializer.StringSerializer, DataSerializer.StringSerializer, spec);
             ret.buildingPath = reader.read("build-path", new String[0], DataSerializer.StringSerializer, spec);
 //            reader.read("can-create", spec, ret.canCreate, CreationSpec.Serializer);
             ret.canCreate = new HashSet<>();
-            reader.read("carrying", spec, ret.carrying, CarrySpec.Serializer);
+            reader.read("carrying", ret.carrying, CarrySpec.Serializer, spec);
             reader.readEndDocument();
             return ret;
         }

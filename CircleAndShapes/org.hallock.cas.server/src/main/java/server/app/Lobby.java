@@ -1,6 +1,7 @@
 package server.app;
 
 
+import common.state.EntityId;
 import common.app.LobbyInfo;
 import common.msg.ConnectionWriter;
 import common.msg.Message;
@@ -11,11 +12,9 @@ import server.state.Game;
 import server.state.ServerGameState;
 import server.state.ServerStateManipulator;
 
+import java.awt.*;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 public class Lobby {
@@ -158,8 +157,14 @@ public class Lobby {
             for (final PlayerConnection connection : connections) {
                 try {
                     Player player = getPlayer(connection);
+                    Point playerStart = null;
+                    Set<EntityId> startingUnits = null;
+                    if (player != null) {
+                        playerStart = game.serverState.playerStarts[player.number - 1];
+                        startingUnits = game.serverState.startingUnits.get(player.number- 1);
+                    }
                     connection.setMessageHandler(new GamePlayerMessageHandler(new ServerStateManipulator(game, player, broadCaster)));
-                    connection.getWriter().send(new Message.Launched(spec, player, player != null ? game.serverState.playerStarts[player.number-1] : null));
+                    connection.getWriter().send(new Message.Launched(spec, player, playerStart, startingUnits));
                     connection.getWriter().send(new Message.UpdateEntireGameState(game.serverState.createGameState(player)));
                     connection.getWriter().flush();
                 } catch (Throwable e) {

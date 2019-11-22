@@ -22,11 +22,14 @@ import common.util.EvolutionSpec;
 import common.util.json.EmptyJsonable;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Set;
 
 public class ServerGameState {
     public GameState state;
     public GaiaAi gaiaAi;
     public Point[] playerStarts;
+    public ArrayList<Set<EntityId>> startingUnits;
 
     public static LineOfSightSpec createServerLineOfSightSpec(GameSpec spec, int numberOfPlayers) {
         LineOfSightSpec[] lineOfSights = new LineOfSightSpec[numberOfPlayers+1];
@@ -153,6 +156,7 @@ public class ServerGameState {
         System.out.println("Creating state for " + player);
 
         LineOfSightSpec los;
+
         if (player == null) {
             los = new AllVisibleLineOfSight(state.gameSpec);
         } else {

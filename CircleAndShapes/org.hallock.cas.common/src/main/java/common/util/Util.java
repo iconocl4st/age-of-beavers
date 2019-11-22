@@ -1,7 +1,10 @@
 package common.util;
 
+import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
 
 public class Util {
@@ -12,6 +15,49 @@ public class Util {
             builder.append(chars.charAt(random.nextInt(chars.length())));
         }
         return builder.toString();
+    }
+
+    public static String getDebugString() {
+        try {
+            throw new RuntimeException();
+        } catch (Throwable t) {
+            StringWriter sw = new StringWriter();
+            try (PrintWriter pw = new PrintWriter(sw)) {
+                t.printStackTrace(pw);
+            }
+            return sw.toString();
+        }
+    }
+
+    public static boolean anyAreNull(Object... objs) {
+        for (Object obj : objs) if (obj == null) return true;
+        return false;
+    }
+
+    public static class CyclingIterator<T> implements Iterator<T> {
+        T[] ts;
+        int index;
+
+        public CyclingIterator(T[] t) {
+            this.ts = t;
+            index = 0;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return true;
+        }
+
+        @Override
+        public T next() {
+            T ret = ts[index++];
+            if (index >= ts.length) index = 0;
+            return ret;
+        }
+
+        public void resetIndex() {
+            index = 0;
+        }
     }
 
 

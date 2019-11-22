@@ -19,10 +19,12 @@ import common.state.sst.sub.ProjectileLaunch;
 import common.util.DPoint;
 import common.util.GridLocation;
 import common.util.Marked;
+import common.util.Util;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,6 +64,18 @@ public class GamePainter {
         this.clientGameState = this.context.clientGameState;
         this.state = clientGameState.gameState;
     }
+
+    private final Util.CyclingIterator<Color> kmeansCycleIterator = new Util.CyclingIterator<>(new Color[]{
+            Color.white,
+            Color.pink,
+            Color.green,
+            Color.yellow,
+            Color.red,
+            Color.blue,
+            Color.black,
+            Color.cyan,
+            Color.gray
+    });
 
     void renderGame(Graphics2D graphics, Zoom zoom) {
         Graphics2D g = graphics;
@@ -133,18 +147,18 @@ public class GamePainter {
                 );
             }
 
-            // should be here...
+            // below should be here...
         }
 
         synchronized (DebugGraphics.byPlayer) {
             for (Map.Entry<Player, List<DebugGraphics>> entry : DebugGraphics.byPlayer.entrySet()) {
+                kmeansCycleIterator.resetIndex();
                 for (DebugGraphics debug : entry.getValue()) {
                     int cx = zoom.mapGameToScreenX(debug.center.x);
                     int cy = zoom.mapGameToScreenY(debug.center.y);
                     g.setColor(Colors.PLAYER_COLORS[entry.getKey().number]);
                     g.fillOval(cx - 2, cy - 2, 4, 4);
-
-                    g.setColor(new Color((int)(255 * Math.random()), (int)(255 * Math.random()), (int)(255 * Math.random())));
+                    g.setColor(kmeansCycleIterator.next());
                     for (Point rec : debug.list) {
                         g.drawLine(
                                 cx,
@@ -154,6 +168,13 @@ public class GamePainter {
                         );
                     }
                 }
+            }
+        }
+
+        synchronized (DebugGraphics.pleaseFocusSync) {
+            if (DebugGraphics.pleaseFocus != null) {
+                zoom.focusOn(Collections.singleton(DebugGraphics.pleaseFocus));
+                DebugGraphics.pleaseFocus = null;
             }
         }
 

@@ -1,6 +1,6 @@
 package client.event.supply;
 
-import client.ai.TransportAi;
+import client.ai.ai2.TransportAi;
 import common.state.EntityReader;
 import common.state.spec.ResourceType;
 

@@ -1,3 +1,4 @@
+
 package server.app;
 
 import common.state.spec.GameSpec;

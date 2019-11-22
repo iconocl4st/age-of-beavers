@@ -29,6 +29,8 @@ public class JacksonWriterWrapper extends JsonWriterWrapperSpec {
 
     @Override
     public void p_write(Double d) throws IOException {
+        if (d.isNaN() || d.isInfinite())
+            throw new IllegalArgumentException();
         generator.writeNumber(d);
     }
 

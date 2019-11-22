@@ -1,7 +1,6 @@
 package client.gui.actions.unit_action;
 
-import client.ai.BeRidden;
-import client.ai.GarrisonAi;
+import client.ai.ai2.WhileWithinProximity;
 import client.app.UiClientContext;
 import common.state.EntityReader;
 import common.state.sst.GameStateHelper;
@@ -28,9 +27,9 @@ public class Garrison extends UnitToUnitAction {
     @Override
     public void run(EntityReader entity, EntityReader target) {
         if (GameStateHelper.playerCanGarrison(c.clientGameState.currentPlayer, entity, target)) {
-            c.actionQueuer.maybeQueue(entity.entityId, new GarrisonAi(c.clientGameState, entity, target));
+            c.actionQueuer.maybeQueue(entity, WhileWithinProximity.createGarrison(entity, target));
         } else if (GameStateHelper.playerCanRide(c.clientGameState.currentPlayer, target, entity)) {
-            c.actionQueuer.maybeQueue(entity.entityId, new BeRidden(c.clientGameState, entity, target));
+            c.actionQueuer.maybeQueue(entity, WhileWithinProximity.createBeRidden(entity, target));
         }
     }
 }

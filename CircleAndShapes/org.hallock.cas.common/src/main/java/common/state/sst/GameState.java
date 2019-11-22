@@ -1,14 +1,17 @@
 package common.state.sst;
 
 import common.action.Action;
-import common.state.spec.EntitySpec;
-import common.state.spec.GameSpec;
 import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.Occupancy;
 import common.state.Player;
 import common.state.los.LineOfSightSpec;
-import common.state.sst.manager.*;
+import common.state.spec.EntitySpec;
+import common.state.spec.GameSpec;
+import common.state.sst.manager.BooleanManager;
+import common.state.sst.manager.LocationManager;
+import common.state.sst.manager.ManagerImpl;
+import common.state.sst.manager.ReversableManagerImpl;
 import common.state.sst.sub.*;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
@@ -17,7 +20,6 @@ import common.util.json.*;
 
 import java.awt.*;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 public class GameState implements Jsonable {
     public double currentTime;
@@ -26,7 +28,7 @@ public class GameState implements Jsonable {
     // todo: rename to syncs
     public LocationManager locationManager;
 
-    public ManagerImpl<EmptyJsonable> entityManager;
+    public ManagerImpl<Object> entityManager;
     public ReversableManagerImpl<EntityId, EntityId> garrisonManager;
     public ReversableManagerImpl<EntityId, EntityId> ridingManager;
     public ReversableManagerImpl<GateInfo, Point> gateStateManager;
@@ -70,7 +72,7 @@ public class GameState implements Jsonable {
         gs.lineOfSight = los;
         gs.constructionManager = new ManagerImpl<>(ConstructionZone.Serializer);
         gs.garrisonManager = new ReversableManagerImpl<>(e -> e, EntityId.Serializer);
-        gs.ridingManager = new ReversableManagerImpl<>(e->e,EntityId.Serializer);
+        gs.ridingManager = new ReversableManagerImpl<>(e -> e, EntityId.Serializer);
         gs.movementSpeedManager = new ManagerImpl<>(DataSerializer.DoubleSerializer);
         gs.hiddenManager = new BooleanManager();
         gs.ageManager = new ManagerImpl<>(DataSerializer.DoubleSerializer);

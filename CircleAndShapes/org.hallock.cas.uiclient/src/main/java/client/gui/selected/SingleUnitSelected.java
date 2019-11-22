@@ -1,10 +1,8 @@
 package client.gui.selected;
 
-import client.ai.Ai;
 import client.app.UiClientContext;
 import client.gui.ImagePanel;
 import common.action.Action;
-import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.Player;
 import common.state.spec.ConstructionSpec;
@@ -116,14 +114,14 @@ public class SingleUnitSelected extends JPanel {
             imagePanel.setImage(context.imageCache.get(currentType.image));
 
             Load load = entity.getCarrying();
-            resourcesBorder.setTitle("Total weight carried: " + load.getWeight());
+            resourcesBorder.setTitle("Total weight carried: " + ResourceType.formatWeight(load.getWeight()));
             if (currentType instanceof ConstructionSpec) {
                 Map<ResourceType, Integer> requiredResources = ((ConstructionSpec) currentType).resultingStructure.requiredResources;
                 for (Map.Entry<ResourceType, JLabel> entry : resourceLabels.entrySet()) {
                     entry.getValue().setText(
                             entry.getKey().name + ": " +
-                            load.quantities.getOrDefault(entry.getKey(), 0) + " of " +
-                            requiredResources.getOrDefault(entry.getKey(), 0) + " required"
+                            load.quantities.getOrDefault(entry.getKey(), 0) + "/" +
+                            requiredResources.getOrDefault(entry.getKey(), 0)
                     );
                 }
             } else {
@@ -149,12 +147,8 @@ public class SingleUnitSelected extends JPanel {
 
             age.setText("Age: " + String.valueOf(entity.getCurrentAge()));
 
-            Ai currentAi = context.clientGameState.aiManager.getCurrentAi(entity.entityId);
-            if (currentAi != null) {
-                ai.setText("Ai: " + currentAi.toString());
-            } else {
-                ai.setText("No Ai");
-            }
+            String currentAi = context.clientGameState.aiManager.getDisplayString(entity);
+            ai.setText("AiStack: " + currentAi);
 
             GateInfo gateState1 = entity.getGateState();
             if (gateState1 != null) {
@@ -218,9 +212,9 @@ public class SingleUnitSelected extends JPanel {
         leftPanel.add(ret.imagePanel);
 
         ret.resourcesPanel = new JPanel();
-        ret.resourcesPanel.setLayout(new GridLayout(0, 3));
+        ret.resourcesPanel.setLayout(new GridLayout(0, 2));
         ret.resourcesPanel.setBorder(ret.resourcesBorder = new TitledBorder("Carrying"));
-        leftPanel.add(ret.resourcesPanel);
+        leftPanel.add(ret.resourcesPanel); // add scroll pane?
 
         ret.add(leftPanel);
 

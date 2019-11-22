@@ -1,9 +1,12 @@
 package server.app;
 
 import common.msg.ConnectionWriter;
+import common.msg.Message;
 import common.state.Player;
 import common.state.spec.GameSpec;
 import server.state.ServerStateManipulator;
+
+import java.io.IOException;
 
 public class ServerConnectionContext implements PlayerConnection {
     private final ConnectionWriter writer;
@@ -11,7 +14,7 @@ public class ServerConnectionContext implements PlayerConnection {
     private Lobby lobby;
 
     ServerConnectionContext(ConnectionWriter writer) {
-        this.writer = writer;
+        this.writer = new LoggingConnectioniWriter(writer);
     }
 
     void join(Lobby lobby) {

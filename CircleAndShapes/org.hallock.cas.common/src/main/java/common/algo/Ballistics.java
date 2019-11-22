@@ -44,7 +44,7 @@ public class Ballistics {
      n^2(1 + c^2) d_x^2 + 2 c n n_2 (o_y - c o_x) d_x + (-n^2 + o_y^2 n_2^2 - 2 o_y n_2 c o_x n_2 + c^2 o_x^2 n_2^2) = 0
      **/
 
-    private static final double zero_tolerance = 1e-6;
+    private static final double zero_tolerance = 1e-3;
 
     public static Solutions getIntersections(double x0, double y0, double n, double u0, double v0, double n2, double ox, double oy) {
         Solutions solutions = new Solutions();

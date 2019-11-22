@@ -1,12 +1,9 @@
 package app;
 
-import client.ai.Ai;
-import client.ai.CreateAi;
-import client.ai.Gather;
-import client.ai.HuntAi;
+import client.ai.ai2.AiTask;
+import client.ai.ai2.Produce;
 import client.state.ClientGameState;
 import common.msg.Message;
-import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.Player;
 import common.state.spec.CreationMethod;
@@ -41,7 +38,7 @@ public class PersistentAiState {
     HashSet<EntityReader> constructionZones = new HashSet<>();
     HashSet<EntityReader> constructionWorkers = new HashSet<>();
 
-    HashSet<EntityId> allocatedCarts = new HashSet<>();
+    HashSet<EntityReader> allocatedCarts = new HashSet<>();
 
 
     int desiredNumTransportWagons = 0;
@@ -50,10 +47,10 @@ public class PersistentAiState {
     PersistentAiState(PlayerAiContext context) {
         this.context = context;
 
-        hunters = new UnitAssignment(context, state().gameSpec.getResourceType("food"), UnitAssignment.aiIsNotOfClass(clientGameState(), HuntAi.class));
-        berryGatherers = new UnitAssignment(context, state().gameSpec.getResourceType("food"), UnitAssignment.aiIsNotOfClass(clientGameState(), Gather.class));
-        lumberJacks = new UnitAssignment(context, state().gameSpec.getResourceType("wood"), UnitAssignment.aiIsNotOfClass(clientGameState(), Gather.class));
-        stoneGatherers = new UnitAssignment(context, state().gameSpec.getResourceType("stone"), UnitAssignment.aiIsNotOfClass(clientGameState(), Gather.class));
+        hunters = new UnitAssignment(context, state().gameSpec.getResourceType("food"), UnitAssignment.minimal(clientGameState()));
+        berryGatherers = new UnitAssignment(context, state().gameSpec.getResourceType("food"), UnitAssignment.minimal(clientGameState()));
+        lumberJacks = new UnitAssignment(context, state().gameSpec.getResourceType("wood"), UnitAssignment.minimal(clientGameState()));
+        stoneGatherers = new UnitAssignment(context, state().gameSpec.getResourceType("stone"), UnitAssignment.minimal(clientGameState()));
 
         transporters = new UnitAssignment(context, null, null);
         dropOffs = new UnitAssignment(context, null, null);
@@ -63,17 +60,42 @@ public class PersistentAiState {
         garrisonServicers = new HashMap<>();
     }
 
+    boolean isIdle(EntityReader entity) {
+        if (!entity.isIdle() || context.clientGameState.aiManager.isControlling(entity) || entity.isHidden()) {
+            return false;
+        }
+
+        if (hunters.contains(entity)) return false;
+        if (berryGatherers.contains(entity)) return false;
+        if (lumberJacks.contains(entity)) return false;
+        if (stoneGatherers.contains(entity)) return false;
+        if (dropOffs.contains(entity)) return false;
+        if (transporters.contains(entity)) return false;
+        if (builders.contains(entity)) return false;
+        if (garrisoners.contains(entity)) return false;
+        if (garrisonServicers.values().contains(entity)) return false;
+        if (constructionWorkers.contains(entity)) return false;
+
+        return true;
+    }
+
     void assignDropOffCarts(DPoint[] centers) {
-        DPoint[] currentLocations = new DPoint[dropOffs.entities.size()];
+        LinkedList<EntityReader> clone;
+        synchronized (dropOffs.entities) { // sync clone probably not needed
+            clone = new LinkedList<>(dropOffs.entities);
+        }
+        DPoint[] currentLocations = new DPoint[clone.size()];
+        EntityReader[] riders = new EntityReader[clone.size()];
         int index = 0;
-        for (EntityReader reader : dropOffs.entities) {
+        for (EntityReader reader : clone) {
             EntityReader rider = reader.getRider();
             if (rider == null) {
                 continue;
             }
+            riders[index] = rider;
             currentLocations[index++] = rider.getLocation();
         }
-        if (index == 0 || currentLocations.length == 0 || centers[0] == null) {
+        if (index == 0 || clone.isEmpty() || centers[0] == null) {
             desiredDropOffLocations.clear();
             return;
         }
@@ -100,9 +122,8 @@ public class PersistentAiState {
         }
 
         desiredDropOffLocations.clear();
-        index = 0;
-        for (EntityReader entity : dropOffs.entities) {
-            desiredDropOffLocations.put(entity, centers[map[index++]]);
+        for (int i = 0; i < index; i++) {
+            desiredDropOffLocations.put(riders[i], centers[map[i]]);
         }
     }
 
@@ -120,7 +141,7 @@ public class PersistentAiState {
         garrisonServicers.entrySet().removeIf(e -> mini.notAsAssigned(e.getValue()) || e.getKey().noLongerExists());
         constructionZones.removeIf(EntityReader::noLongerExists);
         constructionWorkers.removeIf(mini::notAsAssigned);
-        allocatedCarts.removeIf(e -> mini.notAsAssigned(new EntityReader(context.clientGameState.gameState, e)));
+        allocatedCarts.removeIf(mini::notAsAssigned);
     }
 
     public void remove(EntityReader reader) {
@@ -216,11 +237,11 @@ public class PersistentAiState {
     }
 
     int getDesiredNumGarrisons(EntityReader entity) {
-        Ai currentAi = context.clientGameState.aiManager.getCurrentAi(entity.entityId);
-        if (!(currentAi instanceof CreateAi)) {
+        AiTask currentAi = context.clientGameState.aiManager.get(entity);
+        if (!(currentAi instanceof Produce)) {
             return 0;
         }
-        CreateAi ai = (CreateAi) currentAi;
+        Produce ai = (Produce) currentAi;
         if (!ai.getCreating().method.equals(CreationMethod.Garrison))
             return 0;
         return 1; // could be more...
@@ -233,7 +254,7 @@ public class PersistentAiState {
             EntityReader pop = transporters.pop();
             EntityReader rider = pop.getRider();
             if (rider != null) {
-                context.msgQueue.send(new Message.StopRiding(rider.entityId));
+                context.clientGameState.actionRequester.getWriter().send(new Message.StopRiding(rider.entityId));
                 allocatedCarts.remove(rider.entityId);
             }
             tickState.peoplePuller.addIdle(pop);
@@ -261,7 +282,7 @@ public class PersistentAiState {
                     EntitySpec type = context.clientGameState.gameState.typeManager.get(entityId);
                     if (type == null || !type.name.equals("wagon")) return false;
                     Player player = context.clientGameState.gameState.playerManager.get(entityId);
-                    if (allocatedCarts.contains(entityId)) return false;
+                    if (allocatedCarts.contains(new EntityReader(clientGameState().gameState, entityId))) return false;
                     return player != null && player.equals(Player.GAIA);
                 },
                 80,

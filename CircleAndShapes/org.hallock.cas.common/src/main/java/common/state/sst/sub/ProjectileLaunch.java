@@ -41,6 +41,9 @@ public class ProjectileLaunch implements Jsonable {
         this.directionX = directionX;
         this.directionY = directionY;
         this.launchingPlayer = launchingPlayer;
+
+        if (Double.isNaN(directionX) || Double.isInfinite(directionX) || Double.isNaN(directionY) || Double.isInfinite(directionY))
+            throw new IllegalArgumentException();
     }
 
     public DPoint getLocation(double time) {

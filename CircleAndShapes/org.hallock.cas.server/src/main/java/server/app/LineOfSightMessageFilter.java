@@ -39,7 +39,9 @@ public class LineOfSightMessageFilter implements ConnectionWriter {
                 break;
             case OCCUPANCY_UPDATED:
                 location = ((Message.OccupancyChanged) msg).location;
-            case AI_EVENT:  // to do
+                break;
+            case AI_EVENT:
+                location = gameState.state.locationManager.getLocation(((Message.AiEventMessage) msg).event.entity).toPoint();
                 break;
         }
         if (location != null && !gameState.state.lineOfSight.isVisible(player, location.x, location.y)) {

@@ -1,10 +1,15 @@
 package client.event.supply;
 
-import client.ai.ActionRequester;
-import client.ai.TransportAi;
+import client.ai.ai2.AiContext;
+import client.ai.ai2.OneTripTransport;
+import client.ai.ai2.TransportAi;
 import client.event.AiEventListener;
 import client.state.ClientGameState;
-import common.AiEvent;
+import common.AiAttemptResult;
+import common.event.AiEvent;
+import common.event.AiEventType;
+import common.event.BuildingPlacementChanged;
+import common.event.DemandsChanged;
 import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.spec.GameSpec;
@@ -12,19 +17,16 @@ import common.state.spec.ResourceType;
 import common.state.sst.sub.Load;
 import common.state.sst.sub.capacity.Prioritization;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
+import common.util.ConcurrentModificationDebugingSet;
 
 import java.util.*;
 
 public class SupplyAndDemandManager implements AiEventListener {
-
-    // should this listen to buildings being placed?
-
     private final Object sync = new Object();
     private final HashMap<ResourceType, Set<EntityId>> currentlyExceeding = new HashMap<>();
-    private final HashMap<ResourceType, TreeSet<TransportRequest>> excess = new HashMap<>();
+    private final HashMap<ResourceType, /*Tree*/Set<TransportRequest>> excess = new HashMap<>();
     private final HashMap<ResourceType, Set<EntityId>> currentlyDemanding = new HashMap<>();
-    private final HashMap<ResourceType, TreeSet<TransportRequest>> demands = new HashMap<>();
-    private final HashMap<EntityId, TransportAi> transports = new HashMap<>();
+    private final HashMap<ResourceType, /*Tree*/Set<TransportRequest>> demands = new HashMap<>();
 
     private final ClientGameState context;
     private final GameSpec gameSpec;
@@ -38,26 +40,30 @@ public class SupplyAndDemandManager implements AiEventListener {
 
     public void stopServicing(TransportAi transportAi, Transport transport) {
         remove(transport.getRequester());
-        update(transport.getRequester(), true);
+        update(transport.getRequester());
     }
 
-    public Transport commitToNextTransportationRequest(TransportAi transportAi) {
+    public Transport commitToNextTransportationRequest(TransportAi transportAi, Runnable onTransport, Runnable onNone) {
         synchronized (sync) {
             for (TransportRequest request : getExceeding()) {
                 if (request.servicer != null)
                     continue;
+                onTransport.run();
                 request.servicer = transportAi;
-                context.eventManager.notifyListeners(new AiEvent.DemandsChanged(request.requester.entityId));
+                context.executor.submit(() -> context.eventManager.notifyListeners(new DemandsChanged(request.requester.entityId)));
                 return new ExceedingTransport(request);
             }
 
             for (TransportRequest request : getDemands()) {
                 if (request.servicer != null)
                     continue;
+                onTransport.run();
                 request.servicer = transportAi;
-                context.eventManager.notifyListeners(new AiEvent.DemandsChanged(request.requester.entityId));
+                context.executor.submit(() -> context.eventManager.notifyListeners(new DemandsChanged(request.requester.entityId)));
                 return new DemandTransport(request);
             }
+
+            onNone.run();
         }
         return null;
     }
@@ -65,15 +71,15 @@ public class SupplyAndDemandManager implements AiEventListener {
     public void initialize(GameSpec gameSpec) {
         synchronized (sync) {
             for (ResourceType resourceType : gameSpec.resourceTypes) {
-                currentlyExceeding.put(resourceType, new HashSet<>());
-                excess.put(resourceType, new TreeSet<>());
-                currentlyDemanding.put(resourceType, new HashSet<>());
-                demands.put(resourceType, new TreeSet<>());
+                currentlyExceeding.put(resourceType, new ConcurrentModificationDebugingSet<>(new HashSet<>()));
+                excess.put(resourceType, new ConcurrentModificationDebugingSet<>(new TreeSet<>()));
+                currentlyDemanding.put(resourceType, new ConcurrentModificationDebugingSet<>(new HashSet<>()));
+                demands.put(resourceType, new ConcurrentModificationDebugingSet<>(new TreeSet<>()));
             }
         }
     }
 
-    private Set<TransportRequest> getAll(HashMap<ResourceType, TreeSet<TransportRequest>> map) {
+    private Set<TransportRequest> getAll(Map<ResourceType, Set<TransportRequest>> map) {
         synchronized (sync) {
             if (gameSpec == null) {
                 return Collections.emptySet();
@@ -140,22 +146,26 @@ public class SupplyAndDemandManager implements AiEventListener {
         return hasUpdate;
     }
 
-    public void update(EntityReader reader, boolean checkOwner) {
-        Object sync = reader.getSync();
-        synchronized (sync) {
-            if (reader.noLongerExists() || !reader.getType().containsClass("storage") || (checkOwner && !reader.getOwner().equals(context.currentPlayer))) {
+    public void update(EntityReader reader) {
+        final Object entitySync = reader.getSync();
+        PrioritizedCapacitySpec capacity;
+        Load carrying;
+        synchronized (entitySync) {
+            if (reader.noLongerExists() || !reader.getType().containsClass("storage") || !context.entityTracker.isTracking(reader)) {
                 remove(reader);
                 return;
             }
-            PrioritizedCapacitySpec capacity = reader.getCapacity();
-            Load carrying = reader.getCarrying();
-            boolean hasUpdate = false;
+            capacity = reader.getCapacity();
+            carrying = reader.getCarrying();
+        }
+        boolean hasUpdate = false;
+        synchronized (sync) {
             for (ResourceType resourceType : gameSpec.resourceTypes) {
                 hasUpdate |= update(reader, capacity, carrying, resourceType);
             }
-            if (hasUpdate) {
-                context.eventManager.notifyListeners(new AiEvent.DemandsChanged(reader.entityId));
-            }
+        }
+        if (hasUpdate) {
+            context.eventManager.notifyListeners(new DemandsChanged(reader.entityId));
         }
     }
 
@@ -178,18 +188,20 @@ public class SupplyAndDemandManager implements AiEventListener {
             }
         }
         if (hasUpdate) {
-            context.eventManager.notifyListeners(new AiEvent.DemandsChanged(unitId.entityId));
+            context.eventManager.notifyListeners(new DemandsChanged(unitId.entityId));
         }
     }
 
     @Override
-    public void receiveEvent(AiEvent event, ActionRequester ar) {
-        if (!event.type.equals(AiEvent.EventType.BuildingPlacementChanged))
+    public void receiveEvent(AiContext aiContext, AiEvent event) {
+        if (!event.type.equals(AiEventType.BuildingPlacementChanged))
             return;
-        AiEvent.BuildingPlacementChanged buildingPlacementChanged = (AiEvent.BuildingPlacementChanged) event;
+        BuildingPlacementChanged buildingPlacementChanged = (BuildingPlacementChanged) event;
         if (buildingPlacementChanged.constructionZone == null) {
             return;
         }
-        update(new EntityReader(context.gameState, buildingPlacementChanged.constructionZone), false);
+        EntityReader reader = new EntityReader(context.gameState, buildingPlacementChanged.constructionZone);
+        context.entityTracker.track(reader);
+        update(reader);
     }
 }

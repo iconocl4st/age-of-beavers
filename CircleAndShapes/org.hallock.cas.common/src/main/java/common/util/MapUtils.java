@@ -72,6 +72,15 @@ public class MapUtils {
         return ret;
     }
 
+    public static boolean isEmpty(Map<ResourceType, Integer> resources) {
+        return sum(resources) == 0;
+    }
+
+    public static HashMap<ResourceType, Integer> from(ResourceType resourceType, Integer value) {
+        HashMap<ResourceType, Integer> ret = new HashMap<>();
+        ret.put(resourceType, value);
+        return ret;
+    }
 
 
 //    public static final class Reassignment {

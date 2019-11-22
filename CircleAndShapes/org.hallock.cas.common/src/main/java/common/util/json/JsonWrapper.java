@@ -35,13 +35,18 @@ public class JsonWrapper {
         reader.readEndDocument();
     }
 
+    private static boolean DEBUG_JSON = true;
     public static JsonWriterWrapperSpec createJacksonWriterWrapper(OutputStream outputStream) throws IOException {
-//        OutputStream outputStream2 = new FileOutputStream(new File("test_json/example_" + System.currentTimeMillis() + "_" + Math.random() + ".json"));
         ObjectMapper writer = new ObjectMapper();
         JsonGenerator jGenerator = writer.getFactory().createGenerator(outputStream, JsonEncoding.UTF8);
-//        JsonGenerator jGenerator2 = writer.getFactory().createGenerator(outputStream2, JsonEncoding.UTF8);
-//        jGenerator2.useDefaultPrettyPrinter();
-        return /*new SplitJsonWriterWrapper(*/new JacksonWriterWrapper(jGenerator)/*, new JacksonWriterWrapper(jGenerator2))*/;
+        if (DEBUG_JSON) {
+            OutputStream outputStream2 = new FileOutputStream(new File("test_json/example_" + System.currentTimeMillis() + "_" + Math.random() + ".json"));
+            JsonGenerator jGenerator2 = writer.getFactory().createGenerator(outputStream2, JsonEncoding.UTF8);
+            jGenerator2.useDefaultPrettyPrinter();
+            return new SplitJsonWriterWrapper(new JacksonWriterWrapper(jGenerator), new JacksonWriterWrapper(jGenerator2));
+        } else {
+            return new JacksonWriterWrapper(jGenerator);
+        }
     }
 
     public static JsonReaderWrapperSpec createJacksonReaderWrapper(InputStream inputStream) throws IOException {

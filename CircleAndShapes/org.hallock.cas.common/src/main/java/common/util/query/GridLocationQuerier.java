@@ -6,6 +6,7 @@ import common.state.spec.EntitySpec;
 import common.state.EntityId;
 import common.state.Player;
 import common.state.sst.GameState;
+import common.state.sst.sub.Load;
 import common.util.DPoint;
 
 import java.awt.*;
@@ -38,10 +39,11 @@ public class GridLocationQuerier {
 
     public static final EntityQueryFilter ANY = entity -> true;
 
-    public static EntityQueryFilter createNaturalResourceFilter(final GameState state, final String name) {
+    public static EntityQueryFilter createNonEmptyNaturalResourceFilter(final GameState state, final EntitySpec naturalResourceType) {
         return entity -> {
             EntitySpec type = state.typeManager.get(entity);
-            return type.containsClass("natural-resource") && type.name.equals(name);
+            Load load = state.carryingManager.get(entity);
+            return load != null && load.getWeight() > 0 && type != null && type.containsClass("natural-resource") && type.equals(naturalResourceType);
         };
     }
 

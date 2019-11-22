@@ -9,6 +9,7 @@ import common.state.spec.EntitySpec;
 import common.state.spec.GameSpec;
 import common.state.sst.manager.RevPair;
 import common.util.DPoint;
+import common.util.Util;
 
 import javax.swing.*;
 import java.awt.*;
@@ -79,6 +80,7 @@ public class Minimap extends JPanel {
         EntityReader entity = new EntityReader(context.clientGameState.gameState, pair.entityId);
         EntitySpec type = entity.getType();
         DPoint location = entity.getLocation();
+        if (Util.anyAreNull(type, location)) return;
         int x1 = zoom.mapGameToScreenX(location.x);
         int y1 = zoom.mapGameToScreenY(location.y);
         int x2 = zoom.mapGameToScreenX(location.x + type.size.width);

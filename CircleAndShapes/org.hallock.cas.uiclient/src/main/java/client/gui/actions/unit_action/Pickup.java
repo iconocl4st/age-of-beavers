@@ -1,8 +1,11 @@
 package client.gui.actions.unit_action;
 
+import client.ai.ai2.OneTripTransportFrom;
+import client.ai.ai2.OneTripTransportTo;
 import client.app.UiClientContext;
 import common.state.spec.ResourceType;
 import common.state.EntityReader;
+import common.util.MapUtils;
 
 public class Pickup extends UnitToUnitAction {
 
@@ -25,6 +28,6 @@ public class Pickup extends UnitToUnitAction {
 
     @Override
     public void run(EntityReader entity, EntityReader target) {
-        c.actionQueuer.maybeQueue(entity.entityId, new client.ai.PickUpAi(c.clientGameState, entity, target, resource));
+        c.actionQueuer.maybeQueue(entity, new OneTripTransportFrom(entity, target, MapUtils.from(resource, Integer.MAX_VALUE)));
     }
 }

@@ -4,6 +4,7 @@ import common.util.json.*;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Comparator;
 
 public class ResourceType implements Serializable {
     public final int weight;
@@ -65,4 +66,11 @@ public class ResourceType implements Serializable {
             return rt;
         }
     };
+
+
+    public static final Comparator<ResourceType> COMPARATOR = Comparator.comparing(r -> r.name);
+
+    public static String formatWeight(int weight) {
+        return String.format("%.2f", weight / (double) 100);
+    }
 }

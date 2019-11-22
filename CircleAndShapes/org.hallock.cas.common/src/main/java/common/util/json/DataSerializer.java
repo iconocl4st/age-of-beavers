@@ -111,12 +111,18 @@ public interface DataSerializer<T> extends Serializable {
         }
     };
 
-    DataSerializer<EmptyJsonable>  EmptyJsonableSerializer = new JsonableSerializer<EmptyJsonable>() {
+    DataSerializer<Object> EmptyJsonableSerializer = new DataSerializer<Object>() {
         @Override
-        public EmptyJsonable parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
+        public void write(Object value, JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+            writer.writeBeginDocument();
+            writer.writeEndDocument();
+        }
+
+        @Override
+        public Object parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
             reader.readBeginDocument();
             reader.readEndDocument();
-            return new EmptyJsonable();
+            return new Object();
         }
     };
 }

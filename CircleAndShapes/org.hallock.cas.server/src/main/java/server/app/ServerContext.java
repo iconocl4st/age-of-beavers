@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
 import static common.util.json.JsonWrapper.createJacksonReaderWrapper;
 
 public class ServerContext {
-    public static final ExecutorServiceWrapper executorService = new ExecutorServiceWrapper(Executors.newCachedThreadPool());
+    public static final ExecutorServiceWrapper executorService = new ExecutorServiceWrapper(Executors.newFixedThreadPool(3));
 
     public final Lobby[] lobbies = new Lobby[ServerConfig.NUM_LOBBIES];
     final ServerMessageHandler messageHandler = new ServerMessageHandler(this);

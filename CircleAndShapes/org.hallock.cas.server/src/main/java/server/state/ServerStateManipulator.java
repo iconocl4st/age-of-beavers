@@ -1,7 +1,7 @@
 package server.state;
 
 import client.ai.RandomlyWaitAndMove;
-import common.AiEvent;
+import common.event.*;
 import common.Proximity;
 import common.action.Action;
 import common.algo.Ballistics;
@@ -664,10 +664,10 @@ public class ServerStateManipulator {
             createUnit(droppedId, spec, new EvolutionSpec(spec), targetLocation, Player.GAIA);
             dropped.add(droppedId);
         }
-        broadCaster.broadCast(new Message.AiEventMessage(new AiEvent.TargetKilled(target, dropped)));
+        broadCaster.broadCast(new Message.AiEventMessage(new TargetKilled(target, dropped)));
     }
 
-    public void done(EntityReader entity, AiEvent.ActionCompletedReason reason) {
+    public void done(EntityReader entity, ActionCompleted.ActionCompletedReason reason) {
         if (entity.getOwner().equals(Player.GAIA)) {
             game.serverState.gaiaAi.unitCompletedAction(this, entity.entityId);
             return;
@@ -681,19 +681,7 @@ public class ServerStateManipulator {
         game.serverState.state.actionManager.set(entity.entityId, action);
 
         broadCaster.broadCast(UnitUpdater.updateUnitAction(entity.entityId, action));
-        broadCaster.broadCast(new Message.AiEventMessage(new AiEvent.ActionCompleted(entity.entityId, reason)));
-    }
-
-    public static String getDebugString() {
-        try {
-            throw new RuntimeException();
-        } catch (Throwable t) {
-            StringWriter sw = new StringWriter();
-            try (PrintWriter pw = new PrintWriter(sw)) {
-                t.printStackTrace(pw);
-            }
-            return sw.toString();
-        }
+        broadCaster.broadCast(new Message.AiEventMessage(new ActionCompleted(entity.entityId, reason)));
     }
 
     private void setOwner(EntityReader entity, Player newOwner) {
@@ -849,31 +837,38 @@ public class ServerStateManipulator {
             double dx = attackedDestination.x - attackedLocation.x;
             double dy = attackedDestination.y - attackedLocation.y;
             double n = Math.sqrt(dx * dx + dy * dy);
-            Ballistics.Solution intersection = Ballistics.getIntersections(
-                    attackerLocation.x,
-                    attackerLocation.y,
-                    weaponSpec.projectile.speed,
-                    attackedLocation.x,
-                    attackedLocation.y,
-                    attacked.getMovementSpeed(),
-                    dx / n,
-                    dy / n
-            ).minimumTimeSolution();
-            launch = new ProjectileLaunch(
-                    weaponSpec.projectile,
-                    attackTime,
-                    attackerLocation,
-                    weaponSpec.damage,
-                    weaponSpec.damageType,
-                    intersection.dx, intersection.dy,
-                    launchingPlayer
-            );
+            if (n > 1e-4) {
+                Ballistics.Solution intersection = Ballistics.getIntersections(
+                        attackerLocation.x,
+                        attackerLocation.y,
+                        weaponSpec.projectile.speed,
+                        attackedLocation.x,
+                        attackedLocation.y,
+                        attacked.getMovementSpeed(),
+                        dx / n,
+                        dy / n
+                ).minimumTimeSolution();
+                launch = new ProjectileLaunch(
+                        weaponSpec.projectile,
+                        attackTime,
+                        attackerLocation,
+                        weaponSpec.damage,
+                        weaponSpec.damageType,
+                        intersection.dx, intersection.dy,
+                        launchingPlayer
+                );
+            }
         }
 
         if (launch == null) {
             double dx = attackedLocation.x - attackerLocation.x;
             double dy = attackedLocation.y - attackerLocation.y;
             double n = Math.sqrt(dx * dx + dy * dy);
+            if (n < 1e-4) {
+                dx = 1.0;
+                dy = 0.0;
+                n = 1.0;
+            }
             launch = new ProjectileLaunch(
                     weaponSpec.projectile,
                     attackTime,
@@ -914,7 +909,11 @@ public class ServerStateManipulator {
     }
 
     public void constructionChanged(Player owner, EntityId constructionId, EntityId buildingId) {
-        broadCaster.send(owner, new Message.AiEventMessage(new AiEvent.BuildingPlacementChanged(constructionId, buildingId)));
+        broadCaster.send(owner, new Message.AiEventMessage(new BuildingPlacementChanged(constructionId, buildingId)));
+    }
+
+    public void unitChangedDirection(EntityId entity, DPoint currentLocation, DPoint endLocation, double speed) {
+        broadCaster.broadCast(new Message.AiEventMessage(new UnitChangedDirection(entity, currentLocation, endLocation, speed)));
     }
 
 

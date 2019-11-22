@@ -1,6 +1,6 @@
 package client.gui.actions.unit_action;
 
-import client.ai.ConstructAi;
+import client.ai.ai2.ConstructAll;
 import client.app.UiClientContext;
 import common.state.EntityReader;
 
@@ -22,6 +22,6 @@ public class Build extends UnitToUnitAction {
 
     @Override
     public void run(EntityReader entity, EntityReader target) {
-        c.actionQueuer.maybeQueue(entity.entityId, new ConstructAi(c.clientGameState, entity, target));
+        c.actionQueuer.maybeQueue(entity, new ConstructAll(entity, target));
     }
 }

@@ -24,6 +24,7 @@ public class DPoint implements Jsonable {
     }
 
     public double distanceTo(DPoint other) {
+        if (other == null) return Double.MAX_VALUE;
         return distanceTo(other.x, other.y);
     }
 

@@ -79,9 +79,9 @@ public class GenerationSpec implements Jsonable {
         public GenerationSpec parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
             reader.readBeginDocument();
             GenerationSpec r = new GenerationSpec();
-            reader.read("resources", spec, r.resources, ResourceGen.Serializer);
-            reader.read("gaia", spec, r.gaia, UnitGen.Serializer);
-            reader.read("perPlayerUnits", spec, r.perPlayerUnits, UnitGen.Serializer);
+            reader.read("resources", r.resources, ResourceGen.Serializer, spec);
+            reader.read("gaia", r.gaia, UnitGen.Serializer, spec);
+            reader.read("perPlayerUnits", r.perPlayerUnits, UnitGen.Serializer, spec);
             reader.readEndDocument();
             return r;
         }

@@ -1,8 +1,9 @@
 package common.msg;
 
-import common.AiEvent;
+import common.event.AiEvent;
 import common.action.Action;
 import common.app.LobbyInfo;
+import common.event.NetworkAiEvent;
 import common.state.EntityId;
 import common.state.Player;
 import common.state.spec.EntitySpec;
@@ -17,7 +18,7 @@ import common.util.json.*;
 
 import java.awt.*;
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
 
 public abstract class Message implements Jsonable {
@@ -32,7 +33,6 @@ public abstract class Message implements Jsonable {
 
     public void writeFromStart(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
         writer.flush();
-
         writer.write("type", getMessageType().ordinal());
         writeInnards(writer, options);
         writer.writeEndDocument();
@@ -87,7 +87,7 @@ public abstract class Message implements Jsonable {
         }
 
         public static LobbyList finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
-            return new LobbyList((List<LobbyInfo>) reader.read("infos", spec, new LinkedList<>(), LobbyInfo.Serializer));
+            return new LobbyList((List<LobbyInfo>) reader.read("infos", new LinkedList<>(), LobbyInfo.Serializer, spec));
         }
 
         @Override
@@ -227,18 +227,21 @@ public abstract class Message implements Jsonable {
         public final GameSpec spec;
         public final Player player;
         public final Point playerStart;
+        public final Set<EntityId> startingUnits;
 
-        public Launched(GameSpec spec, Player player, Point playerStart) {
+        public Launched(GameSpec spec, Player player, Point playerStart, Set<EntityId> startingUnits) {
             this.spec = spec;
             this.player = player;
             this.playerStart = playerStart;
+            this.startingUnits = startingUnits == null ? Collections.emptySet() : startingUnits;
         }
 
         public static Launched finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
             return new Launched(
                 reader.read("spec", GameSpec.Serializer, spec),
                 reader.read("player", Player.Serializer, spec),
-                reader.read("location", DataSerializer.PointSerializer, spec)
+                reader.read("location", DataSerializer.PointSerializer, spec),
+                (Set<EntityId>) reader.read("starting-units", new HashSet<>(), EntityId.Serializer, spec)
             );
         }
 
@@ -247,6 +250,7 @@ public abstract class Message implements Jsonable {
             writer.write("spec", spec, GameSpec.Serializer, verbose);
             writer.write("player", player, Player.Serializer, verbose);
             writer.write("location", playerStart, DataSerializer.PointSerializer, verbose);
+            writer.write("starting-units", startingUnits, EntityId.Serializer, verbose);
         }
 
         @Override
@@ -654,19 +658,19 @@ public abstract class Message implements Jsonable {
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static class AiEventMessage extends Message {
-        public final AiEvent event;
+        public final NetworkAiEvent event;
 
-        public AiEventMessage(AiEvent event) {
+        public AiEventMessage(NetworkAiEvent event) {
             this.event = event;
         }
 
         public static AiEventMessage finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
-            return new AiEventMessage(reader.read("event", AiEvent.Serializer, spec));
+            return new AiEventMessage(reader.read("event", NetworkAiEvent.Serializer, spec));
         }
 
         @Override
         protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
-            writer.write("event", event, AiEvent.Serializer, options);
+            writer.write("event", event, NetworkAiEvent.Serializer, options);
         }
 
         public MessageType getMessageType() { return MessageType.AI_EVENT; }

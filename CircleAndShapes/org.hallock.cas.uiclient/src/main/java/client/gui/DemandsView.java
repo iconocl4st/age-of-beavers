@@ -2,10 +2,13 @@ package client.gui;
 
 
 import client.ai.ActionRequester;
+import client.ai.ai2.AiContext;
 import client.app.UiClientContext;
 import client.event.AiEventListener;
 import client.event.supply.TransportRequest;
-import common.AiEvent;
+import common.AiAttemptResult;
+import common.event.AiEvent;
+import common.event.AiEventType;
 import common.state.EntityReader;
 import common.state.spec.GameSpec;
 
@@ -19,10 +22,11 @@ public class DemandsView extends JPanel implements AiEventListener {
 
     final UiClientContext context;
 
+    private final Object sync = new Object();
     private JPanel excessPanel;
-    private ArrayList<DemandView> currentExcess = new ArrayList<>();
+    private final ArrayList<DemandView> currentExcess = new ArrayList<>();
     private JPanel demandingPanel;
-    private ArrayList<DemandView> currentDemand = new ArrayList<>();
+    private final ArrayList<DemandView> currentDemand = new ArrayList<>();
 
     private DemandsView(UiClientContext gameScreen) {
         this.context = gameScreen;
@@ -30,40 +34,44 @@ public class DemandsView extends JPanel implements AiEventListener {
 
 
     public void initialize(GameSpec gSpec) {
-        context.clientGameState.eventManager.listenForEvents(this, AiEvent.EventType.DemandsChanged);
+        context.clientGameState.eventManager.listenForEvents(this, AiEventType.DemandsChanged);
     }
 
     @Override
-    public void receiveEvent(AiEvent event, ActionRequester ar) {
-        if (event.type.equals(AiEvent.EventType.DemandsChanged))
+    public void receiveEvent(AiContext aiContext, AiEvent event) {
+        if (event.type.equals(AiEventType.DemandsChanged))
             drawComponents();
     }
 
     void drawComponents() {
-        int index = 0;
-        for (TransportRequest request : context.clientGameState.supplyAndDemandManager.getExceeding()) {
-            if (index >= currentExcess.size()) {
-                DemandView view = createDemandView();
-                currentExcess.add(view);
-                excessPanel.add(view);
-            }
-            currentExcess.get(index++).drawTransportRequest(request);
-        }
-        while (index < currentExcess.size()) {
-            excessPanel.remove(currentExcess.remove(index));
-        }
+        if (!isVisible()) return;
 
-        index = 0;
-        for (TransportRequest request : context.clientGameState.supplyAndDemandManager.getDemands()) {
-            if (index >= currentDemand.size()) {
-                DemandView view = createDemandView();
-                currentDemand.add(view);
-                demandingPanel.add(view);
+        synchronized (sync) {
+            int index = 0;
+            for (TransportRequest request : context.clientGameState.supplyAndDemandManager.getExceeding()) {
+                if (index >= currentExcess.size()) {
+                    DemandView view = createDemandView();
+                    currentExcess.add(view);
+                    excessPanel.add(view);
+                }
+                currentExcess.get(index++).drawTransportRequest(request);
             }
-            currentDemand.get(index++).drawTransportRequest(request);
-        }
-        while (index < currentDemand.size()) {
-            demandingPanel.remove(currentDemand.remove(index));
+            while (index < currentExcess.size()) {
+                excessPanel.remove(currentExcess.remove(index));
+            }
+
+            index = 0;
+            for (TransportRequest request : context.clientGameState.supplyAndDemandManager.getDemands()) {
+                if (index >= currentDemand.size()) {
+                    DemandView view = createDemandView();
+                    currentDemand.add(view);
+                    demandingPanel.add(view);
+                }
+                currentDemand.get(index++).drawTransportRequest(request);
+            }
+            while (index < currentDemand.size()) {
+                demandingPanel.remove(currentDemand.remove(index));
+            }
         }
         repaint();
     }
@@ -99,7 +107,7 @@ public class DemandsView extends JPanel implements AiEventListener {
             resource.setText("Resource: " + request.resource.name);
             priority.setText("Priority: " + request.priority);
             timeRequested.setText("Request time: " + String.format("%.2f", request.timeRequested));
-            desiredAmount.setText("Is being serviced: " + (request.servicer != null));
+            desiredAmount.setText("Serviced: " + (request.servicer != null));
             servicerBtn.setEnabled(request.servicer != null);
             if (request.servicer != null)
                 currentServicer = request.servicer.getServicer();

@@ -1,8 +1,9 @@
 package client.event;
 
-import client.ai.ActionRequester;
-import common.AiEvent;
+import client.ai.ai2.AiContext;
+import common.AiAttemptResult;
+import common.event.AiEvent;
 
 public interface AiEventListener {
-    void receiveEvent(AiEvent event, ActionRequester ar);
+    void receiveEvent(AiContext aiContext, AiEvent event);
 }

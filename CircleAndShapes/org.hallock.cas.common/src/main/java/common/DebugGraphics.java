@@ -1,5 +1,6 @@
 package common;
 
+import common.state.EntityReader;
 import common.state.Player;
 import common.util.DPoint;
 
@@ -11,6 +12,9 @@ import java.util.List;
 public class DebugGraphics {
     /** TODO **/
     public static final HashMap<Player, List<DebugGraphics>> byPlayer = new HashMap<>();
+
+    public static final Object pleaseFocusSync = new Object();
+    public static EntityReader pleaseFocus;
 
 
     public final DPoint center;

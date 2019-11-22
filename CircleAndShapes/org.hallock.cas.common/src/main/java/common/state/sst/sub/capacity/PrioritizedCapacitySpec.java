@@ -51,7 +51,7 @@ public class PrioritizedCapacitySpec implements Jsonable {
     }
 
     public String getDisplayString() {
-        StringBuilder builder = new StringBuilder().append("Maximum weight: " + totalWeight).append(" [");
+        StringBuilder builder = new StringBuilder().append("Maximum weight: " + ResourceType.formatWeight(totalWeight)).append(" [");
         for (Map.Entry<ResourceType, Prioritization> entry : prioritizations.entrySet()) {
             builder.append(entry.getKey().name).append(':').append(entry.getValue());
         }

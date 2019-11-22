@@ -16,7 +16,7 @@ public class Idle extends UnitAction {
 
     @Override
     public void run(EntityReader entity) {
-        c.clientGameState.aiManager.removeAi(entity.entityId);
+        c.clientGameState.aiManager.set(entity, null);
         ar.setUnitActionToIdle(entity);
     }
 }

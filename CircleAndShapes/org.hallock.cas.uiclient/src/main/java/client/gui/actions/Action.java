@@ -9,7 +9,7 @@ import java.util.Collection;
 
 public abstract class Action {
 
-    /* TODO: Is there some connection between an action and an Ai? */
+    /* TODO: Is there some connection between an action and an AiStack? */
 
     public final String label;
     protected final UiClientContext c;

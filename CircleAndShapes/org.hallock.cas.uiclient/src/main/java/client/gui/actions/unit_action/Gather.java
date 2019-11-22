@@ -20,6 +20,6 @@ public class Gather extends UnitToUnitAction {
 
     @Override
     public void run(EntityReader entity, EntityReader target) {
-        c.actionQueuer.maybeQueue(entity.entityId, new client.ai.Gather(c.clientGameState, entity, target, target.getType()));
+        c.actionQueuer.maybeQueue(entity, new client.ai.ai2.Gather(entity, target, target.getType()));
     }
 }

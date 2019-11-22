@@ -1,10 +1,13 @@
 package client.state;
 
 import client.ai.ActionRequester;
-import client.ai.AiManager;
+import client.ai.ai2.AiManager;
 import client.event.AiEventManager;
 import client.event.supply.SupplyAndDemandManager;
-import common.AiEvent;
+import common.event.AiEventType;
+import common.msg.Message;
+import common.state.EntityId;
+import common.state.EntityReader;
 import common.state.Player;
 import common.state.los.AllVisibleLineOfSight;
 import common.state.los.LineOfSightSpec;
@@ -12,11 +15,9 @@ import common.state.los.SinglePlayerLineOfSight;
 import common.state.spec.GameSpec;
 import common.state.sst.GameState;
 import common.util.ExecutorServiceWrapper;
-import common.util.json.JsonReaderWrapperSpec;
-import common.util.json.ReadOptions;
 
 import java.awt.*;
-import java.io.IOException;
+import java.util.Set;
 
 public class ClientGameState {
     public Player currentPlayer;
@@ -28,12 +29,14 @@ public class ClientGameState {
     public ActionRequester actionRequester;
     public SupplyAndDemandManager supplyAndDemandManager;
     public ClientGameMessageHandler messageHandler;
+    public EntityTracker entityTracker;
+    public ExecutorServiceWrapper executor;
 
     public boolean isSpectating() {
         return currentPlayer == null;
     }
 
-    private static LineOfSightSpec createLineOfSightSpec(GameSpec spec, Player player) {
+    public static LineOfSightSpec createLineOfSightSpec(GameSpec spec, Player player) {
         if (player == null) {
             return new AllVisibleLineOfSight(spec);
         }
@@ -49,35 +52,45 @@ public class ClientGameState {
         }
     }
 
-    public static ClientGameState createClientGameState(GameSpec spec, ActionRequester requester, Player player, Point startingLocation, ExecutorServiceWrapper service) {
-        ClientGameState state = new ClientGameState();
-        state.startingLocation = startingLocation;
-        state.aiManager = new AiManager(state);
-        state.eventManager = new AiEventManager(state, service);
-        state.supplyAndDemandManager = new SupplyAndDemandManager(state, spec);
-        state.eventManager.listenForEvents(state.supplyAndDemandManager, AiEvent.EventType.BuildingPlacementChanged);
-        state.actionRequester = requester;
-        state.currentPlayer = player;
-        state.messageHandler = new ClientGameMessageHandler(state);
-        state.gameState = GameState.createGameState(spec, createLineOfSightSpec(spec, player));
-        return state;
+    public static class GameCreationContext {
+        public GameState gameState;
+        public GameSpec gameSpec;
+        public ActionRequester requester;
+        public Player player;
+        public Point startingLocation;
+        public ExecutorServiceWrapper service;
+        public Set<EntityId> startingUnits;
+
+        public GameSpec getGameSpec() {
+            if (gameSpec == null)
+                return gameState.gameSpec;
+            return gameSpec;
+        }
+
+        public void parseLaunchedMessage(Message.Launched msg) {
+            startingUnits = msg.startingUnits;
+            startingLocation = msg.playerStart;
+            player = msg.player;
+            gameSpec = msg.spec;
+        }
     }
 
-    public static ClientGameState createClientGameState(GameState gameState, ActionRequester requester, Player player, Point startingLocation, ExecutorServiceWrapper service) {
+    public static ClientGameState createClientGameState(GameCreationContext context) {
         ClientGameState state = new ClientGameState();
-        state.startingLocation = startingLocation;
+        state.executor = context.service;
+        state.startingLocation = context.startingLocation;
         state.aiManager = new AiManager(state);
-        state.eventManager = new AiEventManager(state, service);
-        state.supplyAndDemandManager = new SupplyAndDemandManager(state, gameState.gameSpec);
-        state.eventManager.listenForEvents(state.supplyAndDemandManager, AiEvent.EventType.BuildingPlacementChanged);
-        state.actionRequester = requester;
-        state.currentPlayer = player;
+        state.eventManager = new AiEventManager(state, context.service);
+        state.supplyAndDemandManager = new SupplyAndDemandManager(state, context.getGameSpec());
+        state.actionRequester = context.requester;
+        state.currentPlayer = context.player;
         state.messageHandler = new ClientGameMessageHandler(state);
-        state.gameState = gameState;
+        state.entityTracker = new EntityTracker(state);
+        state.eventManager.listenForEvents(state.supplyAndDemandManager, AiEventType.BuildingPlacementChanged);
+        state.eventManager.listenForEvents(state.entityTracker, AiEventType.BuildingPlacementChanged);
+        state.gameState = context.gameState;
+        for (EntityId entityId : context.startingUnits)
+            state.entityTracker.track(new EntityReader(state.gameState, entityId));
         return state;
-    }
-
-    public void updateAll(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
-        gameState.updateAll(reader, spec);
     }
 }

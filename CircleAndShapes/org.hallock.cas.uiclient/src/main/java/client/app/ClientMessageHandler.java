@@ -4,6 +4,7 @@ import client.ai.ResponsiveConnectionWriter;
 import client.state.ClientGameState;
 import client.ai.ActionRequester;
 import common.msg.Message;
+import common.state.sst.GameState;
 import common.util.json.JsonReaderWrapperSpec;
 import common.util.json.ReadOptions;
 
@@ -16,6 +17,8 @@ class ClientMessageHandler {
     public ClientMessageHandler(UiClientContext context) {
         this.context = context;
     }
+
+    private ClientGameState.GameCreationContext creationContext;
 
     boolean handleMessage(Message message) {
         switch (message.getMessageType()) {
@@ -42,18 +45,15 @@ class ClientMessageHandler {
             case LAUNCHED: {
                 context.uiManager.log("Game launched");
                 Message.Launched launched = (Message.Launched) message;
-                context.clientGameState = ClientGameState.createClientGameState(
-                        launched.spec,
-                        new ActionRequester(new ResponsiveConnectionWriter(context.writer, context.executorService)),
-                        launched.player,
-                        launched.playerStart,
-                        context.executorService
-                );
-                context.uiManager.displayGame(launched.spec, launched.player);
+                creationContext = new ClientGameState.GameCreationContext();
+                creationContext.parseLaunchedMessage(launched);
+                creationContext.requester = new ActionRequester(new ResponsiveConnectionWriter(context.writer, context.executorService));
+                creationContext.service = context.executorService;
+                creationContext.gameState = GameState.createGameState(launched.spec, ClientGameState.createLineOfSightSpec(launched.spec, launched.player));
             }
             break;
             case SPECTATING: {
-                context.uiManager.log("Game launched");
+                context.uiManager.log("Spectating");
                 context.uiManager.lobbyBrowser.setCurrentlySpectating(((Message.IsSpectating) message).isSpectating);
             }
             break;
@@ -103,11 +103,12 @@ class ClientMessageHandler {
             case PROJECTILE_LANDED: ret = handleMessage(Message.ProjectileLanded.finishParsing(reader, spec)); break;
             case SPECTATING: ret = handleMessage(Message.IsSpectating.finishParsing(reader, spec)); break;
             case UPDATE_ENTIRE_GAME: {
-                if (context.clientGameState != null) {
-                    reader.readName("state");
-                    context.clientGameState.updateAll(reader, spec);
-                } else
-                    throw new RuntimeException("Received state message without a game state.");
+                reader.readName("state");
+                spec.spec = creationContext.gameSpec;
+                creationContext.gameState.updateAll(reader, spec);
+                context.clientGameState = ClientGameState.createClientGameState(creationContext);
+                context.uiManager.displayGame(creationContext.gameSpec, creationContext.player);
+                creationContext = null;
             } break;
             default:
                 System.out.println("Client: Ignoring unknown message type: " + msgType);

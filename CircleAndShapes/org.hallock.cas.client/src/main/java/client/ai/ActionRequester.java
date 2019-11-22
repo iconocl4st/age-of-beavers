@@ -19,6 +19,10 @@ public class ActionRequester {
         this.writer = writer;
     }
 
+    public NoExceptionsConnectionWriter getWriter() {
+        return writer;
+    }
+
     public void setUnitActionToMount(EntityReader entity, EntityReader ridden) {
         writer.send(new Message.Ride(entity.entityId, ridden.entityId));
     }
@@ -80,7 +84,7 @@ public class ActionRequester {
         );
         if (path == null) return AiAttemptResult.Unsuccessful;
         setUnitActionToMove(unit, path.path);
-        return AiAttemptResult.Successful;
+        return AiAttemptResult.RequestedAction;
     }
 
     public AiAttemptResult setUnitActionToMove(EntityReader unit, EntityReader destination) {
@@ -92,7 +96,7 @@ public class ActionRequester {
         );
         if (path == null) return AiAttemptResult.Unsuccessful;
         setUnitActionToMove(unit, path.path);
-        return AiAttemptResult.Successful;
+        return AiAttemptResult.RequestedAction;
     }
 
     public void setUnitActionToSuicide(EntityReader unit) {

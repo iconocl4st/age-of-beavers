@@ -325,10 +325,10 @@ public class AStar {
             public Path parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
                 Path path = new Path();
                 reader.readBeginDocument();
-                reader.read("post-processed-points", spec, path.points, DPoint.Serializer);
-                reader.read("intersection-points", spec, path.intersections, DPoint.Serializer);
-                reader.read("checked-locations", spec, path.checked, DataSerializer.PointSerializer);
-                reader.read("original-points", spec, path.originalPoints, DataSerializer.PointSerializer);
+                reader.read("post-processed-points", path.points, DPoint.Serializer, spec);
+                reader.read("intersection-points", path.intersections, DPoint.Serializer, spec);
+                reader.read("checked-locations", path.checked, DataSerializer.PointSerializer, spec);
+                reader.read("original-points", path.originalPoints, DataSerializer.PointSerializer, spec);
                 reader.readEndDocument();
                 return path;
             }

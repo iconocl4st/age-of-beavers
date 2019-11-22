@@ -1,6 +1,5 @@
 package client.gui.actions.unit_action;
 
-import client.ai.HuntAi;
 import client.app.UiClientContext;
 import common.state.EntityReader;
 
@@ -21,6 +20,6 @@ public class Hunt extends UnitToUnitAction {
 
     @Override
     public void run(EntityReader entity, EntityReader target) {
-        c.actionQueuer.maybeQueue(entity.entityId, new HuntAi(c.clientGameState, entity,  target, target.getType()));
+        c.actionQueuer.maybeQueue(entity, new client.ai.ai2.Hunt(entity, target, target.getType()));
     }
 }

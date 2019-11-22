@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.List;
 
 public class KMeans {
+    // TODO: cache, maybe?
     private final HashMap<EntityId, Assignment> resources = new HashMap<>();
     private final HashMap<EntityId, Point> storageLocations = new HashMap<>();
 

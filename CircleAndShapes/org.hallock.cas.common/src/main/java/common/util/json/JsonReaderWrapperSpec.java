@@ -77,8 +77,12 @@ public abstract class JsonReaderWrapperSpec implements AutoCloseable {
         return list.toArray(map);
     }
 
-    public <T> Collection<T> read(String expectedKey, ReadOptions spec, Collection<T> map, DataSerializer<T> serializer) throws IOException {
+    public <T> Collection<T> read(String expectedKey, Collection<T> map, DataSerializer<T> serializer, ReadOptions spec) throws IOException {
         readName(expectedKey);
+        if (getCurrentJacksonType().equals(JsonToken.VALUE_NULL)) {
+            readNull();
+            return null;
+        }
         readBeginArray();
         while (hasMoreInArray()) {
             map.add(read(serializer, spec));

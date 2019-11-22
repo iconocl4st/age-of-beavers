@@ -135,7 +135,7 @@ public class GameSpec implements Jsonable {
             while (reader.hasMoreInArray()) {
                 reader.readBeginDocument();
                 EntitySpec creator = reader.read("creator", EntitySpec.Serializer, spec);
-                reader.read("created", spec, creator.canCreate, CreationSpec.Serializer);
+                reader.read("created", creator.canCreate, CreationSpec.Serializer, spec);
                 reader.readEndDocument();
             }
             reader.readEndArray();

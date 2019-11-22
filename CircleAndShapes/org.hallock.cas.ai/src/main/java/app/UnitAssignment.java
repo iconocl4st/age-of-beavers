@@ -1,6 +1,5 @@
 package app;
 
-import client.ai.Ai;
 import client.state.ClientGameState;
 import common.state.EntityReader;
 import common.state.spec.ResourceType;
@@ -22,18 +21,24 @@ public class UnitAssignment {
     }
 
     void verify() {
-        Verifier mini = minimal(context.clientGameState);
-        entities.removeIf(mini::notAsAssigned);
-        if (verifier != null)
-            entities.removeIf(verifier::notAsAssigned);
+        synchronized (entities) {
+            Verifier mini = minimal(context.clientGameState);
+            entities.removeIf(mini::notAsAssigned);
+            if (verifier != null)
+                entities.removeIf(verifier::notAsAssigned);
+        }
     }
 
     void assigned(EntityReader entity) {
-        entities.addLast(entity);
+        synchronized (entities) {
+            entities.addLast(entity);
+        }
     }
 
     EntityReader pop() {
-        return entities.removeLast();
+        synchronized (entities) {
+            return entities.removeLast();
+        }
     }
 
     void addNumContributing(HashMap<ResourceType,Integer> peopleOnResource) {
@@ -46,7 +51,9 @@ public class UnitAssignment {
     }
 
     public void remove(EntityReader reader) {
-        entities.remove(reader);
+        synchronized (entities) {
+            entities.remove(reader);
+        }
     }
 
     public EntityReader peek() {
@@ -61,9 +68,10 @@ public class UnitAssignment {
         boolean notAsAssigned(EntityReader entity);
     }
 
-    static Verifier aiIsNotOfClass(ClientGameState clientGameState, Class<? extends Ai> aiClass) {
-        return e -> !aiClass.isInstance(clientGameState.aiManager.getCurrentAi(e.entityId));
-    }
+//    // TODO: use...
+//    static Verifier aiIsNotOfClass(ClientGameState clientGameState, Class<? extends Ai> aiClass) {
+//        return e -> false; // !aiClass.isInstance(clientGameState.aiManager.getCurrentAi(e.entityId));
+//    }
 
     static Verifier minimal(ClientGameState clientGameState) {
         return e -> e.noLongerExists() || (e.getCurrentAction() == null && !clientGameState.aiManager.isControlling(e));

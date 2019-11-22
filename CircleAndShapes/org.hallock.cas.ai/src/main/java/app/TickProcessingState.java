@@ -1,7 +1,10 @@
 package app;
 
 import app.algo.KMeans;
-import client.ai.*;
+import client.ai.ai2.Gather;
+import client.ai.ai2.Move;
+import client.ai.ai2.Produce;
+import client.ai.ai2.TransportAi;
 import common.algo.AStar;
 import common.algo.ConnectedSet;
 import common.msg.Message;
@@ -82,23 +85,20 @@ public class TickProcessingState {
         AStar.PathSearch path = GridLocationQuerier.findPath(context.clientGameState.gameState, entity.entityId, new DPoint(nearestEmptyTile), context.clientGameState.currentPlayer);
         if (path == null)
             return;
-        context.clientGameState.aiManager.startAi(entity.entityId, new MoveAi(context.clientGameState, entity, new DPoint(nearestEmptyTile)));
+        context.clientGameState.aiManager.set(entity, new Move(entity, new DPoint(nearestEmptyTile)));
 //        context.msgQueue.send(new Message.RequestAction(entity.entityId, new Action.MoveSeq(path.path)));
     }
 
     void update(EntityReader entity, PersistentAiState persistentAiState) {
         currentlyOwned.add(entity.getType().name);
 
-        Ai currentAi = context.clientGameState.aiManager.getCurrentAi(entity.entityId);
+        client.ai.ai2.AiTask currentAi = context.clientGameState.aiManager.get(entity);
         if (entity.getType().name.equals("wagon") && currentAi == null) {
             EntityReader riding = entity.getRiding();
-            if (riding == null) throw new IllegalStateException();
-            if (persistentAiState.transporters.contains(riding)) {
-                context.clientGameState.aiManager.startAi(entity.entityId, new TransportAi(context.clientGameState, entity));
-            } else if (persistentAiState.dropOffs.contains(riding)) {
+            if (riding != null && persistentAiState.transporters.contains(riding)) {
+                context.clientGameState.aiManager.set(entity, new TransportAi(entity));
+            } else if (riding != null && persistentAiState.dropOffs.contains(riding)) {
                 moveDropOffToDesiredLocation(entity, persistentAiState, riding);
-            } else {
-                throw new IllegalStateException();
             }
         }
 
@@ -114,14 +114,14 @@ public class TickProcessingState {
         boolean isHuman = entity.getType().name.equals("human");
         if (isHuman) population += 1;
 
-        if (entity.isIdle() && !context.clientGameState.aiManager.isControlling(entity)) {
+        if (persistentAiState.isIdle(entity)) {
             if (isHuman) {
                 peoplePuller.addIdle(entity);
             } else if (!entity.getType().canCreate.isEmpty()) {
                 if (entity.getOwner().equals(context.clientGameState.currentPlayer)) {
                     CreationSpec spec = persistentAiState.getRecommendedCreation(entity.getType().canCreate);
                     if (spec != null)
-                        context.clientGameState.aiManager.startAi(entity.entityId, new CreateAi(context.clientGameState, entity, spec));
+                        context.clientGameState.aiManager.set(entity, new Produce(entity, spec));
                 } else if (entity.getOwner().equals(Player.GAIA) && !persistentAiState.garrisonServicers.containsKey(entity)) {
                     garrisonsToService.add(entity);
                 }
@@ -143,13 +143,11 @@ public class TickProcessingState {
                     resourceCluster.setStorageLocation(entity.entityId, centerLocation.toPoint());
                 }
             }
-
-//            storageLocations.add(entity.getLocation());
         }
 
         // TODO: setResourceLocation demands...
-        if (currentAi instanceof CreateAi) {
-            CreateAi createAi = (CreateAi) currentAi;
+        if (currentAi instanceof Produce) {
+            Produce createAi = (Produce) currentAi;
             Map<ResourceType, Integer> creationResources = MapUtils.multiply(MapUtils.copy(createAi.getCreating().createdType.requiredResources), 2);
             checkDemands(entity, creationResources);
             MapUtils.add(desiredResources, creationResources);
@@ -174,7 +172,7 @@ public class TickProcessingState {
             Prioritization prioritization = entity.getCapacity().getPrioritization(entry.getKey());
             int desiredMinimum = Math.min(prioritization.maximumAmount, entry.getValue());
             if (prioritization.desiredAmount < desiredMinimum) {
-                context.msgQueue.send(new Message.SetDesiredCapacity(entity.entityId, entry.getKey(), 1, desiredMinimum, prioritization.maximumAmount));
+                context.clientGameState.actionRequester.getWriter().send(new Message.SetDesiredCapacity(entity.entityId, entry.getKey(), 1, desiredMinimum, prioritization.maximumAmount));
             }
         }
     }

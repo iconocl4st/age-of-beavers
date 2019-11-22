@@ -1,6 +1,5 @@
 package client.gui.actions.unit_action;
 
-import client.ai.MoveAi;
 import client.app.UiClientContext;
 import common.state.EntityReader;
 import common.util.DPoint;
@@ -17,6 +16,6 @@ public class Move extends UnitToLocationAction {
 
     @Override
     public void run(EntityReader entity, DPoint location) {
-        c.actionQueuer.maybeQueue(entity.entityId, new MoveAi(c.clientGameState, entity, location));
+        c.actionQueuer.maybeQueue(entity, new client.ai.ai2.Move(entity, location));
     }
 }

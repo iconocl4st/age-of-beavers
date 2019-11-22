@@ -17,7 +17,6 @@ public class SelectedUnits extends JPanel implements SelectionManager.SelectionL
 
     private UiClientContext context;
 
-
     private SingleUnitSelected singleSelect;
     private MultiSelect multiSelect;
     private Showing showing = Showing.None;

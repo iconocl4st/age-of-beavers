@@ -1,9 +1,12 @@
 package app;
 
 import app.algo.KMeans;
-import client.ai.*;
+import client.ai.ActionRequester;
+import client.ai.ai2.ConstructAll;
+import client.ai.ai2.Gather;
+import client.ai.ai2.Hunt;
+import client.ai.ai2.WhileWithinProximity;
 import client.state.ClientGameState;
-import common.AiEvent;
 import common.DebugGraphics;
 import common.msg.Message;
 import common.state.EntityReader;
@@ -13,9 +16,7 @@ import common.state.spec.ResourceType;
 import common.state.sst.GameState;
 import common.util.DPoint;
 import common.util.MapUtils;
-import sun.security.ssl.Debug;
 
-import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,19 +24,13 @@ import java.util.Set;
 class PlayerAiImplementation {
     private final PlayerAiContext context;
 
-    private EntityTracker tracker;
     private PersistentAiState persistentState;
     private TickProcessingState tickState;
 
     PlayerAiImplementation(PlayerAiContext playerAiContext) {
         this.context = playerAiContext;
-        tracker = new EntityTracker(context);
-        tracker.add(context.utils.locateByType("brothel"));
-        tracker.add(context.utils.locateByType("storage-yard"));
         persistentState = new PersistentAiState(playerAiContext);
         tickState = new TickProcessingState(playerAiContext, new PeoplePuller(persistentState));
-
-        context.clientGameState.eventManager.listenForEvents(tracker, AiEvent.EventType.BuildingPlacementChanged);
     }
 
 
@@ -47,7 +42,7 @@ class PlayerAiImplementation {
     }
 
     // need to addIdle the initial carts...
-    synchronized void updateActions(ActionRequester actionRequester) {
+    synchronized DebugSnapshot updateActions(ActionRequester actionRequester) {
         // get on a horse
         // build a corral
         // build a stable
@@ -56,6 +51,11 @@ class PlayerAiImplementation {
         // fight
         // build more storage
         // detect when resources run out
+        // when the drop off does not need to move, the people should gather resources...
+
+        // why does the brothel have only 100 maximum resources?
+        // fresh spawns take a while to gather?
+
 
         persistentState.verifyCounts();
         tickState.reset(persistentState);
@@ -63,7 +63,7 @@ class PlayerAiImplementation {
 
         persistentState.assignDropOffCarts(tickState.resourceClusters[0].getCenters());
 
-        for (EntityReader entityReader : tracker.getTracked()) {
+        for (EntityReader entityReader : clientGameState().entityTracker.getTracked()) {
             Object sync = entityReader.getSync();
             if (sync == null) continue;
             synchronized (sync) {
@@ -107,30 +107,30 @@ class PlayerAiImplementation {
         for (EntityReader wagon : wagons) {
             EntityReader next = tickState.peoplePuller.next();
             pull(actionRequester, next);
-            clientGameState().aiManager.startAi(next.entityId, new BeRidden(clientGameState(), next, wagon));
+            clientGameState().aiManager.set(next, WhileWithinProximity.createBeRidden(next, wagon));
             persistentState.transporters.assigned(next);
-            persistentState.allocatedCarts.add(wagon.entityId);
+            persistentState.allocatedCarts.add(wagon);
         }
 
         if (gatherCart != null) {
             EntityReader next = tickState.peoplePuller.next();
             pull(actionRequester, next);
-            clientGameState().aiManager.startAi(next.entityId, new BeRidden(clientGameState(), next, gatherCart));
+            clientGameState().aiManager.set(next, WhileWithinProximity.createBeRidden(next, gatherCart));
             persistentState.dropOffs.assigned(next);
-            persistentState.allocatedCarts.add(gatherCart.entityId);
+            persistentState.allocatedCarts.add(gatherCart);
         }
 
         for (EntityReader reader : tickState.garrisonsToService) {
             EntityReader pull = pull(actionRequester, tickState.peoplePuller.next());
             persistentState.garrisoners.assigned(pull);
-            clientGameState().aiManager.startAi(pull.entityId, new GarrisonAi(clientGameState(), pull, reader));
+            clientGameState().aiManager.set(pull, WhileWithinProximity.createGarrison(pull, reader));
             persistentState.garrisonServicers.put(reader, pull);
         }
 
         persistentState.constructionZones.addAll(tickState.constructionToService);
         for (int i = 0; i < numShiftingToConstruction; i++) {
             EntityReader pull = pull(actionRequester, tickState.peoplePuller.next());
-            clientGameState().aiManager.startAi(pull.entityId, new ConstructAi(clientGameState(), pull, persistentState.getNextConstructionZone()));
+            clientGameState().aiManager.set(pull, new ConstructAll(pull, persistentState.getNextConstructionZone()));
             persistentState.constructionWorkers.add(pull);
         }
 
@@ -153,7 +153,7 @@ class PlayerAiImplementation {
             EntitySpec buildingType = state().gameSpec.getUnitSpec("storage-yard");
             DPoint location = context.utils.getSpaceForBuilding(buildingType);
             if (location != null)
-                context.msgQueue.send(new Message.PlaceBuilding(buildingType, (int) location.x, (int) location.y));
+                context.clientGameState.actionRequester.getWriter().send(new Message.PlaceBuilding(buildingType, (int) location.x, (int) location.y));
         }
 
         if ((persistentState.desiresMoreDropoffWagons || persistentState.desiredNumTransportWagons > persistentState.transporters.size())
@@ -162,7 +162,7 @@ class PlayerAiImplementation {
             EntitySpec buildingType = state().gameSpec.getUnitSpec("carpenter-shop");
             DPoint location = context.utils.getSpaceForBuilding(buildingType);
             if (location != null)
-                context.msgQueue.send(new Message.PlaceBuilding(buildingType, (int) location.x, (int) location.y));
+                context.clientGameState.actionRequester.getWriter().send(new Message.PlaceBuilding(buildingType, (int) location.x, (int) location.y));
         }
 
 
@@ -173,8 +173,18 @@ class PlayerAiImplementation {
             EntitySpec buildingType = state().gameSpec.getUnitSpec("brothel");
             DPoint location = context.utils.getSpaceForBuilding(buildingType);
             if (location != null)
-                context.msgQueue.send(new Message.PlaceBuilding(buildingType, (int) location.x, (int) location.y));
+                context.clientGameState.actionRequester.getWriter().send(new Message.PlaceBuilding(buildingType, (int) location.x, (int) location.y));
         }
+
+
+        DebugSnapshot snapshot = new DebugSnapshot();
+        snapshot.addEntityTracker(clientGameState().entityTracker);
+        snapshot.addPersistentState(persistentState);
+        snapshot.addTickProcessingState(tickState);
+        snapshot.numShiftable = numShiftableHumans;
+        snapshot.desiredAllocations.clear();
+        snapshot.desiredAllocations.putAll(desiredAllocations);
+        return snapshot;
     }
 
 //    private void transport(EntityReader pull, EntityReader wagon) {
@@ -209,7 +219,7 @@ class PlayerAiImplementation {
         if (!entity.getType().containsClass("hunter"))
             throw new RuntimeException("Can't hunt");
         EntitySpec deer = state().gameSpec.getUnitSpec("deer");
-        clientGameState().aiManager.startAi(entity.entityId, new HuntAi(clientGameState(), entity, null, deer));
+        clientGameState().aiManager.set(entity, new Hunt(entity, null, deer));
     }
 
     void gather(EntityReader entity, String name) {
@@ -217,7 +227,7 @@ class PlayerAiImplementation {
             throw new RuntimeException("Can't gather");
         EntitySpec type = state().gameSpec.getNaturalResource(name);
         if (type == null) throw new NullPointerException("Cannot find " + name);
-        clientGameState().aiManager.startAi(entity.entityId, new Gather(clientGameState(), entity, null, type));
+        clientGameState().aiManager.set(entity, new Gather(entity, null, type));
     }
 
     private CreationSpec getBestCreation(Set<CreationSpec> canCreate) {

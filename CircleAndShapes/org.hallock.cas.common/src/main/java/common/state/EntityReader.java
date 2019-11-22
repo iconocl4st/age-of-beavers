@@ -3,6 +3,7 @@ package common.state;
 import common.action.Action;
 import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
+import common.state.spec.attack.Weapon;
 import common.state.sst.GameState;
 import common.state.sst.manager.RevPair;
 import common.state.sst.sub.ConstructionZone;
@@ -12,6 +13,7 @@ import common.state.sst.sub.WeaponSet;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
 import common.util.EvolutionSpec;
+import common.util.json.EmptyJsonable;
 
 import java.awt.*;
 import java.util.*;
@@ -217,6 +219,10 @@ public class EntityReader implements LocatedEntitySpec {
         return ret;
     }
 
+    public boolean isCarrying(ResourceType resourceType) {
+        return !doesNotHave(resourceType);
+    }
+
     public boolean doesNotHave(ResourceType resourceType) {
         Load load = state.carryingManager.get(entityId);
         if (load == null) return true;
@@ -258,6 +264,19 @@ public class EntityReader implements LocatedEntitySpec {
         return d;
     }
 
+    public Weapon getPreferredWeaponWithAmmunition(Comparator<Weapon> comparator) {
+        LinkedList<Weapon> allWeapons = new LinkedList<>(getWeapons().ohMy());
+        if (allWeapons.isEmpty())
+            return null;
+        allWeapons.sort(comparator);
+        Collections.reverse(allWeapons);
+        for (Weapon weapon : allWeapons) {
+            if (weapon.hasAmmunition(getCarrying())) {
+                return weapon;
+            }
+        }
+        return null;
+    }
 
     @Override
     public EntityId getEntityId() {
@@ -298,4 +317,7 @@ public class EntityReader implements LocatedEntitySpec {
     public EvolutionSpec getEvolutionWeights() {
         return state.evolutionManager.get(entityId);
     }
+
+
+    public static final Comparator<EntityReader> COMPARATOR = Comparator.comparingInt(entity -> entity.entityId.id);
 }

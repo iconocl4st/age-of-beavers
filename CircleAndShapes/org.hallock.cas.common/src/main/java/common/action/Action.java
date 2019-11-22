@@ -86,7 +86,7 @@ public abstract class Action implements Jsonable {
         }
 
         public String toString() {
-            return "attacking " + target;
+            return "attacking wtih a " + weaponType;
         }
 
         public double getProgressIndicator() {
