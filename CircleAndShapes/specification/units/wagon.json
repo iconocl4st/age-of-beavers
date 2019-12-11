@@ -1,23 +1,25 @@
 {
   "parent": "unit",
-  "image": "unit/wagon.png",
   "health-points": 40,
-  "deposit-speed": 50,
-  "size": {
-    "width": 0,
-    "height": 0
-  },
-  "line-of-sight": 3,
+  "image": "unit/wagon.png",
   "collect-speed": 50,
-  "name": "wagon",
+  "classes": [
+    "carrier",
+    "storage",
+    "rider"
+  ],
   "can-craft": {
     "children": [],
     "type": "branch"
   },
-  "carry-capacity": {},
   "can-create": {
     "children": [],
     "type": "branch"
   },
-  "move-speed": 0.5
+  "is-exported-to-spec": true,
+  "move-speed": 0.5,
+  "deposit-speed": 50,
+  "line-of-sight": 3,
+  "name": "wagon",
+  "carry-capacity": {"maximum-weight": 50000}
 }

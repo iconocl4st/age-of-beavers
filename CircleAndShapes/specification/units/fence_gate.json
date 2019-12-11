@@ -1,14 +1,19 @@
 {
   "parent": "building",
-  "image": "unit/gate.png",
   "health-points": 10,
+  "image": "unit/gate.png",
   "garrison-capacity": 1,
   "size": {
     "width": 1,
     "height": 1
   },
-  "building-path": "husbandry",
   "line-of-sight": 5,
+  "classes": [
+    "constructed",
+    "player-occupies",
+    "visible-in-fog",
+    "can-garrison-others"
+  ],
   "name": "fence-gate",
   "can-craft": {
     "children": [],
@@ -17,5 +22,6 @@
   "can-create": {
     "children": [],
     "type": "branch"
-  }
+  },
+  "is-exported-to-spec": true
 }

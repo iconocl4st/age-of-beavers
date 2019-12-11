@@ -1,11 +1,8 @@
 {
   "parent": "unit",
-  "image": "unit/horse.jpg",
   "health-points": 40,
-  "size": {
-    "width": 0,
-    "height": 0
-  },
+  "image": "unit/horse.png",
+  "classes": ["ridable"],
   "name": "horse",
   "can-craft": {
     "children": [],
@@ -15,5 +12,6 @@
     "children": [],
     "type": "branch"
   },
+  "is-exported-to-spec": true,
   "move-speed": 3
 }

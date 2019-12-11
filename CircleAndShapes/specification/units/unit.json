@@ -11,5 +11,6 @@
   "can-create": {
     "children": [],
     "type": "branch"
-  }
+  },
+  "is-exported-to-spec": false
 }

@@ -1,10 +1,10 @@
 {
-  "is-carrying": [],
+  "is-carrying": [{
+    "amount": 100,
+    "resource": "food"
+  }],
   "parent": "natural-resource",
-  "size": {
-    "width": 0,
-    "height": 0
-  },
+  "image": "res/meat.png",
   "name": "carcass",
   "can-craft": {
     "children": [],
@@ -15,5 +15,6 @@
     "children": [],
     "type": "branch"
   },
+  "is-exported-to-spec": true,
   "drops-on-death": []
 }

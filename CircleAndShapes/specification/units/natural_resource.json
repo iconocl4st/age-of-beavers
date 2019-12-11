@@ -3,6 +3,10 @@
     "width": 1,
     "height": 1
   },
+  "classes": [
+    "natural-resource",
+    "visible-in-fog"
+  ],
   "name": "natural-resource",
   "can-craft": {
     "children": [],
@@ -11,5 +15,6 @@
   "can-create": {
     "children": [],
     "type": "branch"
-  }
+  },
+  "is-exported-to-spec": false
 }

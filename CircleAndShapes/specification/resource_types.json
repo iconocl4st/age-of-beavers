@@ -5,7 +5,7 @@
   },
   {
     "name": "bread",
-    "weight": 0
+    "weight": 50
   },
   {
     "name": "bullet",
@@ -25,15 +25,15 @@
   },
   {
     "name": "iron-ore",
-    "weight": 0
+    "weight": 100
   },
   {
     "name": "leather",
-    "weight": 0
+    "weight": 25
   },
   {
     "name": "plank",
-    "weight": 0
+    "weight": 100
   },
   {
     "name": "pumpkin",
@@ -45,11 +45,11 @@
   },
   {
     "name": "rawhide",
-    "weight": 0
+    "weight": 100
   },
   {
     "name": "salt",
-    "weight": 0
+    "weight": 100
   },
   {
     "name": "stone",
@@ -57,7 +57,7 @@
   },
   {
     "name": "sulfur-ore",
-    "weight": 0
+    "weight": 100
   },
   {
     "name": "wheat",

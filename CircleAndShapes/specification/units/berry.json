@@ -1,10 +1,11 @@
 {
-  "is-carrying": [],
+  "is-carrying": [{
+    "amount": 100,
+    "resource": "food"
+  }],
   "parent": "natural-resource",
-  "size": {
-    "width": 0,
-    "height": 0
-  },
+  "image": "res/berry.png",
+  "classes": ["occupies"],
   "name": "berry",
   "can-craft": {
     "children": [],
@@ -13,5 +14,6 @@
   "can-create": {
     "children": [],
     "type": "branch"
-  }
+  },
+  "is-exported-to-spec": true
 }

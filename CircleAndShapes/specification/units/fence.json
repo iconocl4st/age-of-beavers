@@ -1,12 +1,12 @@
 {
   "parent": "building",
-  "image": "unit/fence.png",
   "health-points": 10,
+  "image": "unit/fence.png",
   "size": {
     "width": 1,
     "height": 1
   },
-  "building-path": "husbandry",
+  "classes": ["occupies"],
   "name": "fence",
   "can-craft": {
     "children": [],
@@ -15,5 +15,6 @@
   "can-create": {
     "children": [],
     "type": "branch"
-  }
+  },
+  "is-exported-to-spec": true
 }

@@ -6,15 +6,23 @@
     "width": 2,
     "height": 2
   },
-  "building-path": "economic",
+  "classes": [
+    "storage",
+    "occupies",
+    "can-garrison-others"
+  ],
   "name": "brothel",
   "can-craft": {
     "children": [],
     "type": "branch"
   },
-  "carry-capacity": {},
+  "carry-capacity": {"maximum-amounts": [{
+    "amount": 200,
+    "resource": "food"
+  }]},
   "can-create": {
     "children": [],
     "type": "branch"
-  }
+  },
+  "is-exported-to-spec": true
 }

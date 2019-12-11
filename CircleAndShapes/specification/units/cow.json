@@ -1,14 +1,15 @@
 {
   "parent": "unit",
-  "image": "unit/cow.png",
   "health-points": 50,
+  "image": "unit/cow.png",
   "deposit-speed": 10,
-  "size": {
-    "width": 0,
-    "height": 0
-  },
   "line-of-sight": 0,
   "collect-speed": 1,
+  "classes": [
+    "prey",
+    "ridable",
+    "evolves"
+  ],
   "name": "cow",
   "can-craft": {
     "children": [],
@@ -18,5 +19,6 @@
     "children": [],
     "type": "branch"
   },
+  "is-exported-to-spec": true,
   "move-speed": 0.5
 }

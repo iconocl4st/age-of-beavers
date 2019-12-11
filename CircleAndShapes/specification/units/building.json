@@ -5,6 +5,10 @@
     "height": 0
   },
   "line-of-sight": 15,
+  "classes": [
+    "constructed",
+    "visible-in-fog"
+  ],
   "name": "building",
   "can-craft": {
     "children": [],
@@ -13,5 +17,6 @@
   "can-create": {
     "children": [],
     "type": "branch"
-  }
+  },
+  "is-exported-to-spec": false
 }

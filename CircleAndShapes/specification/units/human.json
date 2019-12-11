@@ -1,10 +1,21 @@
 {
   "parent": "unit",
-  "image": "unit/human.png",
   "health-points": 40,
+  "image": "unit/human.png",
   "attack-range-inner": 3,
   "collect-speed": 1,
   "build-speed": 0.05,
+  "classes": [
+    "carrier",
+    "ridable",
+    "owned",
+    "evolves",
+    "gatherer",
+    "constructor",
+    "hunter",
+    "can-garrison-in-others",
+    "rider"
+  ],
   "attack-speed": 1,
   "can-craft": {
     "children": [],
@@ -14,14 +25,11 @@
     "children": [],
     "type": "branch"
   },
+  "is-exported-to-spec": true,
   "move-speed": 1,
   "deposit-speed": 3,
-  "size": {
-    "width": 0,
-    "height": 0
-  },
   "line-of-sight": 5,
   "name": "human",
   "attack-range-outer": 4,
-  "carry-capacity": {}
+  "carry-capacity": {"maximum-weight": 5}
 }
