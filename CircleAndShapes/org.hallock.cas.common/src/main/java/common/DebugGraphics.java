@@ -4,7 +4,6 @@ import common.state.EntityReader;
 import common.state.Player;
 import common.util.DPoint;
 
-import java.awt.*;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,7 +17,7 @@ public class DebugGraphics {
 
 
     public final DPoint center;
-    public final List<Point> list = new LinkedList<>();
+    public final List<DPoint> list = new LinkedList<>();
 
 
     public DebugGraphics(DPoint center) {

@@ -105,19 +105,17 @@ public class SelectionManager {
     }
 
     public void select(double gr1x, double gr1y, double gr2x, double gr2y, EntitySpec type) {
-        Set<EntityId> possibleSelections = context.clientGameState.gameState.locationManager.getEntitiesWithin(gr1x, gr1y, gr2x, gr2y, entity -> {
-            EntityReader r = new EntityReader(context.clientGameState.gameState, entity);
-            if (r.isHidden()) return false;
+        Set<EntityReader> possibleSelections = context.clientGameState.gameState.locationManager.getEntitiesWithin(gr1x, gr1y, gr2x, gr2y, entity -> {
+            if (entity.isHidden()) return false;
             if (type == null) return true;
-            EntitySpec t = r.getType();
+            EntitySpec t = entity.getType();
             return t != null && t.name.equals(type.name);
         });
 
         synchronized (selectedUnits) {
             selectedUnits.clear();
             int currentSelectionPriority = -1;
-            for (EntityId id : possibleSelections) {
-                EntityReader entity = new EntityReader(context.clientGameState.gameState, id);
+            for (EntityReader entity : possibleSelections) {
                 int selectionPriority = getSelectionPriority(entity);
                 if (selectionPriority > currentSelectionPriority) {
                     selectedUnits.clear();

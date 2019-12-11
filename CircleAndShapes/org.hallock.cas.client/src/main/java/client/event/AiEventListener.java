@@ -1,7 +1,6 @@
 package client.event;
 
 import client.ai.ai2.AiContext;
-import common.AiAttemptResult;
 import common.event.AiEvent;
 
 public interface AiEventListener {

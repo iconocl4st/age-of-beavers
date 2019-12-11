@@ -7,11 +7,6 @@ import java.util.Set;
 public final class VisibilityChange {
     public final Set<Point> gainedVision = new HashSet<>();
     public final Set<Point> lostVision = new HashSet<>();
-    public final Set<Point> becameExplored = new HashSet<>();
-
-    public void becameExplored(int x, int y) {
-        becameExplored.add(new Point(x, y));
-    }
 
     public void addVisibility(int x, int y) {
         Point p = new Point(x, y);

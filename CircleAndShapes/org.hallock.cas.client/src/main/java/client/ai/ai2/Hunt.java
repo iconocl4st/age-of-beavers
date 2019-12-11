@@ -1,7 +1,6 @@
 package client.ai.ai2;
 
 import common.AiAttemptResult;
-import common.event.AiEvent;
 import common.state.EntityReader;
 import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;

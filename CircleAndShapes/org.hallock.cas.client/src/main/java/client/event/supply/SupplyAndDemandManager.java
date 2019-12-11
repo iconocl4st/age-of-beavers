@@ -1,11 +1,9 @@
 package client.event.supply;
 
 import client.ai.ai2.AiContext;
-import client.ai.ai2.OneTripTransport;
 import client.ai.ai2.TransportAi;
 import client.event.AiEventListener;
 import client.state.ClientGameState;
-import common.AiAttemptResult;
 import common.event.AiEvent;
 import common.event.AiEventType;
 import common.event.BuildingPlacementChanged;
@@ -17,16 +15,17 @@ import common.state.spec.ResourceType;
 import common.state.sst.sub.Load;
 import common.state.sst.sub.capacity.Prioritization;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
-import common.util.ConcurrentModificationDebugingSet;
 
 import java.util.*;
 
 public class SupplyAndDemandManager implements AiEventListener {
     private final Object sync = new Object();
+    // should combine these into a single requests list
     private final HashMap<ResourceType, Set<EntityId>> currentlyExceeding = new HashMap<>();
-    private final HashMap<ResourceType, /*Tree*/Set<TransportRequest>> excess = new HashMap<>();
+    private final HashMap<ResourceType, Set<TransportRequest>> excess = new HashMap<>();
     private final HashMap<ResourceType, Set<EntityId>> currentlyDemanding = new HashMap<>();
-    private final HashMap<ResourceType, /*Tree*/Set<TransportRequest>> demands = new HashMap<>();
+    private final HashMap<ResourceType, Set<TransportRequest>> demands = new HashMap<>();
+    private final StorageTracker storageTracker;
 
     private final ClientGameState context;
     private final GameSpec gameSpec;
@@ -34,6 +33,7 @@ public class SupplyAndDemandManager implements AiEventListener {
     public SupplyAndDemandManager(ClientGameState context, GameSpec gameSpec) {
         this.context = context;
         this.gameSpec = gameSpec;
+        storageTracker = new StorageTracker(gameSpec);
         initialize(gameSpec);
     }
 
@@ -48,6 +48,8 @@ public class SupplyAndDemandManager implements AiEventListener {
             for (TransportRequest request : getExceeding()) {
                 if (request.servicer != null)
                     continue;
+                if (!storageTracker.currentlyHaveSpaceFor(request.resource))
+                    continue;
                 onTransport.run();
                 request.servicer = transportAi;
                 context.executor.submit(() -> context.eventManager.notifyListeners(new DemandsChanged(request.requester.entityId)));
@@ -56,6 +58,8 @@ public class SupplyAndDemandManager implements AiEventListener {
 
             for (TransportRequest request : getDemands()) {
                 if (request.servicer != null)
+                    continue;
+                if (!storageTracker.currentlyHave(request.resource))
                     continue;
                 onTransport.run();
                 request.servicer = transportAi;
@@ -71,10 +75,10 @@ public class SupplyAndDemandManager implements AiEventListener {
     public void initialize(GameSpec gameSpec) {
         synchronized (sync) {
             for (ResourceType resourceType : gameSpec.resourceTypes) {
-                currentlyExceeding.put(resourceType, new ConcurrentModificationDebugingSet<>(new HashSet<>()));
-                excess.put(resourceType, new ConcurrentModificationDebugingSet<>(new TreeSet<>()));
-                currentlyDemanding.put(resourceType, new ConcurrentModificationDebugingSet<>(new HashSet<>()));
-                demands.put(resourceType, new ConcurrentModificationDebugingSet<>(new TreeSet<>()));
+                currentlyExceeding.put(resourceType, new HashSet<>());
+                excess.put(resourceType, new TreeSet<>());
+                currentlyDemanding.put(resourceType, new HashSet<>());
+                demands.put(resourceType, new TreeSet<>());
             }
         }
     }
@@ -150,8 +154,12 @@ public class SupplyAndDemandManager implements AiEventListener {
         final Object entitySync = reader.getSync();
         PrioritizedCapacitySpec capacity;
         Load carrying;
+        if (entitySync == null) {
+            // TODO: This is a problem...
+            return;
+        }
         synchronized (entitySync) {
-            if (reader.noLongerExists() || !reader.getType().containsClass("storage") || !context.entityTracker.isTracking(reader)) {
+            if (reader.noLongerExists() || !reader.getType().containsClass("storage")) {
                 remove(reader);
                 return;
             }
@@ -160,9 +168,15 @@ public class SupplyAndDemandManager implements AiEventListener {
         }
         boolean hasUpdate = false;
         synchronized (sync) {
+            if (!context.entityTracker.isTracking(reader)) {
+                remove(reader);
+                return;
+            }
             for (ResourceType resourceType : gameSpec.resourceTypes) {
                 hasUpdate |= update(reader, capacity, carrying, resourceType);
             }
+
+            hasUpdate |= storageTracker.update(reader);
         }
         if (hasUpdate) {
             context.eventManager.notifyListeners(new DemandsChanged(reader.entityId));
@@ -186,7 +200,10 @@ public class SupplyAndDemandManager implements AiEventListener {
                 hasUpdate |= removeFromExceeding(unitId, resourceType);
                 hasUpdate |= removeFromDemanding(unitId, resourceType);
             }
+
+            hasUpdate |= storageTracker.update(unitId);
         }
+
         if (hasUpdate) {
             context.eventManager.notifyListeners(new DemandsChanged(unitId.entityId));
         }
@@ -194,14 +211,19 @@ public class SupplyAndDemandManager implements AiEventListener {
 
     @Override
     public void receiveEvent(AiContext aiContext, AiEvent event) {
-        if (!event.type.equals(AiEventType.BuildingPlacementChanged))
-            return;
-        BuildingPlacementChanged buildingPlacementChanged = (BuildingPlacementChanged) event;
-        if (buildingPlacementChanged.constructionZone == null) {
-            return;
+        if (event.type.equals(AiEventType.BuildingPlacementChanged)) {
+            BuildingPlacementChanged buildingPlacementChanged = (BuildingPlacementChanged) event;
+            if (buildingPlacementChanged.constructionZone == null) {
+                return;
+            }
+
+            EntityReader reader = new EntityReader(context.gameState, buildingPlacementChanged.constructionZone);
+            synchronized (sync) {
+                context.entityTracker.track(reader);
+                update(reader);
+            }
+        } else if (event.type.equals(AiEventType.ResourceChange)) {
+            // TODO: I don't think this is necessary, we will see...
         }
-        EntityReader reader = new EntityReader(context.gameState, buildingPlacementChanged.constructionZone);
-        context.entityTracker.track(reader);
-        update(reader);
     }
 }

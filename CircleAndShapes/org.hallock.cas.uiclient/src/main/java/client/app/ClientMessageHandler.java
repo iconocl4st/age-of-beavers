@@ -1,10 +1,11 @@
 package client.app;
 
+import client.ai.ActionRequester;
 import client.ai.ResponsiveConnectionWriter;
 import client.state.ClientGameState;
-import client.ai.ActionRequester;
 import common.msg.Message;
 import common.state.sst.GameState;
+import common.util.ExecutorServiceWrapper;
 import common.util.json.JsonReaderWrapperSpec;
 import common.util.json.ReadOptions;
 
@@ -17,8 +18,6 @@ class ClientMessageHandler {
     public ClientMessageHandler(UiClientContext context) {
         this.context = context;
     }
-
-    private ClientGameState.GameCreationContext creationContext;
 
     boolean handleMessage(Message message) {
         switch (message.getMessageType()) {
@@ -42,16 +41,6 @@ class ClientMessageHandler {
                 context.uiManager.lobbyBrowser.setCurrentLobby(((Message.Joined) message).lobby);
             }
             break;
-            case LAUNCHED: {
-                context.uiManager.log("Game launched");
-                Message.Launched launched = (Message.Launched) message;
-                creationContext = new ClientGameState.GameCreationContext();
-                creationContext.parseLaunchedMessage(launched);
-                creationContext.requester = new ActionRequester(new ResponsiveConnectionWriter(context.writer, context.executorService));
-                creationContext.service = context.executorService;
-                creationContext.gameState = GameState.createGameState(launched.spec, ClientGameState.createLineOfSightSpec(launched.spec, launched.player));
-            }
-            break;
             case SPECTATING: {
                 context.uiManager.log("Spectating");
                 context.uiManager.lobbyBrowser.setCurrentlySpectating(((Message.IsSpectating) message).isSpectating);
@@ -68,6 +57,8 @@ class ClientMessageHandler {
             case UNIT_REMOVED:
             case AI_EVENT:
             case OCCUPANCY_UPDATED:
+            case DIRECTION_CHANGED:
+            case UNIT_CREATED:
                 return context.clientGameState.messageHandler.handleMessage(message);
             default:
                 context.uiManager.log("Client: Ignoring unknown message type " + message.getMessageType());
@@ -80,9 +71,7 @@ class ClientMessageHandler {
         reader.readBeginDocument();
         Message.MessageType msgType = reader.b(Message.MessageType.values(), reader.readInt32("type"));
         ReadOptions spec = new ReadOptions();
-        if (context.clientGameState != null) {
-            spec.spec = context.clientGameState.gameState.gameSpec;
-        }
+        if (context.clientGameState != null) spec.state = context.clientGameState.gameState;
 
         boolean ret = true;
         switch (msgType) {
@@ -92,26 +81,28 @@ class ClientMessageHandler {
             case OCCUPANCY_UPDATED: ret = handleMessage(Message.OccupancyChanged.finishParsing(reader, spec)); break;
             case QUIT_CONNECTION: ret = handleMessage(Message.Quit.finishParsing(reader, spec)); break;
             case UNIT_REMOVED: ret = handleMessage(Message.UnitRemoved.finishParsing(reader, spec)); break;
+            case UNIT_CREATED: ret = handleMessage(Message.UnitCreated.finishParsing(reader, spec)); break;
             case UNIT_UPDATED: ret = handleMessage(Message.UnitUpdated.finishParsing(reader, spec)); break;
             case GAME_OVER: ret = handleMessage(Message.GameOver.finishParsing(reader, spec)); break;
             case LOBBY_LIST: ret = handleMessage(Message.LobbyList.finishParsing(reader, spec)); break;
             case LEFT: ret = handleMessage(Message.Left.finishParsing(reader, spec)); break;
             case JOINED: ret = handleMessage(Message.Joined.finishParsing(reader, spec)); break;
-            case LAUNCHED: ret = handleMessage(Message.Launched.finishParsing(reader, spec)); break;
             case TIME_CHANGE: ret = handleMessage(Message.TimeChange.finishParsing(reader, spec)); break;
             case PROJECTILE_LAUNCHED: ret = handleMessage(Message.ProjectileLaunched.finishParsing(reader, spec)); break;
             case PROJECTILE_LANDED: ret = handleMessage(Message.ProjectileLanded.finishParsing(reader, spec)); break;
             case SPECTATING: ret = handleMessage(Message.IsSpectating.finishParsing(reader, spec)); break;
-            case UPDATE_ENTIRE_GAME: {
-                reader.readName("state");
-                spec.spec = creationContext.gameSpec;
-                creationContext.gameState.updateAll(reader, spec);
-                context.clientGameState = ClientGameState.createClientGameState(creationContext);
-                context.uiManager.displayGame(creationContext.gameSpec, creationContext.player);
-                creationContext = null;
+            case DIRECTION_CHANGED: ret = handleMessage(Message.DirectedLocationChange.finishParsing(reader, spec)); break;
+            case LAUNCHED: {
+                context.clientGameState = ClientGameState.createClientGameState(
+                        new ActionRequester(new ResponsiveConnectionWriter(context.writer, context.executorService)),
+                        context.executorService,
+                        reader,
+                        spec
+                );
+                context.uiManager.displayGame(context.clientGameState.gameState.gameSpec, context.clientGameState.currentPlayer);
             } break;
             default:
-                System.out.println("Client: Ignoring unknown message type: " + msgType);
+                System.out.println("Client parser: Ignoring unknown message type: " + msgType);
                 reader.finishCurrentObject();
         }
         reader.readEndDocument();

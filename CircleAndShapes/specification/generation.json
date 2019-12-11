@@ -1,0 +1,68 @@
+{"generation": {
+  "gaia-resources": [
+    {
+      "resource": "berry",
+      "number-of-patches": 5,
+      "patch-size": 6
+    },
+    {
+      "resource": "tree",
+      "number-of-patches": 10,
+      "patch-size": 500
+    },
+    {
+      "resource": "rocks",
+      "number-of-patches": 5,
+      "patch-size": 10
+    },
+    {
+      "resource": "gold-deposit",
+      "number-of-patches": 5,
+      "patch-size": 10
+    }
+  ],
+  "gaia-units": [
+    {
+      "number": 20,
+      "unit": "deer"
+    },
+    {
+      "number": 5,
+      "unit": "horse"
+    },
+    {
+      "number": 10,
+      "unit": "cow"
+    }
+  ],
+  "per-player-units": [
+    {
+      "number": 1,
+      "unit": "brothel"
+    },
+    {
+      "number": 1,
+      "unit": "storage-yard"
+    },
+    {
+      "number": 5,
+      "unit": "human"
+    },
+    {
+      "number": 2,
+      "unit": "wagon"
+    }
+  ],
+  "per-player-resources": [
+    {
+      "resource": "berry",
+      "number-of-patches": 2,
+      "patch-size": 6
+    },
+    {
+      "resource": "tree",
+      "number-of-patches": 1,
+      "patch-size": 10
+    }
+  ]
+}}

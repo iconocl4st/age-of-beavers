@@ -1,44 +1,83 @@
 package common.state.spec;
 
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
+import common.util.Immutable;
 import common.util.json.*;
 
 import java.awt.*;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.*;
 import java.util.List;
 
-public class EntitySpec implements Serializable {
-    public final String image;
+public class EntitySpec {
+    public final String graphicsImage;
     public final String name;
-    public Dimension size;
-    public List<EntitySpec> dropOnDeath;
-    public double initialBaseHealth;
-    public PrioritizedCapacitySpec carryCapacity;
-    public int garrisonCapacity;
-    public double initialMovementSpeed;
+    public final Dimension size;
+    public final Double initialBaseHealth;
+    public final PrioritizedCapacitySpec carryCapacity;
+    public final Integer garrisonCapacity;
+    public final Double initialMovementSpeed;
     // TODO collection speed depends on where
-    public double initialLineOfSight;
-    public double initialCollectSpeed;
-    public double initialDepositSpeed;
-    public double initialRotationSpeed;
-    public double initialAttackSpeed;
-    public double initialBuildSpeed;
-    public Set<String> classes;
-    public String ai;
-    public Map<String, String> aiArgs;
-    public Map<ResourceType, Integer> requiredResources;
-    public Set<CreationSpec> canCreate; // does not have a hash code...
-    public double creationTime;
-    public Set<CarrySpec> carrying;
-    public String[] buildingPath;
+    public final Double initialLineOfSight;
+    public final Double initialCollectSpeed;
+    public final Double initialDepositSpeed;
+    public final Double initialRotationSpeed;
+    public final Double initialAttackSpeed;
+    public final Double initialBuildSpeed;
+    public final String ai;
+    public final Immutable.ImmutableMap<String, String> aiArgs;
+    public final Immutable.ImmutableSet<String> classes;
+    public final Immutable.ImmutableMap<ResourceType, Integer> carrying;
+    public final EntitySpec resultingStructure;
 
+    // immutable versions?
+    public final SpecTree<CreationSpec> canCreate = new SpecTree<>();
+    public final SpecTree<CraftingSpec> canCraft = new SpecTree<>();
+
+    public final List<EntitySpec> dropOnDeath = new LinkedList<>();
+
+
+    // TODO:
     public Color minimapColor;
 
-    public EntitySpec(String name, String image) {
-        this.image = image;
+    public EntitySpec(
+            String name,
+            String graphicsImage,
+            Dimension size,
+            Double initialBaseHealth,
+            PrioritizedCapacitySpec carryCapacity,
+            Integer garrisonCapacity,
+            Double initialMovementSpeed,
+            Double initialLineOfSight,
+            Double initialCollectSpeed,
+            Double initialDepositSpeed,
+            Double initialRotationSpeed,
+            Double initialAttackSpeed,
+            Double initialBuildSpeed,
+            String ai,
+            Immutable.ImmutableMap<String, String> aiArgs,
+            Immutable.ImmutableSet<String> classes,
+            Immutable.ImmutableMap<ResourceType, Integer> carrying,
+            EntitySpec resultingStructure
+    ) {
         this.name = name;
+        this.graphicsImage = graphicsImage;
+        this.size = size;
+        this.initialBaseHealth = initialBaseHealth;
+        this.carryCapacity = carryCapacity;
+        this.garrisonCapacity = garrisonCapacity;
+        this.initialMovementSpeed = initialMovementSpeed;
+        this.initialLineOfSight = initialLineOfSight;
+        this.initialCollectSpeed = initialCollectSpeed;
+        this.initialDepositSpeed = initialDepositSpeed;
+        this.initialRotationSpeed = initialRotationSpeed;
+        this.initialAttackSpeed = initialAttackSpeed;
+        this.initialBuildSpeed = initialBuildSpeed;
+        this.ai = ai;
+        this.aiArgs = aiArgs;
+        this.classes = classes;
+        this.carrying = carrying;
+        this.resultingStructure = resultingStructure;
     }
 
     public boolean equals(Object other) {
@@ -56,7 +95,15 @@ public class EntitySpec implements Serializable {
         return name;
     }
 
-    public boolean containsAnyClass(Set<String> classTypes) {
+    public boolean canHaveGatherPoint() {
+        return containsClass("can-garrison-others") || canCreate.isNotEmpty();
+    }
+
+    public boolean containsClass(String clazz) {
+        return classes.contains(clazz);
+    }
+
+    public boolean containsAnyClass(String... classTypes) {
         for (String classType : classTypes) {
             if (containsClass(classType))
                 return true;
@@ -64,49 +111,151 @@ public class EntitySpec implements Serializable {
         return false;
     }
 
-    public boolean canHaveGatherPoint() {
-        return containsClass("can-garrison-others") || !canCreate.isEmpty();
-    }
 
-
-    public boolean containsClass(String clazz) {
-        return classes.contains(clazz);
-    }
-
-
-    public EntitySpec createConstructionSpec(GameSpec gSpec) {
-        ConstructionSpec spec = new ConstructionSpec(this, "construction-zone", "unit/construction.png");
-        spec.size = size;
-        spec.initialBaseHealth = 0;
+    public static PrioritizedCapacitySpec getCarryCapacity(GameSpec gSpec, Map<ResourceType, Integer> requiredResource){
         HashMap<ResourceType, Integer> carryLimits = new HashMap<>();
-        for (Map.Entry<ResourceType, Integer> entry : requiredResources.entrySet()) {
+        for (Map.Entry<ResourceType, Integer> entry : requiredResource.entrySet())
             carryLimits.put(entry.getKey(), entry.getValue());
-        }
-        spec.carryCapacity = PrioritizedCapacitySpec.createCapacitySpec(gSpec, carryLimits, true);
-        spec.initialMovementSpeed = 0;
-        spec.initialLineOfSight= 0;
-        spec.initialDepositSpeed = 0;
-        spec.initialCollectSpeed = 0;
-        spec.classes = new HashSet<>();
-        spec.classes.add("storage");
-        spec.classes.add("construction-zone");
-        spec.classes.add("visible-in-fog");
-        spec.classes.add("unit");
-        spec.ai = null;
-        spec.requiredResources = Collections.emptyMap();
-        spec.canCreate = Collections.emptySet();
-        spec.dropOnDeath = Collections.emptyList();
-        spec.carrying = Collections.emptySet();
-        return spec;
+        return PrioritizedCapacitySpec.createCapacitySpec(gSpec.resourceTypes, carryLimits, true);
     }
+
+
+    public EntitySpec createConstructionSpec(PrioritizedCapacitySpec carryCapacity) {
+        return new EntitySpec(
+            name + " construction zone",
+            "unit/construction.png", // TODO
+            size,
+            0d,
+            carryCapacity,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            Immutable.ImmutableMap.emptyMap(),
+            Immutable.ImmutableSet.from("storage", "construction-zone", "visible-in-fog", "unit"), // blocks buildings...
+            Immutable.ImmutableMap.emptyMap(),
+            this
+        );
+    }
+
+    public static DataSerializer<EntitySpec> Serializer = new DataSerializer<EntitySpec>() {
+        @Override
+        public void write(EntitySpec value, JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+            if (value.containsClass("construction-zone")) {
+                writer.writeBeginDocument();
+                writer.write("is-construction-spec", true);
+                writer.write("resulting-structure", value.resultingStructure.name);
+                writer.write("capacity", value.carryCapacity, PrioritizedCapacitySpec.Serializer, options);
+                writer.writeEndDocument();
+                return;
+            }
+
+            writer.writeBeginDocument();
+            writer.write("is-construction-spec", false);
+            writer.write("name", value.name);
+            writer.writeEndDocument();
+        }
+
+        @Override
+        public EntitySpec parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
+            reader.readBeginDocument();
+            boolean isConstruction = reader.readBoolean("is-construction-spec");
+            if  (isConstruction) {
+                String resultingStructureName = reader.readString("resulting-structure");
+                PrioritizedCapacitySpec carryCapacity = reader.read("capacity", PrioritizedCapacitySpec.Serializer, spec);
+                reader.readEndDocument();
+                return spec.spec().getUnitSpec(resultingStructureName).createConstructionSpec(carryCapacity);
+            }
+            String name = reader.readString("name");
+            reader.readEndDocument();
+
+            return spec.spec().getUnitSpec(name);
+        }
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+
+
+
 
     public static DataSerializer<EntitySpec> IgnoreCanCreateSerializer = new DataSerializer<EntitySpec>() {
         @Override
         public void write(EntitySpec value, JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
             writer.writeBeginDocument();
             writer.write("name", value.name);
-            writer.write("image", value.image);
-            writer.write("client.ai", value.ai);
+            writer.write("image", value.graphicsImage);
+            writer.write("ai", value.ai);
 
             writer.write("size", value.size,  DataSerializer.DimensionSerializer, options);
 
@@ -129,7 +278,7 @@ public class EntitySpec implements Serializable {
 
             writer.write("required-resources", value.requiredResources, ResourceType.Serializer, DataSerializer.IntegerSerializer, options);
             writer.write("client.ai-arguments",  value.aiArgs, DataSerializer.StringSerializer, DataSerializer.StringSerializer, options);
-            writer.write("build-path", value.buildingPath, DataSerializer.StringSerializer, options);
+            writer.write("build-points", value.buildingPath, DataSerializer.StringSerializer, options);
 
 //            writer.write("can-create", canCreate, CreationSpec.Serializer, options);
             writer.write("carrying", value.carrying, CarrySpec.Serializer, options);
@@ -167,7 +316,7 @@ public class EntitySpec implements Serializable {
             ret.carryCapacity = reader.read("carry-capacity", PrioritizedCapacitySpec.Serializer, spec);
             reader.read("required-resources", ret.requiredResources, ResourceType.Serializer, DataSerializer.IntegerSerializer, spec);
             reader.read("client.ai-arguments", ret.aiArgs, DataSerializer.StringSerializer, DataSerializer.StringSerializer, spec);
-            ret.buildingPath = reader.read("build-path", new String[0], DataSerializer.StringSerializer, spec);
+            ret.buildingPath = reader.read("build-points", new String[0], DataSerializer.StringSerializer, spec);
 //            reader.read("can-create", spec, ret.canCreate, CreationSpec.Serializer);
             ret.canCreate = new HashSet<>();
             reader.read("carrying", ret.carrying, CarrySpec.Serializer, spec);
@@ -176,39 +325,5 @@ public class EntitySpec implements Serializable {
         }
     };
 
-
-    public static DataSerializer<EntitySpec> Serializer = new DataSerializer<EntitySpec>() {
-        @Override
-        public void write(EntitySpec value, JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
-            if (value instanceof ConstructionSpec) {
-                writer.writeBeginDocument();
-                writer.write("is-construction-spec", true);
-                writer.write("resulting-structure", ((ConstructionSpec) value).resultingStructure.name);
-                writer.writeEndDocument();
-                return;
-            }
-
-            writer.writeBeginDocument();
-            writer.write("is-construction-spec", false);
-            writer.write("name", value.name);
-            writer.writeEndDocument();
-        }
-
-        @Override
-        public EntitySpec parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
-            reader.readBeginDocument();
-            boolean isConstruction = reader.readBoolean("is-construction-spec");
-            if  (isConstruction) {
-                String resultingStructureName = reader.readString("resulting-structure");
-                reader.readEndDocument();
-                return spec.spec.getUnitSpec(resultingStructureName).createConstructionSpec(spec.spec);
-            }
-            String name = reader.readString("name");
-            reader.readEndDocument();
-
-            EntitySpec ret = spec.spec.getNaturalResource(name);
-            if (ret != null) return ret;
-            return spec.spec.getUnitSpec(name);
-        }
-    };
+    */
 }

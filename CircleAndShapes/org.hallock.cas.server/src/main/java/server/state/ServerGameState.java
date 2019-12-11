@@ -1,80 +1,75 @@
 package server.state;
 
+import client.ai.GaiaAi;
 import common.action.Action;
+import common.factory.PathFinder;
+import common.state.EntityId;
+import common.state.Player;
+import common.state.los.Exploration;
+import common.state.los.LineOfSight;
 import common.state.spec.EntitySpec;
 import common.state.spec.GameSpec;
-import common.state.EntityId;
-import common.state.EntityReader;
-import common.state.Player;
-import common.state.los.AllVisibleLineOfSight;
-import common.state.los.LineOfSightSpec;
-import common.state.los.MultiLineOfSight;
-import common.state.los.SinglePlayerLineOfSight;
 import common.state.sst.GameState;
-import common.state.sst.sub.ConstructionZone;
-import common.state.sst.sub.GateInfo;
-import common.state.sst.sub.Load;
-import common.state.sst.sub.WeaponSet;
+import common.state.sst.manager.Textures;
+import common.state.sst.sub.*;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
-import client.ai.GaiaAi;
 import common.util.EvolutionSpec;
 import common.util.json.EmptyJsonable;
+import server.app.ServerContext;
+import server.state.range.RangeEventManager;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 
 public class ServerGameState {
     public GameState state;
     public GaiaAi gaiaAi;
-    public Point[] playerStarts;
+    public PathFinder pathFinder;
+    public RangeEventManager rangeEventManager;
     public ArrayList<Set<EntityId>> startingUnits;
+    public Point[] playerStarts;
+    public LineOfSight[] lineOfSights;
+    public Exploration[] explorations;
 
-    public static LineOfSightSpec createServerLineOfSightSpec(GameSpec spec, int numberOfPlayers) {
-        LineOfSightSpec[] lineOfSights = new LineOfSightSpec[numberOfPlayers+1];
-        switch (spec.visibility) {
-            case ALL_VISIBLE:
-                for (int i = 0; i < lineOfSights.length; i++) {
-                    lineOfSights[i] = new AllVisibleLineOfSight(spec);
-                }
-                break;
-            case FOG:
-                for (int i = 0; i < lineOfSights.length; i++) {
-                    lineOfSights[i] = new SinglePlayerLineOfSight(spec);
-                }
-                break;
-        }
-//        multiLineOfSight.lineOfSights[PlayerManager.GAIA.number].updateLineOfSight(
-//                null,
-//                new DPoint(spec.width / 2, spec.height / 2),
-//                Double.MAX_VALUE
-//        )
-        return new MultiLineOfSight(lineOfSights);
-    }
     public static ServerGameState createServerGameState(GameSpec spec, int numberOfPlayers) {
         ServerGameState sgs = new ServerGameState();
         sgs.gaiaAi = new GaiaAi();
-        sgs.state = GameState.createGameState(spec, createServerLineOfSightSpec(spec, numberOfPlayers));
+        sgs.pathFinder = PathFinder.createPathFinder(spec, PathFinder.CURRENT_SEARCH);
+        sgs.state = GameState.createGameState(spec, numberOfPlayers);
+        sgs.rangeEventManager = new RangeEventManager(sgs, ServerContext.executorService);
+        sgs.lineOfSights = new LineOfSight[numberOfPlayers];
+        for (int i = 0; i < sgs.lineOfSights.length; i++)
+            sgs.lineOfSights[i] = LineOfSight.createLineOfSight(spec, false);
+        sgs.explorations = new Exploration[numberOfPlayers];
+        for (int i = 0; i < sgs.explorations.length; i++)
+            sgs.explorations[i] = Exploration.createExploration(spec, false);
+        sgs.playerStarts = new Point[numberOfPlayers];
+        sgs.startingUnits = new ArrayList<>(numberOfPlayers);
+        for (int i = 0; i < numberOfPlayers; i++)
+            sgs.startingUnits.add(new HashSet<>());
         return sgs;
     }
 
     /*
     TODO: combine this with the ServerStateManipulator.createUnitUpdateMessage
      */
-    private void addEntityTo(EntityId entityId, GameState nextState, LineOfSightSpec los) {
+    private void addEntityTo(EntityId entityId, GameState nextState, LineOfSight los) {
         final Object sync = state.entityManager.get(entityId);
         synchronized (sync) {
             if (state.entityManager.get(entityId) == null)
                 return;
             EntitySpec type = state.typeManager.get(entityId);
             DPoint location = state.locationManager.getLocation(entityId);
-            if (!los.isVisible(null, location.toPoint(), type.size))
+            if (!los.isVisible(location.toPoint(), type.size))
                 return;
 
             if (nextState.entityManager.get(entityId) == null)
                 nextState.entityManager.set(entityId, new EmptyJsonable());
-            nextState.locationManager.setLocation(new EntityReader(state, entityId), location);
+
+            nextState.locationManager.setLocation(new MovableEntity(state, state.locationManager.getDirectedEntity(entityId)));
             nextState.typeManager.set(entityId, type);
 
             Action currentAction = state.actionManager.get(entityId);
@@ -104,6 +99,7 @@ public class ServerGameState {
             Double creationTime = state.ageManager.get(entityId);
             if (creationTime != null) nextState.ageManager.set(entityId, creationTime);
 
+            // These could each be a method in the manager impl
             // TODO, previous information?
             EntityId riding = state.ridingManager.get(entityId);
             if (riding != null) nextState.ridingManager.set(entityId, riding);
@@ -149,34 +145,39 @@ public class ServerGameState {
             
             EvolutionSpec weights = state.evolutionManager.get(entityId);
             if (weights != null) nextState.evolutionManager.set(entityId, weights);
+
+            GrowthInfo growthInfo = state.crops.get(entityId);
+            if (growthInfo != null) nextState.crops.set(entityId, growthInfo);
+
+            Double gardenSpeed = state.gardenSpeed.get(entityId);
+            if (gardenSpeed != null) nextState.gardenSpeed.set(entityId, gardenSpeed);
+
+            Double burySpeed = state.burySpeed.get(entityId);
+            if (burySpeed != null) nextState.burySpeed.set(entityId, burySpeed);
+
+            nextState.graphicsManager.set(entityId, state.graphicsManager.get(entityId));
+
+            if (type.containsClass("occupies")) nextState.staticOccupancy.set(location.toPoint(), type.size, true);
+            if (type.containsClass("construction-zone")) nextState.buildingOccupancy.set(location.toPoint(), type.size, true);
         }
     }
 
-    public GameState createGameState(Player player) {
+    public GameState createGameState(Player player, LineOfSight los) {
         System.out.println("Creating state for " + player);
-
-        LineOfSightSpec los;
-
-        if (player == null) {
-            los = new AllVisibleLineOfSight(state.gameSpec);
-        } else {
-            los = ((MultiLineOfSight) state.lineOfSight).lineOfSights[player.number];
-        }
-
-
-        GameState gs = GameState.createGameState(state.gameSpec, los);
-        for (EntityId entityId : state.entityManager.allKeys()) {
+        GameState gs = GameState.createGameState(state.gameSpec, state.numPlayers);
+        for (EntityId entityId : state.entityManager.allKeys())
             addEntityTo(entityId, gs, los);
+
+        for (Textures.TileTexture texture : state.textures.textures.values()) {
+            gs.textures.textures.put(new Point(texture.x, texture.y), texture);
         }
 
-        if (player != null) {
-            gs.occupancyState.updateAll(this.state.occupancyState, los);
-            for (EntityId entity : GateInfo.getOccupancies(player, this.state.gateStateManager, state.playerManager)) {
-                Point p = state.locationManager.getLocation(entity).toPoint();
-                EntitySpec type = state.typeManager.get(entity);
-                gs.occupancyState.setOccupancy(p, type.size, true);
-            }
-        }
+//        gs.occupancyState.updateAll(this.state.occupancyState, los);
+//        for (EntityId entity : GateInfo.getOccupancies(player, this.state.gateStateManager, state.playerManager)) {
+//            Point p = state.locationManager.getLocation(entity).toPoint();
+//            EntitySpec type = state.typeManager.get(entity);
+//            gs.occupancyState.setOccupancy(p, type.size, true);
+//        }
         return gs;
     }
 }

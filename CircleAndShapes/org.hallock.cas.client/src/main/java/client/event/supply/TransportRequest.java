@@ -22,7 +22,7 @@ public class TransportRequest implements Comparable<TransportRequest> {
     @Override
     public int compareTo(TransportRequest consumerRequest) {
         int cmp = Integer.compare(priority, consumerRequest.priority);
-        if (cmp != 0) return cmp;
+        if (cmp != 0) return -cmp;
         cmp = Double.compare(timeRequested, consumerRequest.timeRequested);
         if (cmp != 0) return cmp;
         return 0;

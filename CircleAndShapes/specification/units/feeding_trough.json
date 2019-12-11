@@ -1,0 +1,21 @@
+{
+  "image": "unit/feeding_trough.png",
+  "health-points": 10,
+  "garrison-capacity": 1,
+  "size": {
+    "width": 1,
+    "height": 1
+  },
+  "building-path": "husbandry",
+  "line-of-sight": 5,
+  "name": "feeding-trough",
+  "can-craft": {
+    "children": [],
+    "type": "branch"
+  },
+  "carry-capacity": {},
+  "can-create": {
+    "children": [],
+    "type": "branch"
+  }
+}

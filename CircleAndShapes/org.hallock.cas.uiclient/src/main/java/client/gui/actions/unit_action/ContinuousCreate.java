@@ -2,8 +2,8 @@ package client.gui.actions.unit_action;
 
 import client.ai.ai2.Produce;
 import client.app.UiClientContext;
-import common.state.spec.CreationSpec;
 import common.state.EntityReader;
+import common.state.spec.CreationSpec;
 
 public class ContinuousCreate extends UnitAction {
 
@@ -16,7 +16,7 @@ public class ContinuousCreate extends UnitAction {
 
     @Override
     public boolean isEnabled(EntityReader entity) {
-        return defaultGuardStatement(entity) && entity.isIdle() && !c.clientGameState.aiManager.isControlling(entity) && entity.getType().canCreate.contains(spec);
+        return defaultGuardStatement(entity) && entity.isIdle() && !c.clientGameState.aiManager.isControlling(entity) && entity.getType().canCreate.anyMatch(spec::equals);
     }
 
     @Override

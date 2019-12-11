@@ -1,6 +1,6 @@
 package driver;
 
-import client.gui.game.Zoom;
+import client.gui.game.SquishZoom;
 import client.gui.mouse.ZoomListener;
 
 import javax.swing.*;
@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Random;
 
 public class MakeSomeWater {
-    static Zoom zoom;
+    static SquishZoom zoom;
 
     static int width = 500;
     static int height = 500;
@@ -17,7 +17,8 @@ public class MakeSomeWater {
 
 
     private static final class PanelDisplayer extends JPanel {
-        public void paint(Graphics g) {
+        public void paint(Graphics graphics) {
+            Graphics2D g = (Graphics2D) graphics;
             int w = getWidth();
             int h = getHeight();
 
@@ -27,13 +28,8 @@ public class MakeSomeWater {
 
             for (int i = 0; i < depths.length; i++) {
                 for (int j = 0; j < depths[i].length; j++) {
-                    int x1 = zoom.mapGameToScreenX(i);
-                    int y1 = zoom.mapGameToScreenY(j);
-                    int x2 = zoom.mapGameToScreenX(i + 1);
-                    int y2 = zoom.mapGameToScreenY(j + 1);
-
                     g.setColor(new Color(0, 0, depths[i][j]));
-                    g.fillRect(x1, y2, x2 - x1, y1 - y2);
+                    g.fill(zoom.mapGameToScreen(i, j, 1, 1));
                 }
             }
         }
@@ -46,7 +42,7 @@ public class MakeSomeWater {
         frame.setBounds(50, 50, 1000, 1000);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JPanel panel = new PanelDisplayer();
-        zoom = new Zoom(panel, null);
+        zoom = new SquishZoom(panel);
         frame.setContentPane(panel);
         frame.setVisible(true);
 

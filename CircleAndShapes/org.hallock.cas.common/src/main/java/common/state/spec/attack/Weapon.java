@@ -42,7 +42,7 @@ public class Weapon implements Jsonable {
         @Override
         public Weapon parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
             reader.readBeginDocument();
-            Weapon weapon = new Weapon(spec.spec.getWeaponSpec(reader.readString("weapon-type")));
+            Weapon weapon = new Weapon(spec.spec().getWeaponSpec(reader.readString("weapon-type")));
             weapon.condition = reader.readDouble("condition");
             reader.readEndDocument();
             return weapon;

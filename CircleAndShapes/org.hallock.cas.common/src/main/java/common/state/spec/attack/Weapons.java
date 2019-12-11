@@ -6,6 +6,7 @@ import common.state.spec.ResourceType;
 import java.util.Collections;
 
 public class Weapons {
+    // TODO: remove this class, can we already do it?
     public static final ResourceType[] RESOURCES_REQUIRED_BY_WEAPONS = new ResourceType[] {
             new ResourceType("arrow", 1),
             new ResourceType("bullet", 1),

@@ -1,10 +1,8 @@
 package server.app;
 
 import common.msg.ConnectionWriter;
-import common.msg.Message;
-import common.state.Player;
 import common.state.spec.GameSpec;
-import server.state.ServerStateManipulator;
+import common.state.sst.GameState;
 
 import java.io.IOException;
 
@@ -44,16 +42,16 @@ public class ServerConnectionContext implements PlayerConnection {
         this.lobby.setSpectating(spectate, this);
     }
 
-    void launch() {
+    void launch() throws IOException {
         if (lobby == null) {
             throw new RuntimeException("Not in a lobby!");
         }
         lobby.launch();
     }
 
-    GameSpec getCurrentGameSpec() {
+    public GameState getCurrentGameState() {
         if (lobby == null) return null;
-        return lobby.spec;
+        return lobby.getCurrentGameState();
     }
 
     @Override

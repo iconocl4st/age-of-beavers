@@ -5,9 +5,6 @@ import common.msg.ConnectionWriter;
 import common.msg.Message;
 import common.msg.NoExceptionsConnectionWriter;
 
-import java.awt.geom.Rectangle2D;
-import java.util.List;
-
 public class AiConnection implements PlayerConnection {
 
     private final PlayerAiInterface context;

@@ -1,11 +1,14 @@
 package common.action;
 
+import common.algo.AStar;
+import common.algo.jmp_pnt.JumpPointSearch;
+import common.factory.Path;
+import common.factory.PathFinder;
+import common.state.EntityId;
+import common.state.EntityReader;
+import common.state.Player;
 import common.state.spec.CreationSpec;
 import common.state.spec.ResourceType;
-import common.state.EntityId;
-import common.state.Player;
-import common.algo.AStar;
-import common.util.DPoint;
 import common.util.json.*;
 
 import java.io.IOException;
@@ -20,6 +23,21 @@ public abstract class Action implements Jsonable {
     }
 
     public abstract double getProgressIndicator();
+
+
+
+    public static abstract class DoubleProgressAction extends Action {
+        public double progress;
+
+        protected DoubleProgressAction(ActionType type) {
+            super(type);
+        }
+
+        @Override
+        public final double getProgressIndicator() {
+            return progress;
+        }
+    }
 
     // TODO: ignore several of the fields when coming from the client
 
@@ -43,7 +61,10 @@ public abstract class Action implements Jsonable {
         Move,
         Build,
         Wait,
-//        Chase,
+        Plant,
+        Garden,
+
+//        Dig, // Would be a sweet actions...
         ;
 
         public static final DataSerializer<ActionType> Serializer = new DataSerializer<ActionType>() {
@@ -63,12 +84,10 @@ public abstract class Action implements Jsonable {
         return type.name();
     }
 
-    public static class Attack extends Action {
+    public static class Attack extends DoubleProgressAction {
         public final EntityId target;
         public final String weaponType;
         public boolean isOnCooldown;
-        public double progress;
-
 
         public Attack(EntityId target, String weaponType) {
             super(ActionType.Attack);
@@ -87,10 +106,6 @@ public abstract class Action implements Jsonable {
 
         public String toString() {
             return "attacking wtih a " + weaponType;
-        }
-
-        public double getProgressIndicator() {
-            return progress;
         }
 
         @Override
@@ -127,11 +142,10 @@ public abstract class Action implements Jsonable {
     }
 
 
-    public static class Collect extends Action {
+    public static class Collect extends DoubleProgressAction {
         public final ResourceType resource;
         public final EntityId resourceCarrier;
         public final int maximumAmountToCollect;
-        public double progress;
 
         public Collect(EntityId carrier, ResourceType resourceToCollect, int maxAmount) {
             super(ActionType.Collect);
@@ -155,11 +169,6 @@ public abstract class Action implements Jsonable {
         }
 
         @Override
-        public double getProgressIndicator() {
-            return progress;
-        }
-
-        @Override
         protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
             writer.write("resource-entity", resourceCarrier, EntityId.Serializer, options);
             writer.write("resource", resource, ResourceType.Serializer, options);
@@ -169,11 +178,10 @@ public abstract class Action implements Jsonable {
     }
 
 
-    public static class Deposit extends Action {
+    public static class Deposit extends DoubleProgressAction {
         public final EntityId location;
         public final ResourceType resource;
         public final int maxAmount;
-        public double progress;
 
         public Deposit(EntityId location, ResourceType resource, int maximumAmountToDeposit) {
             super(ActionType.Deposit);
@@ -190,11 +198,6 @@ public abstract class Action implements Jsonable {
             );
             collect.progress = reader.readDouble("progress");
             return collect;
-        }
-
-        @Override
-        public double getProgressIndicator() {
-            return progress;
         }
 
         @Override
@@ -215,7 +218,7 @@ public abstract class Action implements Jsonable {
         public Create(CreationSpec spec) {
             super(ActionType.Create);
             this.spec = spec;
-            this.timeRemaining = spec.createdType.creationTime;
+            this.timeRemaining = spec.creationTime;
         }
 
         public static Action finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
@@ -227,12 +230,12 @@ public abstract class Action implements Jsonable {
 
         public String toString() {
             //  to do, why is it null
-            return "Creating a " + spec.createdType.name + ": (" + String.format("%.2f", 100 * (spec.createdType.creationTime - timeRemaining) / spec.createdType.creationTime) + "%) (from " + numberOfContributingUnits + ")";
+            return "Creating a " + spec.createdType.name + ": (" + String.format("%.2f", 100 * (spec.creationTime - timeRemaining) / spec.creationTime) + "%) (from " + numberOfContributingUnits + ")";
         }
 
         @Override
         public double getProgressIndicator() {
-            return (spec.createdType.creationTime - timeRemaining) / spec.createdType.creationTime;
+            return (spec.creationTime - timeRemaining) / spec.creationTime;
         }
 
         @Override
@@ -263,17 +266,37 @@ public abstract class Action implements Jsonable {
     }
 
     public static class MoveSeq extends Action {
+        public final Path<? extends Jsonable> path;
         public int progress;
-        public final AStar.Path path;
-        public int blockedCount;
 
-        public MoveSeq(AStar.Path path) {
+        public Path<? extends Jsonable> detour;
+        public int detourProgress;
+
+        public int blockedCount;
+        public int amountOfTimeToWait;
+        public int detourFailures;
+
+        public MoveSeq(Path<? extends Jsonable> path) {
             super(ActionType.Move);
             this.path = path;
+            if (path == null) {
+                throw new NullPointerException();
+            }
         }
 
         public static Action finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
-            MoveSeq move = new MoveSeq(reader.read("path", AStar.Path.Serializer, spec));
+            DataSerializer<? extends Jsonable> serializer;
+            switch (PathFinder.CURRENT_SEARCH) {
+                case PathFinder.JUMP_STAR_SEARCH:
+                    serializer = JumpPointSearch.JPSDebug.Serializer;
+                    break;
+                case PathFinder.ASTAR_SEARCH:
+                    serializer = AStar.AStarDebug.Serializer;
+                    break;
+                default:
+                    throw new IllegalStateException();
+            }
+            MoveSeq move = new MoveSeq(reader.read("points", Path.createSerializer(serializer), spec));
             move.progress = reader.readInt32("progress");
             return move;
         }
@@ -285,7 +308,8 @@ public abstract class Action implements Jsonable {
 
         @Override
         protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
-            writer.write("path", path, AStar.Path.Serializer, options);
+            writer.writeName("points");
+            path.writeTo(writer, options);
             writer.write("progress", progress);
         }
     }
@@ -309,6 +333,61 @@ public abstract class Action implements Jsonable {
         @Override
         protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
             writer.write("remaining-time", remainingTime);
+        }
+    }
+
+    public static class Bury extends DoubleProgressAction {
+        public ResourceType seed;
+
+        public Bury(ResourceType rt) {
+            super(ActionType.Plant);
+            this.seed = rt;
+            this.progress = 0.0;
+        }
+
+        private Bury(ResourceType rt, double time) {
+            super(ActionType.Plant);
+            this.seed = rt;
+            this.progress = time;
+        }
+
+        public static Bury finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
+            return new Bury(
+                    reader.read("seed", ResourceType.Serializer, spec),
+                    reader.readDouble("progress")
+            );
+        }
+
+        @Override
+        protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+            writer.write("seed", seed, ResourceType.Serializer, options);
+            writer.write("progress", progress);
+        }
+    }
+
+    public static class Garden extends DoubleProgressAction {
+        public EntityId plant;
+
+        public Garden(EntityId rt) {
+            super(ActionType.Garden);
+            this.plant = rt;
+            this.progress = 0.0;
+        }
+
+        private Garden(EntityId rt, double time) {
+            super(ActionType.Garden);
+            this.plant = rt;
+            this.progress = time;
+        }
+
+        public static Garden finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
+            return new Garden(reader.read("plant", EntityId.Serializer, spec), reader.readDouble("progress"));
+        }
+
+        @Override
+        protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+            writer.write("plant", plant, EntityId.Serializer, options);
+            writer.write("progress", progress);
         }
     }
 
@@ -337,6 +416,8 @@ public abstract class Action implements Jsonable {
                 case Create: action = Create.finishParsing(reader, spec); break;
                 case Idle: action = Idle.finishParsing(reader, spec); break;
                 case Wait: action = Wait.finishParsing(reader, spec); break;
+                case Plant: action = Bury.finishParsing(reader, spec); break;
+                case Garden: action = Garden.finishParsing(reader, spec); break;
             }
             reader.readEndDocument();
             return action;

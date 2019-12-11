@@ -5,7 +5,6 @@ import client.app.UiClientContext;
 import client.event.AiEventListener;
 import client.state.SelectionManager;
 import common.event.AiEvent;
-import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.spec.GameSpec;
 
@@ -25,8 +24,7 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
 
     private final Set<EntityReader> currentlySelected = new HashSet<>();
     private final List<CreatedButton> currentButtons = new LinkedList<>();
-    private final LinkedList<StackItem> stack = new LinkedList<>();
-    private String stackArg;
+    private final LinkedList<StackItemWithArgs> stack = new LinkedList<>();
     private Actions actions;
 
     private final DemandsView demands;
@@ -43,7 +41,7 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
 
     private UnitActions(UiClientContext context) {
         this.context = context;
-        stack.addLast(StackItem.GlobalActions);
+        stack.addLast(new StackItemWithArgs(StackItem.GlobalActions));
         demands = new DemandsView(context);
         evolutionView = new EvolutionView(context);
     }
@@ -55,15 +53,21 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
         demands.initialize(spec);
     }
 
-    void push(StackItem item, String stackArg) {
+    void push(StackItem item) {
         synchronized (sync) {
-            stack.addLast(item);
-            this.stackArg = stackArg;
+            stack.addLast(new StackItemWithArgs(item));
             drawCurrentButtons(true);
         }
     }
 
-    public void pop() {
+    void pushArg(String stackArg) {
+        synchronized (sync) {
+            stack.addLast(new StackItemWithArgs(stack.getLast(), stackArg));
+            drawCurrentButtons(true);
+        }
+    }
+
+    void pop() {
         synchronized (sync) {
             if (stack.size() > 1)
                 stack.removeLast();
@@ -75,7 +79,7 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
     public void popAll() {
         synchronized (sync) {
             stack.clear();
-            stack.push(StackItem.GlobalActions);
+            stack.push(new StackItemWithArgs(StackItem.GlobalActions));
             context.selectionManager.select(Collections.emptySet());
             drawCurrentButtons(true);
         }
@@ -167,7 +171,8 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
                     throw new RuntimeException("Should not be able to happen.");
                 }
 
-                switch (stack.getLast()) {
+                StackItemWithArgs last = stack.getLast();
+                switch (last.item) {
                     case Duplicate:
                         drawCurrentButtons(recreate, actions.duplicates, true);
                         break;
@@ -178,7 +183,10 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
                         drawCurrentButtons(recreate, actions.pickupActions, true);
                         break;
                     case Create:
-                        drawCurrentButtons(recreate, actions.getCreateButtons(context, currentlySelected.iterator().next()), true);
+                        drawCurrentButtons(recreate, actions.getCreateButtons(context, currentlySelected.iterator().next(), last.args), true);
+                        break;
+                    case Craft:
+                        drawCurrentButtons(recreate, actions.getCraftButtons(context, currentlySelected.iterator().next(), last.args), true);
                         break;
                     case GateOptions:
                         drawCurrentButtons(recreate, actions.gateButtons, true);
@@ -196,7 +204,7 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
                         drawCurrentButtons(recreate, actions.setAi, true);
                         break;
                     case PlaceBuilding:
-                        drawCurrentButtons(recreate, actions.getBuildingButtons(stackArg), true);
+                        drawCurrentButtons(recreate, actions.getBuildingButtons(context, last.args), true);
                         break;
                     case SetDemands:
                         drawDemands(recreate);
@@ -242,19 +250,19 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
             }
 
             stack.clear();
-            stack.add(StackItem.GlobalActions);
+            stack.add(new StackItemWithArgs(StackItem.GlobalActions));
             if (newSelectedUnits.isEmpty()) {
                 drawCurrentButtons(true);
                 return;
             }
 
             if (newSelectedUnits.size() == 1) {
-                stack.add(StackItem.SingleUnit);
+                stack.add(new StackItemWithArgs(StackItem.SingleUnit));
                 drawCurrentButtons(true);
                 return;
             }
 
-            stack.add(StackItem.MultiUnit);
+            stack.add(new StackItemWithArgs(StackItem.MultiUnit));
             drawCurrentButtons(true);
         }
     }
@@ -289,6 +297,25 @@ public class UnitActions extends JPanel implements SelectionManager.SelectionLis
         Duplicate,
         SetDemands,
         SetEvolutionSpec,
+        Craft,
+    }
+
+
+    private static final class StackItemWithArgs {
+        private final StackItem item;
+        private final String[] args;
+
+        private StackItemWithArgs(StackItem item) {
+            this.item = item;
+            this.args = new String[0];
+        }
+
+        private StackItemWithArgs(StackItemWithArgs prev, String newArg) {
+            this.item = prev.item;
+            this.args = new String[prev.args.length + 1];
+            System.arraycopy(prev.args, 0, this.args, 0, prev.args.length);
+            this.args[this.args.length - 1] = newArg;
+        }
     }
 
     private static final class CreatedButton {

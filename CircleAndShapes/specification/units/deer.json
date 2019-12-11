@@ -1,0 +1,22 @@
+{
+  "parent": "unit",
+  "image": "unit/deer.png",
+  "health-points": 20,
+  "deposit-speed": 10,
+  "size": {
+    "width": 0,
+    "height": 0
+  },
+  "line-of-sight": 0,
+  "collect-speed": 1,
+  "name": "deer",
+  "can-craft": {
+    "children": [],
+    "type": "branch"
+  },
+  "can-create": {
+    "children": [],
+    "type": "branch"
+  },
+  "move-speed": 2
+}

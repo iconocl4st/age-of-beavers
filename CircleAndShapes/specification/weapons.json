@@ -1,0 +1,63 @@
+{"weapons": [
+  {
+    "attack-time": 1,
+    "damage": 10,
+    "damage-type": "Pierce",
+    "weapon-class": "Projectile",
+    "name": "bow",
+    "fire-resources": [],
+    "inner-range": 5,
+    "decrement-condition": 0,
+    "outer-range": 6,
+    "cooldown-time": 2,
+    "required-resources": []
+  },
+  {
+    "attack-time": 1,
+    "damage": 1,
+    "damage-type": "Bash",
+    "weapon-class": "Melee",
+    "name": "fist",
+    "fire-resources": [],
+    "inner-range": 2.6,
+    "outer-range": 3.6,
+    "cooldown-time": 1,
+    "required-resources": []
+  },
+  {
+    "attack-time": 0,
+    "damage": 50,
+    "damage-type": "Heat",
+    "weapon-class": "Instant",
+    "name": "laser gun",
+    "fire-resources": [],
+    "inner-range": 10,
+    "outer-range": 11,
+    "cooldown-time": 0,
+    "required-resources": []
+  },
+  {
+    "attack-time": 1,
+    "damage": 20,
+    "damage-type": "Pierce",
+    "weapon-class": "Projectile",
+    "name": "rifle",
+    "fire-resources": [],
+    "inner-range": 10,
+    "outer-range": 11,
+    "cooldown-time": 3,
+    "required-resources": []
+  },
+  {
+    "attack-time": 1,
+    "damage": 30,
+    "damage-type": "Slice",
+    "weapon-class": "Melee",
+    "name": "sword",
+    "fire-resources": [],
+    "inner-range": 2.6,
+    "outer-range": 3.6,
+    "cooldown-time": 1,
+    "required-resources": []
+  }
+]}

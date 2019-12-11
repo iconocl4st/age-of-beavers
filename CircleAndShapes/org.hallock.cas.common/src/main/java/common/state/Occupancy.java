@@ -1,74 +1,74 @@
 package common.state;
 
-import common.state.los.LineOfSightSpec;
-import common.state.spec.GameSpec;
-import common.util.BitArray;
-import common.util.json.*;
+import common.state.los.Exploration;
+import common.state.sst.GameState;
+import common.state.sst.OccupancyView;
+import common.util.query.EntityReaderFilter;
 
 import java.awt.*;
-import java.io.IOException;
-import java.io.Serializable;
 
-public class Occupancy implements Jsonable {
-    private final BitArray bitArray;
+public class Occupancy {
+    // could be based off the types, would probably be better...
+    private static final EntityReaderFilter filter = e -> e.getGateState() == null && !e.isHidden() && e.getConstructionZone() == null;
 
-    public Occupancy(int width, int height) {
-        this.bitArray = new BitArray(width, height, 1, 1);
+    public static OccupancyView createConstructionOccupancy(GameState state, Exploration exploration) {
+        return (x, y) ->
+                state.staticOccupancy.isOutOfBounds(x, y) ||
+                state.staticOccupancy.get(x, y) ||
+                state.buildingOccupancy.get(x, y) ||
+                !exploration.get(x, y) ||
+                !state.gateStateManager.getByType(new Point(x, y)).isEmpty() // only works when gates have size 1...
+        ;
+    }
+    public static OccupancyView createUnitOccupancy(EntityReader entity) {
+        GameState state = entity.getState();
+        Player owner = entity.getOwner();
+        return (x, y) ->
+                state.staticOccupancy.isOutOfBounds(x, y) ||
+                state.staticOccupancy.get(x, y) ||
+                !state.locationManager.getEntities(new Point(x, y), e -> !e.equals(entity) && filter.include(e)).isEmpty() /* ||
+                GateInfo.isOccupiedFor(new Point(x, y), owner, state.gateStateManager, state.playerManager) */
+        ;
     }
 
-    private BitArray.BitArrayView getOccupancy() {
-        return new BitArray.BitArrayView(bitArray, new int[]{0, 0});
+    public static OccupancyView createUnitOccupancy(GameState state, Player owner) {
+        return (x, y) -> (
+                state.staticOccupancy.isOutOfBounds(x, y) ||
+                state.staticOccupancy.get(x, y) ||
+                !state.locationManager.getEntities(new Point(x, y), filter).isEmpty() /* ||
+                GateInfo.isOccupiedFor(new Point(x, y), owner, state.gateStateManager, state.playerManager) */
+        );
+    }
+    public static OccupancyView createStaticOccupancy(GameState state, Player player) {
+        return (x, y) ->
+                state.staticOccupancy.isOutOfBounds(x, y) ||
+                state.staticOccupancy.get(x, y) /* ||
+                GateInfo.isOccupiedFor(new Point(x, y), player, state.gateStateManager, state.playerManager) */
+        ;
     }
 
-    public void updateAll(Occupancy tilesState) {
-        bitArray.updateAll(tilesState.bitArray);
+    public static OccupancyView createGenerationOccupancy(GameState state) {
+        return (x, y) -> !state.locationManager.getEntities(new Point(x, y), EntityReaderFilter.Any).isEmpty();
     }
 
-    public void updateAll(Occupancy occupancyState, LineOfSightSpec los) {
-        BitArray.BitArrayView occupancy = getOccupancy();
-        for (int i = 0; i < bitArray.getDimension(0); i++) {
-            for (int j = 0; j < bitArray.getDimension(1); j++) {
-                if (los.isVisible(null, i, j)) {
-                    occupancy.set(i, j, occupancyState.isGloballyOccupied(i, j));
-                }
-            }
-        }
+    public static boolean isOccupied(OccupancyView view, Point location, Dimension size) {
+        return isOccupied(view, location.x,  location.y, size);
     }
 
-    public void setOccupancy(Point location, Dimension size, boolean occupancy) {
-        for (int x = 0; x < size.width; x++) {
-            for (int y = 0; y < size.height; y++) {
-                bitArray.set(location.x + x, location.y + y, 0, 0, occupancy);
-            }
-        }
-    }
-
-    public boolean isGloballyOccupied(int x, int y) {
-        return bitArray.get(x, y, 0, 0);
-    }
-
-    public boolean isOutOfBounds(int x, int y) {
-        return bitArray.isOutOfBounds(x, y, 0, 0);
-    }
-
-    public void updateAll(JsonReaderWrapperSpec reader, ReadOptions gameSpec) throws IOException {
-        reader.readBeginDocument();
-        reader.readName("occupied");
-        bitArray.updateAll(reader, gameSpec);
-        reader.readEndDocument();
-    }
-
-    @Override
-    public void writeTo(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
-        writer.writeBeginDocument();
-        writer.writeName("occupied");
-        bitArray.writeTo(writer, options);
-        writer.writeEndDocument();
+    public static boolean isOccupied(OccupancyView view, int bx, int by, Dimension size) {
+        for (int x = 0; x < size.width; x++)
+            for (int y = 0; y < size.height; y++)
+                if (view.isOccupied(bx + x, by + y))
+                    return true;
+        return false;
     }
 
 
+//    public OccupancyView globalOccupancyView() {
+//        return (x, y) -> isOutOfBounds(x, y) || isGloballyOccupied(x, y);
+//    }
 
-//    public Occupancy cloneFromPerspective(GateStateManager conditionalOccupancyManager, Player player, SinglePlayerLineOfSight los) {
+//    public Occupancy cloneFromPerspective(GateStateManager conditionalOccupancyManager, Player player, LineOfSightImpl los) {
 //        int w = bitArray.getDimension(0);
 //        int h = bitArray.getDimension(1);
 //        Occupancy occ = new Occupancy(bitArray.getDimension(0), bitArray.getDimension(1));

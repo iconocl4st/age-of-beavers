@@ -2,11 +2,10 @@ package common.util.json;
 
 import java.awt.*;
 import java.io.IOException;
-import java.io.Serializable;
 
-public interface DataSerializer<T> extends Serializable {
+public interface DataSerializer<T> {
     void write(T value, JsonWriterWrapperSpec writer, WriteOptions options) throws IOException;
-    T parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException;
+    T parse(JsonReaderWrapperSpec reader, ReadOptions opts) throws IOException;
 
 
     abstract class JsonableSerializer<G extends Jsonable> implements DataSerializer<G> {

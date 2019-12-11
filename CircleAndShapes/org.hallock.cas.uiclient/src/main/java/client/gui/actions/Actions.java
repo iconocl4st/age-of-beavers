@@ -6,12 +6,16 @@ import client.gui.actions.global_action.PlaceBuilding;
 import client.gui.actions.multi_unit.FilterAction;
 import client.gui.actions.unit_action.*;
 import common.state.EntityReader;
-import common.state.spec.*;
+import common.state.spec.CreationMethod;
+import common.state.spec.CreationSpec;
+import common.state.spec.ResourceType;
+import common.state.spec.SpecTree;
 import common.state.sst.sub.GateInfo;
 
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
-import java.util.Map;
 
 public class Actions {
 
@@ -23,23 +27,37 @@ public class Actions {
     Action[] gateButtons;
     Action[] duplicates;
     Action[] setAi;
-    Map<String, Action[]> buildingButtons = new HashMap<>();
 
+    SpecTree<CreationSpec> buildingPlacements;
 
-    public Action[] getBuildingButtons(String stackArg) {
-        return buildingButtons.getOrDefault(stackArg, new Action[0]);
+    Action[] getBuildingButtons(UiClientContext context, String[] currentPath) {
+        return getActionsForSpecTree(
+                context,
+                buildingPlacements,
+                currentPath,
+                input -> Collections.singleton(new PlaceBuilding(context, input.createdType))
+        );
     }
 
-    private PushStack.GlobalPushStack parseBuildingPaths(UiClientContext context, String currentPath, String name, GameSpec.BuildingPathNode buildingPathNode) {
-        LinkedList<Action> globals = new LinkedList<>();
-        for (Map.Entry<String, GameSpec.BuildingPathNode> entry : buildingPathNode.children.entrySet()) {
-            globals.add(parseBuildingPaths(context, currentPath + ":" + entry.getKey(), entry.getKey(), entry.getValue()));
-        }
-        for (EntitySpec buildingSpec : buildingPathNode.buildings) {
-            globals.add(new PlaceBuilding(context, buildingSpec));
-        }
-        buildingButtons.put(currentPath, globals.toArray(new Action[0]));
-        return new PushStack.GlobalPushStack(context, name, UnitActions.StackItem.PlaceBuilding, currentPath);
+    interface idk<I> {
+        Collection<Action> create(I input);
+    }
+
+    private static <I> Action[] getActionsForSpecTree(
+            UiClientContext context,
+            SpecTree<I> tree,
+            String[] currentPath,
+            idk<I> idk
+    ) {
+        SpecTree.SpecNode<I> node = tree.get(currentPath);
+
+        LinkedList<Action> options = new LinkedList<>();
+        for (String child : node.getChildren())
+            options.add(new PushStack.StackArgPusher(context, child));
+        I value = node.getValue();
+        if (value != null)
+            options.addAll(idk.create(value));
+        return options.toArray(new Action[0]);
     }
 
     // select high initialBaseHealth
@@ -78,7 +96,7 @@ public class Actions {
         };
 
         actions.singleUnitActions = new Action[]{
-                new PushStack(context, "Duplicates", UnitActions.StackItem.Duplicate) {
+                new PushStack.UnitStackItemPusher(context, "Duplicates", UnitActions.StackItem.Duplicate) {
                     @Override
                     public boolean isEnabled(EntityReader entity) {
                         return defaultGuardStatement(entity) && (
@@ -90,7 +108,7 @@ public class Actions {
                         );
                     }
                 },
-                new PushStack(context, "Set Ai...", UnitActions.StackItem.SetAi) {
+                new PushStack.UnitStackItemPusher(context, "Set Ai...", UnitActions.StackItem.SetAi) {
                     @Override
                     public boolean isEnabled(EntityReader entity) {
                         return defaultGuardStatement(entity) && (
@@ -101,37 +119,43 @@ public class Actions {
                         );
                     }
                 },
-                new PushStack(context, "Pickup...", UnitActions.StackItem.Pickup) {
+                new PushStack.UnitStackItemPusher(context, "Pickup...", UnitActions.StackItem.Pickup) {
                     @Override
                     public boolean isEnabled(EntityReader entity) {
                         return defaultGuardStatement(entity) && entity.getType().containsClass("carrier");
                     }
                 },
-                new PushStack(context, "Create...", UnitActions.StackItem.Create) {
+                new PushStack.UnitStackItemPusher(context, "Create...", UnitActions.StackItem.Create) {
                     @Override
                     public boolean isEnabled(EntityReader entity) {
-                        return defaultGuardStatement(entity) && !entity.getType().canCreate.isEmpty();
+                        return defaultGuardStatement(entity) && entity.getType().canCreate.isNotEmpty();
                     }
                 },
-                new PushStack(context, "Set demands...", UnitActions.StackItem.SetDemands) {
+                new PushStack.UnitStackItemPusher(context, "Craft...", UnitActions.StackItem.Craft) {
+                    @Override
+                    public boolean isEnabled(EntityReader entity) {
+                        return defaultGuardStatement(entity) && entity.getType().canCraft.isNotEmpty();
+                    }
+                },
+                new PushStack.UnitStackItemPusher(context, "Set demands...", UnitActions.StackItem.SetDemands) {
                     @Override
                     public boolean isEnabled(EntityReader entity) {
                         return defaultGuardStatement(entity) && entity.getType().containsClass("storage");
                     }
                 },
-                new PushStack(context, "Set evo selects...", UnitActions.StackItem.SetEvolutionSpec) {
+                new PushStack.UnitStackItemPusher(context, "Set evo selects...", UnitActions.StackItem.SetEvolutionSpec) {
                     @Override
                     public boolean isEnabled(EntityReader entity) {
-                        return defaultGuardStatement(entity) && entity.getType().canCreate.stream().anyMatch(c->c.method.equals(CreationMethod.Garrison));
+                        return defaultGuardStatement(entity) && entity.getType().canCreate.anyMatch(c->c.method.equals(CreationMethod.Garrison));
                     }
                 },
-                new PushStack(context, "Gate options...", UnitActions.StackItem.GateOptions) {
+                new PushStack.UnitStackItemPusher(context, "Gate options...", UnitActions.StackItem.GateOptions) {
                     @Override
                     public boolean isEnabled(EntityReader entity) {
                         return defaultGuardStatement(entity) && entity.getType().containsClass("player-occupies");
                     }
                 },
-                new PushStack(context, "Garrisons...", UnitActions.StackItem.Garrisons) {
+                new PushStack.UnitStackItemPusher(context, "Garrisons...", UnitActions.StackItem.Garrisons) {
                     @Override
                     public boolean isEnabled(EntityReader entity) {
                         return entity != null && !entity.noLongerExists() && (
@@ -184,20 +208,35 @@ public class Actions {
                 new DisabledAction(context,"Cancel"),
                 new FilterAllPlayerUnits(context, "Select Idle", EntityReader::isIdle),
                 new FilterAllPlayerUnits(context, "Select Low initialBaseHealth", EntityReader::isLowHealth),
+                new PushStack.UnitStackItemPusher(context, "Set evo selects...", UnitActions.StackItem.SetEvolutionSpec) {
+                    @Override
+                    public boolean isEnabled(EntityReader entity) {
+                        return defaultGuardStatement(entity) && entity.getType().canCreate.anyMatch(c->c.method.equals(CreationMethod.Garrison));
+                    }
+                },
+                new PushStack.GlobalStackItemPusher(context, "Place Building...", UnitActions.StackItem.PlaceBuilding),
 //                new CloseGame(),
 //                new SaveGame(),
-                actions.parseBuildingPaths(context, "", "Place Building...", context.clientGameState.gameState.gameSpec.compileBuildingPaths()),
         };
         return actions;
     }
 
-    public Action[] getCreateButtons(UiClientContext context, EntityReader next) {
-        LinkedList<UnitAction> list = new LinkedList<>();
-        for (CreationSpec spec : next.getType().canCreate) {
-            list.add(new Create(context, spec));
-            list.add(new ContinuousCreate(context, spec));
-        }
-        return list.toArray(new UnitAction[0]);
+    Action[] getCreateButtons(UiClientContext context, EntityReader next, String[] currentPath) {
+        return getActionsForSpecTree(
+                context,
+                next.getType().canCreate,
+                currentPath,
+                input -> Arrays.asList(new Create(context, input), new ContinuousCreate(context, input))
+        );
+    }
+
+    Action[] getCraftButtons(UiClientContext context, EntityReader next, String[] currentPath) {
+        return getActionsForSpecTree(
+                context,
+                next.getType().canCraft,
+                currentPath,
+                input -> Collections.singleton(new Craft(context, input))
+        );
     }
 }
 

@@ -61,36 +61,36 @@ public class AiLocator {
     }
 
     public EntityReader locateNearestPrey(AiContext aiContext, EntityReader entity, EntitySpec preyType) {
-        // throwing away the path...
+        // throwing away the points...
         NearestEntityQueryResults results = clientGameState.gameState.locationManager.query(
                 new NearestEntityQuery(
-                        clientGameState.gameState,
-                        entity.getLocation(),
+                        entity,
                         e -> {
-                            EntitySpec type = clientGameState.gameState.typeManager.get(e);
+                            EntitySpec type = e.getType();
                             return type != null && type.name.equals(preyType.name);
                         },
+                        clientGameState.pathFinder,
                         Double.MAX_VALUE,
-                        clientGameState.currentPlayer
+                        1
                 )
         );
         if (!results.successful())
             return null;
-        return results.getEntity(clientGameState.gameState);
+        return results.entity;
     }
 
     public EntityReader locateNearestNaturalResource(EntityReader entity, EntitySpec naturalResourceSpec) {
-        // throwing away the path...
+        // throwing away the points...
         NearestEntityQueryResults results = clientGameState.gameState.locationManager.query(new NearestEntityQuery(
-                clientGameState.gameState,
-                entity.getCenterLocation(),
-                GridLocationQuerier.createNonEmptyNaturalResourceFilter(clientGameState.gameState, naturalResourceSpec),
+                entity,
+                GridLocationQuerier.createNonEmptyNaturalResourceReaderFilter(clientGameState.gameState, naturalResourceSpec),
+                clientGameState.pathFinder,
                 Double.MAX_VALUE,
-                clientGameState.currentPlayer
+                1
         ));
         if (!results.successful()) {
             return null;
         }
-        return results.getEntity(clientGameState.gameState);
+        return results.entity;
     }
 }

@@ -2,7 +2,6 @@ package client.gui.keys;
 
 import client.app.UiClientContext;
 import client.state.SelectionManager;
-import common.state.EntityId;
 import common.state.EntityReader;
 
 import java.awt.event.KeyEvent;

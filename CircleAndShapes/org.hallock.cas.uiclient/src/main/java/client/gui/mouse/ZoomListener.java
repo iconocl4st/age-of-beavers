@@ -40,9 +40,7 @@ public class ZoomListener implements MouseListener, MouseMotionListener, MouseWh
         if (!moving) return;
         int cmX = mouseEvent.getX();
         int cmY = mouseEvent.getY();
-        double deltaX = (cmX - smX) / (double) panel.getWidth() * zoom.screenWidth;
-        double deltaY = (smY - cmY) / (double) panel.getHeight() * zoom.screenHeight;
-        zoom.recenter(scX - deltaX, scY - deltaY);
+        zoom.drag(cmX, smX, cmY, smY, scX,  scY);
     }
 
     @Override

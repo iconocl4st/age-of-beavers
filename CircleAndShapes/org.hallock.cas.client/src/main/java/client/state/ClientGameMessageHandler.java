@@ -1,12 +1,13 @@
 package client.state;
 
-import common.event.GarrisonedChanged;
-import common.event.ResourcesChanged;
+import common.algo.quad.QuadNodeType;
+import common.event.*;
 import common.msg.Message;
 import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.sst.sub.ConstructionZone;
-import common.util.json.EmptyJsonable;
+import common.state.sst.sub.GrowthInfo;
+import common.state.sst.sub.MovableEntity;
 
 public class ClientGameMessageHandler {
 
@@ -26,7 +27,8 @@ public class ClientGameMessageHandler {
             break;
             case TIME_CHANGE: {
                 Message.TimeChange msg = (Message.TimeChange) message;
-                context.gameState.currentTime = msg.currentTime;
+
+                context.gameState.updateTime(msg.currentGameTime, msg.timeOfGameTime);
             }
             break;
             case PROJECTILE_LAUNCHED: {
@@ -37,6 +39,12 @@ public class ClientGameMessageHandler {
             case PROJECTILE_LANDED: {
                 Message.ProjectileLanded msg = (Message.ProjectileLanded) message;
                 context.gameState.projectileManager.remove(msg.entityId);
+            }
+            break;
+            case DIRECTION_CHANGED: {
+                Message.DirectedLocationChange msg = (Message.DirectedLocationChange) message;
+                context.gameState.locationManager.setLocation(msg.getDirectedLocation(context.gameState));
+                context.eventManager.notifyListeners(new UnitChangedDirection(msg));
             }
             break;
             case UNIT_UPDATED: {
@@ -54,16 +62,22 @@ public class ClientGameMessageHandler {
                         break;
                     if (msg.isNowOfType != null)
                         context.gameState.typeManager.set(msg.unitId, msg.isNowOfType);
-                    if (msg.location != null) {
-                        context.gameState.locationManager.setLocation(new EntityReader(context.gameState, msg.unitId), msg.location);
-                        context.eventManager.entityMoved(entity);
-                    }
+                    if (msg.graphics != null)
+                        context.gameState.graphicsManager.set(msg.unitId, msg.graphics);
+                    if (msg.location != null)
+                        context.gameState.locationManager.setLocation(MovableEntity.createStationary(entity, msg.location));
                     if (msg.action != null)
                         context.gameState.actionManager.set(msg.unitId, msg.action);
                     if (msg.load != null) {
                         context.gameState.carryingManager.set(msg.unitId, msg.load);
                         context.eventManager.notifyListeners(new ResourcesChanged(msg.unitId));
                     }
+                    if (msg.growthInfo != null)
+                        context.gameState.crops.set(msg.unitId, msg.growthInfo);
+                    if (msg.gardenSpeed != null)
+                        context.gameState.gardenSpeed.set(msg.unitId, msg.gardenSpeed);
+                    if (msg.plantSpeed != null)
+                        context.gameState.burySpeed.set(msg.unitId, msg.plantSpeed);
                     if (msg.health != null)
                         context.gameState.healthManager.set(msg.unitId, msg.health);
                     if (msg.owner != null)
@@ -115,14 +129,6 @@ public class ClientGameMessageHandler {
                         context.gameState.evolutionManager.set(msg.unitId, msg.evolutionWeights);
                     if (msg.baseHealth != null)
                         context.gameState.baseHealthManager.set(msg.unitId, msg.baseHealth);
-                    if (msg.losDistance != null) {
-                        try {
-                            context.gameState.lineOfSight.updateLineOfSight(null, msg.losOldLocation, msg.losNewLocation, msg.losDistance);
-                        } catch (Throwable t) {
-                            System.out.println("There was an error trying to update the line of sight. " + msg.debug);
-                            System.exit(0);
-                        }
-                    }
                     if (msg.capacity != null || msg.load != null || msg.owner != null) {
                         context.supplyAndDemandManager.update(new EntityReader(context.gameState, msg.unitId));
                     }
@@ -131,8 +137,14 @@ public class ClientGameMessageHandler {
             break;
             case UNIT_REMOVED: {
                 EntityId unitId = ((Message.UnitRemoved) message).unitId;
-                context.gameState.removeEntity(unitId);
-                context.supplyAndDemandManager.remove(new EntityReader(context.gameState, unitId));
+                EntityReader entity = new EntityReader(context.gameState, unitId);
+                context.supplyAndDemandManager.remove(entity);
+                context.eventManager.notifyListeners(new UniRemovedEvent(unitId), () -> context.gameState.removeEntity(unitId));
+            }
+            break;
+            case UNIT_CREATED: {
+                EntityId unitId = ((Message.UnitCreated) message).unitId;
+                context.eventManager.notifyListeners(new UnitCreatedEvent(unitId));
             }
             break;
             case AI_EVENT: {
@@ -142,11 +154,13 @@ public class ClientGameMessageHandler {
             break;
             case OCCUPANCY_UPDATED: {
                 Message.OccupancyChanged msg = (Message.OccupancyChanged) message;
-                context.gameState.occupancyState.setOccupancy(msg.location, msg.size, msg.occupied);
+                context.gameState.staticOccupancy.set(msg.location, msg.size, msg.occupied);
+                context.gameState.buildingOccupancy.set(msg.location, msg.size, msg.construction);
+                context.quadTree.setType(msg.location, msg.size, msg.occupied ? QuadNodeType.Occupied : QuadNodeType.Empty);
             }
             break;
             default:
-                throw new RuntimeException("Unkown message type: " + message.getMessageType());
+                throw new RuntimeException("Unknown message type: " + message.getMessageType());
         }
         return true;
     }

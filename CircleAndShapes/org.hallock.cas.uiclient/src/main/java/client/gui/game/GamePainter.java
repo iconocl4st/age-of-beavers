@@ -8,26 +8,29 @@ import client.state.ClientGameState;
 import common.CommonConstants;
 import common.DebugGraphics;
 import common.action.Action;
+import common.algo.AStar;
+import common.algo.jmp_pnt.JumpPointSearch;
+import common.algo.quad.MarkedRectangle;
+import common.algo.quad.QuadNodeType;
+import common.algo.quad.QuadTree;
 import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.Player;
 import common.state.spec.EntitySpec;
 import common.state.spec.GameSpec;
 import common.state.sst.GameState;
+import common.state.sst.OccupancyView;
 import common.state.sst.manager.RevPair;
+import common.state.sst.manager.Textures;
 import common.state.sst.sub.ProjectileLaunch;
-import common.util.DPoint;
-import common.util.GridLocation;
-import common.util.Marked;
-import common.util.Util;
+import common.util.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.*;
 import java.awt.image.BufferedImage;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class GamePainter {
@@ -37,13 +40,17 @@ public class GamePainter {
     private final SelectionListener selectionListener;
     private final BuildingPlacer buildingPlacer;
 
-    UiClientContext context;
-    ClientGameState clientGameState;
-    GameState state;
+    private UiClientContext context;
+    private ClientGameState clientGameState;
+    private GameState state;
     // TODO: remove
-    JPanel panel;
+    private JPanel panel;
     private int gameWidth;
     private int gameHeight;
+    private String fps = "counting";
+    private TicksPerSecondTracker tracker = new TicksPerSecondTracker(2);
+
+    // TODO: Remove all paints that are off screen...
 
     public GamePainter(
             UiClientContext context,
@@ -80,92 +87,68 @@ public class GamePainter {
     void renderGame(Graphics2D graphics, Zoom zoom) {
         Graphics2D g = graphics;
 
+        double currentTime = clientGameState.gameState.getCurrentGameTime();
+
         g.setColor(Colors.BACKGROUND);
         g.fillRect(0, 0, panel.getWidth(), panel.getHeight());
 
-        g.setColor(Colors.GRASS);
-        g.fillRect(
-                zoom.mapGameToScreenX(0),
-                zoom.mapGameToScreenY(gameHeight),
-                zoom.mapGameToScreenX(gameWidth) - zoom.mapGameToScreenX(0),
-                zoom.mapGameToScreenY(0) - zoom.mapGameToScreenY(gameHeight)
-        );
+        g.setColor(Colors.DESERT);
+        g.fill(zoom.mapGameToScreen(0, 0, gameWidth, gameHeight));
+
+        paintTextures(g, zoom);
 
         paintGrid(g, zoom);
-        paintVisibility(g, zoom);
 
         for (EntityId entityId : state.entityManager.allKeys()) {
-            paintDisplayable(g, new EntityReader(state, entityId), zoom);
+            paintDisplayable(g, new EntityReader(state, entityId), zoom, currentTime);
         }
+
+        paintQuadTree(zoom, g, clientGameState.quadTree);
 
         // todo: encapsulate
         if (selectionListener.isSelecting()) {
             g.setColor(Color.white);
-            Rectangle r = selectionListener.rectangleListener.getScreenRectangle();
-            g.drawRect(r.x, r.y, r.width, r.height);
+            g.draw(selectionListener.rectangleListener.getScreenRectangle());
         }
 
         // TODO: These should be one pass through the actions...
         // TODO: dry
         paintPaths(g, zoom);
-        paintAction(g, Colors.DEPOSIT, Action.ActionType.Deposit, action -> new EntityReader(state, ((Action.Deposit) action).location), zoom);
-        paintAction(g, Colors.COLLECT, Action.ActionType.Collect, action -> new EntityReader(state, ((Action.Collect) action).resourceCarrier), zoom);
-        paintAction(g, Colors.ATTACK, Action.ActionType.Attack, action -> new EntityReader(state, ((Action.Attack) action).target), zoom);
-        paintAction(g, Colors.BUILD, Action.ActionType.Build, action -> new EntityReader(state, ((Action.Build) action).constructionId), zoom);
+        paintAction(g, Colors.DEPOSIT, Action.ActionType.Deposit, action -> new EntityReader(state, ((Action.Deposit) action).location), zoom, currentTime);
+        paintAction(g, Colors.COLLECT, Action.ActionType.Collect, action -> new EntityReader(state, ((Action.Collect) action).resourceCarrier), zoom, currentTime);
+        paintAction(g, Colors.ATTACK, Action.ActionType.Attack, action -> new EntityReader(state, ((Action.Attack) action).target), zoom, currentTime);
+        paintAction(g, Colors.BUILD, Action.ActionType.Build, action -> new EntityReader(state, ((Action.Build) action).constructionId), zoom, currentTime);
         paintBuilding(g, zoom);
 
         paintProjectiles(g, zoom);
         // todo: paint
 
-        g.setColor(Colors.MAP_BOUNDARY);
-        g.drawRect(
-                zoom.mapGameToScreenX(0),
-                zoom.mapGameToScreenY(gameHeight),
-                zoom.mapGameToScreenX(gameWidth) - zoom.mapGameToScreenX(0),
-                zoom.mapGameToScreenY(0) -  zoom.mapGameToScreenY(gameHeight)
-        );
-
-        if (CommonConstants.PAINT_DEBUG_GRAPHICS) {
+        if (CommonConstants.PAINT_GRID_DEBUG) {
             g.setColor(Color.pink);
-            for (GridLocation.GraphicalDebugRectangle r : state.locationManager.getDebugRectangles()) {
+            for (GridLocation.GraphicalDebugRectangle gdr : state.locationManager.getDebugRectangles()) {
 
-                int x1 = zoom.mapGameToScreenX(r.rectangle.getX());
-                int x2 = zoom.mapGameToScreenX(r.rectangle.getX() + r.rectangle.getWidth());
-                int y1 = zoom.mapGameToScreenY(r.rectangle.getY());
-                int y2 = zoom.mapGameToScreenY(r.rectangle.getY() + r.rectangle.getHeight());
-
-                g.drawRect(
-                        x1,
-                        y2,
-                        x2 - x1,
-                        y1 - y2
-                );
+                g.draw(gdr.rectangle);
                 g.drawString(
-                        r.description,
-                        zoom.mapGameToScreenX(r.rectangle.getX() + r.rectangle.getWidth() / 2),
-                        zoom.mapGameToScreenY(r.rectangle.getY() + r.rectangle.getHeight() / 2)
+                        gdr.description,
+                        (int) zoom.mapGameToScreenX(gdr.rectangle.getX() + gdr.rectangle.getWidth() / 2),
+                        (int) zoom.mapGameToScreenY(gdr.rectangle.getY() + gdr.rectangle.getHeight() / 2)
                 );
             }
-
             // below should be here...
         }
+
+        g.setColor(Colors.MAP_BOUNDARY);
+        g.draw(zoom.mapGameToScreen(0, 0, gameWidth, gameHeight));
 
         synchronized (DebugGraphics.byPlayer) {
             for (Map.Entry<Player, List<DebugGraphics>> entry : DebugGraphics.byPlayer.entrySet()) {
                 kmeansCycleIterator.resetIndex();
                 for (DebugGraphics debug : entry.getValue()) {
-                    int cx = zoom.mapGameToScreenX(debug.center.x);
-                    int cy = zoom.mapGameToScreenY(debug.center.y);
                     g.setColor(Colors.PLAYER_COLORS[entry.getKey().number]);
-                    g.fillOval(cx - 2, cy - 2, 4, 4);
+                    g.fill(zoom.mapGameCircleToScreen(debug.center.x, debug.center.y, 0.2));
                     g.setColor(kmeansCycleIterator.next());
-                    for (Point rec : debug.list) {
-                        g.drawLine(
-                                cx,
-                                cy,
-                                zoom.mapGameToScreenX(rec.x),
-                                zoom.mapGameToScreenY(rec.y)
-                        );
+                    for (DPoint rec : debug.list) {
+                        g.draw(zoom.mapGameLineToScreen(debug.center.x, debug.center.y, rec.x, rec.y));
                     }
                 }
             }
@@ -178,7 +161,50 @@ public class GamePainter {
             }
         }
 
-        Toolkit.getDefaultToolkit().sync();
+        paintVisibility(g, zoom);
+
+        if (CommonConstants.PAINT_FPS) {
+            String s = tracker.receiveTick();
+            if (s != null) fps = s;
+            g.setColor(Color.black);
+            g.drawString(String.valueOf(currentTime) + ", fps: " + fps, 20, 20);
+
+            Toolkit.getDefaultToolkit().sync();
+        }
+    }
+
+    private void paintTextures(Graphics2D g, Zoom zoom) {
+        for (Textures.TileTexture texture : state.textures.textures.values()) {
+            switch (texture.type) {
+                case Grass:
+                    g.setColor(Colors.GRASS);
+                    break;
+                case Water:
+                    g.setColor(Colors.WATER);
+                    break;
+            }
+            g.fill(zoom.mapGameToScreen(texture.x,  texture.y, 1, 1));
+        }
+    }
+
+    private void paintQuadTree(Zoom zoom, Graphics2D g, QuadTree quadTree) {
+        if (!CommonConstants.PAINT_QUADTREE) return;
+        g.setColor(Color.yellow);
+        Iterator<MarkedRectangle> leafIterator = quadTree.leaves();
+        while (leafIterator.hasNext()) {
+//            Rectangle re = zoom.mapGameToScreen(vertex.location.x,  vertex.location.y, 1, 1);
+            MarkedRectangle m = leafIterator.next();
+            Rectangle2D r = zoom.mapGameToScreen(m.x, m.y, m.w, m.h);
+            g.draw(r);
+
+            if (CommonConstants.PAINT_QUADTREE_VERBOSE)
+                g.drawString(String.valueOf(m.root), (int) (r.getX() + r.getWidth() / 2), (int) (r.getY() + r.getHeight() / 2));
+
+            if (m.type.equals(QuadNodeType.Occupied)) {
+                g.draw(zoom.mapGameLineToScreen(m.x,  m.y, m.x + m.w, m.y + m.h));
+                g.draw(zoom.mapGameLineToScreen(m.x,  m.y + m.h, m.x + m.w, m.y));
+            }
+        }
     }
 
     private void paintProjectiles(Graphics2D g, Zoom zoom) {
@@ -187,32 +213,23 @@ public class GamePainter {
             ProjectileLaunch projectileLaunch = state.projectileManager.get(entityId);
             DPoint currentLocation = projectileLaunch.getLocation(state.currentTime);
             if (currentLocation == null) continue;
-            int x1 = zoom.mapGameToScreenX(currentLocation.x - projectileLaunch.projectile.radius);
-            int y1 = zoom.mapGameToScreenY(currentLocation.y - projectileLaunch.projectile.radius);
-            int x2 = zoom.mapGameToScreenX(currentLocation.x + projectileLaunch.projectile.radius);
-            int y2 = zoom.mapGameToScreenY(currentLocation.y + projectileLaunch.projectile.radius);
-            g.fillOval(x1, y2, x2 - x1, y1 - y2);
+            g.fill(zoom.mapGameCircleToScreen(currentLocation.x, currentLocation.y, projectileLaunch.projectile.radius));
         }
     }
 
     private void paintGrid(Graphics2D g, Zoom zoom) {
+        double beginX = zoom.mapScreenToGameX(0);
+        double endX = zoom.mapScreenToGameX(panel.getWidth());
+
+        if (endX - beginX > 200) {
+            return;
+        }
+
         g.setColor(Colors.GRID_LINES);
-        for (int i = 0; i < gameWidth; i++) {
-            g.drawLine(
-                    zoom.mapGameToScreenX(i),
-                    zoom.mapGameToScreenY(0),
-                    zoom.mapGameToScreenX(i),
-                    zoom.mapGameToScreenY(gameHeight)
-            );
-        }
-        for (int i = 0; i < gameHeight; i++) {
-            g.drawLine(
-                    zoom.mapGameToScreenX(0),
-                    zoom.mapGameToScreenY(i),
-                    zoom.mapGameToScreenX(gameWidth),
-                    zoom.mapGameToScreenY(i)
-            );
-        }
+        for (int i = 0; i < gameWidth; i++)
+            g.draw(zoom.mapGameLineToScreen(i, 0, i, gameHeight));
+        for (int i = 0; i < gameHeight; i++)
+            g.draw(zoom.mapGameLineToScreen(0, i, gameWidth, i));
     }
 
 
@@ -223,25 +240,12 @@ public class GamePainter {
 
             @Override
             public void unMarkedRectangle(int xb, int yb, int xe, int ye) {
-                int tileX1 = zoom.mapGameToScreenX(xb);
-                int tileY1 = zoom.mapGameToScreenY(yb);
-                int tileX2 = zoom.mapGameToScreenX(xe);
-                int tileY2 = zoom.mapGameToScreenY(ye);
+                Rectangle2D r = zoom.mapGameToScreen(xb, yb, xe - xb, ye - yb);
                 g.setColor(color);
-                g.fillRect(
-                        tileX1,
-                        tileY2,
-                        tileX2 - tileX1,
-                        tileY1 - tileY2
-                );
-                if (!CommonConstants.PAINT_DEBUG_GRAPHICS) return;
+                g.fill(r);
+                if (!CommonConstants.PAINT_LOS_RECTANGLES) return;
                 g.setColor(Color.white);
-                g.drawRect(
-                        tileX1,
-                        tileY2,
-                        tileX2 - tileX1,
-                        tileY1 - tileY2
-                );
+                g.draw(r);
             }
         };
     }
@@ -255,6 +259,7 @@ public class GamePainter {
         double ye = Math.max(0, Math.min(gameHeight, Math.floor(zoom.mapScreenToGameY(panel.getHeight()))));
 
         HueristicPaintMarkedTiles.enumerateRectangles(
+
                 new Marked() {
                     @Override
                     public int getWidth() {
@@ -268,7 +273,7 @@ public class GamePainter {
 
                     @Override
                     public boolean get(int x, int y) {
-                        return state.lineOfSight.isVisible(null, x, y) || !state.lineOfSight.isExplored(null, x, y);
+                        return clientGameState.lineOfsight.get(x, y) || !clientGameState.exploration.get(x, y);
                     }
                 },
                 createPainter(Colors.NOT_VISIBLE, g, zoom),
@@ -277,11 +282,8 @@ public class GamePainter {
                 (int) xe,
                 (int) ys
         );
-
-//        if (gameSpec.visibility.equals(GameSpec.VisibilitySpec.EXPLORED)) return;
-
         HueristicPaintMarkedTiles.enumerateRectangles(
-                state.lineOfSight.createExploredView(),
+                clientGameState.exploration,
                 createPainter(Colors.UNEXPLORED, g, zoom),
                 (int) xs,
                 (int) ye,
@@ -293,24 +295,21 @@ public class GamePainter {
             return;
         }
 
+        if (!CommonConstants.PAINT_LOS_RECTANGLES) return;
+
         g.setColor(Color.white);
         for (int i = (int) xs; i < 1 + (int) xe; i++) {
             for (int j = (int) ye; j < 1 + (int) ys; j++) {
-                int tileX1 = zoom.mapGameToScreenX(i);
-                int tileY1 = zoom.mapGameToScreenY(j);
-                int tileX2 = zoom.mapGameToScreenX(i + 1);
-                int tileY2 = zoom.mapGameToScreenY(j + 1);
-//                if (!c.gameState.lineOfSight.isExplored(i, j)) {
-//                    g.fillRect(
-//                            tileX1,
-//                            tileY2,
-//                            tileX2 - tileX1,
-//                            tileY1 - tileY2
-//                    );
-//                }
+                int tileX1 = (int) zoom.mapGameToScreenX(i);
+                int tileY1 = (int) zoom.mapGameToScreenY(j);
+                int tileX2 = (int) zoom.mapGameToScreenX(i + 1);
+                int tileY2 = (int) zoom.mapGameToScreenY(j + 1);
 
                 g.drawString(
-                        "[" + i + ", " + j + "] " + context.clientGameState.gameState.lineOfSight.getCount(null, i,  j) + " " + context.clientGameState.gameState.lineOfSight.isExplored(null, tileX1, tileY1),
+                        "[" + i + ", " + j + "] " + clientGameState.lineOfsight.getCount(i,  j)
+                                + " " + clientGameState.exploration.get(i, j)
+                                + " " + clientGameState.gameState.staticOccupancy.get(i,  j)
+                                + " " + clientGameState.gameState.buildingOccupancy.get(i,  j),
                         (tileX1 + tileX2) / 2,
                         (tileY1 + tileY2) / 2
                 );
@@ -318,7 +317,7 @@ public class GamePainter {
         }
     }
 
-    public static boolean any(GameState.OccupancyView occupancy, int x, int y, int w, int h) {
+    public static boolean any(OccupancyView occupancy, int x, int y, int w, int h) {
         for (int i = 0; i < w; i++) {
             for (int j = 0; j < h; j++) {
                 if (occupancy.isOccupied(x + i, y + j))
@@ -329,21 +328,15 @@ public class GamePainter {
     }
 
     private void paintBuilding(Graphics2D g, Zoom zoom) {
-        if (buildingPlacer.isNotPlacing()) {
-            return;
-        }
-        int x1 = zoom.mapGameToScreenX(buildingPlacer.buildingLocX);
-        int y1 = zoom.mapGameToScreenY(buildingPlacer.buildingLocY);
-        int x2 = zoom.mapGameToScreenX(buildingPlacer.buildingLocX + buildingPlacer.building.size.width);
-        int y2 = zoom.mapGameToScreenY(buildingPlacer.buildingLocY + buildingPlacer.building.size.height);
-
-        if (any(state.getOccupancyView(clientGameState.currentPlayer), buildingPlacer.buildingLocX, buildingPlacer.buildingLocY, buildingPlacer.building.size.width, buildingPlacer.building.size.height)) {
-            g.setColor(Colors.CANNOT_PLACE);
-        } else {
+        Rectangle r = buildingPlacer.getBuildingLocation();
+        if (r == null) return;
+        if (buildingPlacer.canBuild()) {
             g.setColor(Colors.CAN_PLACE);
+        } else {
+            g.setColor(Colors.CANNOT_PLACE);
         }
 
-        g.fillRect(x1, y2, x2 - x1, y1 - y2);
+        g.fill(zoom.mapGameToScreen(r));
     }
 
     private void paintPaths(Graphics2D g, Zoom zoom) {
@@ -363,20 +356,36 @@ public class GamePainter {
             List<DPoint> path = mv.path.points;
             DPoint c = null;
 
-            g.setColor(Color.white);
-            if (CommonConstants.PAINT_DEBUG_GRAPHICS)
-                for (Point p : mv.path.checked) {
-                    int x1 = zoom.mapGameToScreenX(p.x + 0.4);
-                    int y1 = zoom.mapGameToScreenY(p.y + 0.4);
-                    int x2 = zoom.mapGameToScreenX(p.x + 0.6);
-                    int y2 = zoom.mapGameToScreenY(p.y + 0.6);
-                    g.fillRect(
-                            x1,
-                            y2,
-                            x2 - x1,
-                            y1 - y2
-                    );
+            AStar.AStarDebug aStarDebug = null;
+            if (mv.path.debug instanceof AStar.AStarDebug)
+                aStarDebug = (AStar.AStarDebug) mv.path.debug;
+
+            JumpPointSearch.JPSDebug jpsDebug = null;
+            if (mv.path.debug instanceof JumpPointSearch.JPSDebug)
+                jpsDebug = (JumpPointSearch.JPSDebug) mv.path.debug;
+
+            g.setColor(Color.yellow);
+            if (CommonConstants.PAINT_SEARCH_DEBUG && jpsDebug != null)
+                for (Map.Entry<Point, String> e : jpsDebug.closedSet.entrySet()) {
+                    Point p = e.getKey();
+
+                    Rectangle2D rectangle2D = zoom.mapGameToScreen(p.x, p.y, 1, 1);
+                    g.draw(rectangle2D);
+                    g.drawString(e.getValue(), (int)(rectangle2D.getX() + 1), (int)(rectangle2D.getY() + 1));
                 }
+
+            g.setColor(Color.blue);
+            if (CommonConstants.PAINT_SEARCH_DEBUG && jpsDebug != null)
+                for (Point p : jpsDebug.foundPath)
+                    g.draw(zoom.mapGameToScreen(p.x, p.y, 1, 1));
+
+
+
+            g.setColor(Color.white);
+            if (CommonConstants.PAINT_SEARCH_DEBUG && aStarDebug != null)
+                for (Point p : aStarDebug.checked)
+                    g.fill(zoom.mapGameToScreen(p.x + 0.4, p.y + 0.4, 0.2, 0.2));
+
             g.setColor(Color.blue);
             for (DPoint p : path) {
                 if (c == null) {
@@ -384,41 +393,35 @@ public class GamePainter {
                     continue;
                 }
 
-                g.drawLine(
-                        zoom.mapGameToScreenX(c.x + type.size.width / 2.0),
-                        zoom.mapGameToScreenY(c.y + type.size.height / 2.0),
-                        zoom.mapGameToScreenX(p.x + type.size.width / 2.0),
-                        zoom.mapGameToScreenY(p.y + type.size.height / 2.0)
-                );
+                g.draw(zoom.mapGameLineToScreen(
+                        c.x + type.size.width / 2.0,
+                        c.y + type.size.height / 2.0,
+                        p.x + type.size.width / 2.0,
+                        p.y + type.size.height / 2.0
+                ));
 
                 c = p;
             }
             c = null;
             g.setColor(Color.red);
-            if (CommonConstants.PAINT_DEBUG_GRAPHICS)
+            if (CommonConstants.PAINT_SEARCH_DEBUG)
                 for (DPoint p : path) {
                     if (c == null) {
                         c = p;
                         continue;
                     }
-
-                    g.drawLine(
-                            zoom.mapGameToScreenX(c.x),
-                            zoom.mapGameToScreenY(c.y),
-                            zoom.mapGameToScreenX(p.x),
-                            zoom.mapGameToScreenY(p.y)
-                    );
-
+                    g.draw(zoom.mapGameLineToScreen(c.x, c.y, p.x, p.y));
                     c = p;
                 }
 
             int rSize = 2;
             g.setColor(Color.black);
-            if (CommonConstants.PAINT_DEBUG_GRAPHICS)
-                for (DPoint p : mv.path.intersections) {
+            if (CommonConstants.PAINT_SEARCH_DEBUG && aStarDebug != null)
+                for (DPoint p : aStarDebug.intersections) {
+                    Point2D point2D = zoom.mapGameToScreen(p.x, p.y);
                     g.fillRect(
-                            zoom.mapGameToScreenX(p.x) - rSize,
-                            zoom.mapGameToScreenY(p.y) - rSize,
+                            (int) (point2D.getX() - rSize),
+                            (int) (point2D.getY() - rSize),
                             2 * rSize,
                             2 * rSize
                     );
@@ -426,60 +429,76 @@ public class GamePainter {
 
             Point cp = null;
             g.setColor(Color.yellow);
-            if (CommonConstants.PAINT_DEBUG_GRAPHICS)
-                for (Point p : mv.path.originalPoints) {
+            if (CommonConstants.PAINT_SEARCH_DEBUG && aStarDebug != null)
+                for (Point p : aStarDebug.originalPoints) {
                     if (cp == null) {
                         cp = p;
                         continue;
                     }
 
-                    g.drawLine(
-                            zoom.mapGameToScreenX(cp.x + type.size.width / 2.0),
-                            zoom.mapGameToScreenY(cp.y + type.size.height / 2.0),
-                            zoom.mapGameToScreenX(p.x + type.size.width / 2.0),
-                            zoom.mapGameToScreenY(p.y + type.size.height / 2.0)
-                    );
+                    g.draw(zoom.mapGameLineToScreen(
+                            cp.x + type.size.width / 2.0,
+                            cp.y + type.size.height / 2.0,
+                            p.x + type.size.width / 2.0,
+                            p.y + type.size.height / 2.0
+                    ));
                     cp = p;
                 }
         }
     }
 
     private interface EntityGetter { EntityReader getEntity(Action action); }
-    private void paintAction(Graphics2D g, Color color, Action.ActionType actionType, EntityGetter getter, Zoom zoom) {
+    private void paintAction(Graphics2D g, Color color, Action.ActionType actionType, EntityGetter getter, Zoom zoom, double currentTime) {
         for (RevPair<Action> entry : state.actionManager.getByType(actionType)) {
+            if (actionType.equals(Action.ActionType.Attack))
+                System.out.println("here");
             EntityReader target = getter.getEntity(entry.value);
             EntityReader source = new EntityReader(state, entry.entityId);
-            DPoint sourceLocation = source.getLocation();
+            DPoint sourceLocation = source.getLocation(currentTime);
             if (sourceLocation == null) continue;
-            DPoint destinationLocation = target.getLocation();
+            DPoint destinationLocation = target.getLocation(currentTime);
             if (destinationLocation == null) continue;
-            EntitySpec sourceType = source.getType();
-            if (sourceType == null) continue;
-            EntitySpec destinationType = target.getType();
-            if (destinationType == null) continue;
+            Dimension sourceSize = source.getSize();
+            if (sourceSize == null) continue;
+            Dimension targetSize = target.getSize();
+            if (targetSize == null) continue;
 
             DPoint sourceCenter = source.getCenterLocation();
             DPoint targetCenter = target.getCenterLocation();
 
+            if (zoom.isOutOfScreen(sourceCenter) || zoom.isOutOfScreen(targetCenter))
+                continue;
 
             g.setColor(color);
-            g.drawLine(
-                    zoom.mapGameToScreenX(sourceCenter.x),
-                    zoom.mapGameToScreenY(sourceCenter.y),
-                    zoom.mapGameToScreenX(targetCenter.x),
-                    zoom.mapGameToScreenY(targetCenter.y)
-            );
+            g.draw(zoom.mapGameLineToScreen(sourceCenter, targetCenter));
 
             double progress = entry.value.getProgressIndicator();
             if (progress < 0.0) continue;
-            int x1 = zoom.mapGameToScreenX(sourceLocation.x + sourceType.size.width);
-            int x2 = zoom.mapGameToScreenX(sourceLocation.x + sourceType.size.width + BAR_WIDTH);
-            int y1 = zoom.mapGameToScreenY(sourceLocation.y + 0);
-            int y2 = zoom.mapGameToScreenY(sourceLocation.y + progress * sourceType.size.height);
-            int y3 = zoom.mapGameToScreenY(sourceLocation.y + sourceType.size.height);
-            g.fillRect(x1, y2, x2 - x1, y1 - y2);
-            g.setColor(Color.black);
-            g.fillRect(x1, y3, x2 - x1, y2 - y3);
+            if (false) {
+                double x1 = sourceLocation.x + sourceSize.width;
+                double x2 = sourceLocation.x + sourceSize.width + BAR_WIDTH;
+                double y1 = sourceLocation.y + 0;
+                double y2 = sourceLocation.y + progress * sourceSize.height;
+                double y3 = sourceLocation.y + sourceSize.height;
+                g.fill(zoom.mapGameEndPointsToScreen(x1, y1, x2, y2));
+                g.setColor(Color.black);
+                g.fill(zoom.mapGameEndPointsToScreen(x1, y2, x2, y3));
+            } else {
+                final double CIRCLE_WIDTH = 0.05;
+                double x = sourceLocation.x + sourceSize.width;
+                double y = sourceLocation.y + sourceSize.height;
+                Rectangle2D outer = zoom.mapGameToScreen(x, y, 4 * CIRCLE_WIDTH, 4 * CIRCLE_WIDTH);
+                Rectangle2D inner = zoom.mapGameToScreen(x + CIRCLE_WIDTH, y + CIRCLE_WIDTH, 2 * CIRCLE_WIDTH, 2 * CIRCLE_WIDTH);
+                Area outerArea = new Area(new Ellipse2D.Double(outer.getX(), outer.getY(), outer.getWidth(), outer.getHeight()));
+                Area innerArea = new Area(new Ellipse2D.Double(inner.getX(), inner.getY(), inner.getWidth(), inner.getHeight()));
+                Area progressArea = new Area(new Arc2D.Double(outer.getX(), outer.getY(), outer.getWidth(), outer.getHeight(), 0, progress * 360, Arc2D.PIE));
+                outerArea.subtract(innerArea);
+                progressArea.subtract(innerArea);
+                g.setColor(Color.black);
+                g.fill(outerArea);
+                g.setColor(color);
+                g.fill(progressArea);
+            }
         }
     }
 
@@ -487,44 +506,42 @@ public class GamePainter {
         if (zoom.isOutOfScreen(gx, gy, gwidth, gheight)) {
             return;
         }
-        int x = zoom.mapGameToScreenX(gx);
-        int y = zoom.mapGameToScreenY(gy);
 
-        int ux = zoom.mapGameToScreenX(gx + gwidth);
-        int uy = zoom.mapGameToScreenY(gy + gheight);
+        Rectangle r = zoom.mapGameToScreenInts(gx, gy, gwidth, gheight);
 
         BufferedImage image = context.imageCache.get(imagePath);
         g.drawImage(
                 image,
-                x, y,
-                ux, uy,
-                image.getWidth(), image.getHeight(),
+                r.x, r.y,
+                r.x + r.width, r.y + r.height,
                 0, 0,
+                image.getWidth(), image.getHeight(),
                 panel
         );
         if (player != null) {
             g.setColor(Colors.PLAYER_COLORS[player.number]);
             int d = 1;
-            g.drawRect(x - d, uy - d, ux - x + 2 * d, y - uy + 2 * d);
+            g.drawRect(r.x - d, r.y - d, r.width + 2 * d, r.height + 2 * d);
         }
 
         if (selected) {
             g.setColor(Color.yellow);
             int d = 3;
-            g.drawRect(x - d, uy - d, ux - x + 2 * d, y - uy + 2 * d);
+            g.drawRect(r.x - d, r.y - d, r.width + 2 * d, r.height + 2 * d);
         }
     }
 
-    private void paintDisplayable(Graphics2D g, EntityReader entity, Zoom zoom) {
+    private void paintDisplayable(Graphics2D g, EntityReader entity, Zoom zoom, double currentTime) {
         EntitySpec type = entity.getType();
-        DPoint location = entity.getLocation();
-        Boolean isHidden = entity.isHidden();
+        DPoint location = entity.getLocation(currentTime);
+        String image = entity.getGraphics();
+        boolean isHidden = entity.isHidden();
         Player player = entity.getOwner();
-        if (type == null || location == null || isHidden == null || isHidden) return;
+        if (type == null || location == null || isHidden) return;
         boolean selected = context.selectionManager.isSelected(entity);
         paintImage(
                 g,
-                type.image,
+                image,
                 location.x,
                 location.y,
                 type.size.width,
@@ -538,8 +555,8 @@ public class GamePainter {
             g.setColor(Color.white);
             g.drawString(
                     controlGroups.stream().map(String::valueOf).collect(Collectors.joining(", ")),
-                    zoom.mapGameToScreenX(location.x),
-                    zoom.mapGameToScreenY(location.y)
+                    (int) zoom.mapGameToScreenX(location.x),
+                    (int) zoom.mapGameToScreenY(location.y)
             );
         }
 
@@ -555,34 +572,47 @@ public class GamePainter {
                 g.setColor(Color.red);
             }
 
-            int x1 = zoom.mapGameToScreenX(location.x);
-            int x2 = zoom.mapGameToScreenX(location.x + ratio * type.size.width);
-            int x3 = zoom.mapGameToScreenX(location.x + type.size.width);
-            int y1 = zoom.mapGameToScreenY(location.y + type.size.height);
-            int y2 = zoom.mapGameToScreenY(location.y + type.size.height + BAR_WIDTH);
-            g.fillRect(x1, y2, x2 - x1, y1 - y2);
+            double x1 = location.x;
+            double x2 = location.x + ratio * type.size.width;
+            double x3 = location.x + type.size.width;
+            double y1 = location.y + type.size.height;
+            double y2 = location.y + type.size.height + BAR_WIDTH;
+            g.fill(zoom.mapGameEndPointsToScreen(x1, y1, x2, y2));
             g.setColor(Color.black);
-            g.fillRect(x2, y2, x3 - x2, y1 - y2);
+            g.fill(zoom.mapGameEndPointsToScreen(x2, y1, x3, y2));
         }
 
 
         DPoint gatherPoint = entity.getCurrentGatherPoint();
         if (gatherPoint != null && selected) {
             g.setColor(Colors.GATHER_POINT);
-            int g1x = zoom.mapGameToScreenX(gatherPoint.x - 0.1);
-            int g1y = zoom.mapGameToScreenY(gatherPoint.y - 0.1);
-            int g2x = zoom.mapGameToScreenX(gatherPoint.x + 0.1);
-            int g2y = zoom.mapGameToScreenY(gatherPoint.y + 0.1);
-            int sx = zoom.mapGameToScreenX(location.x + type.size.width / 2);
-            int sy = zoom.mapGameToScreenY(location.y + type.size.height / 2);
-            g.fillOval(
-                    g1x,
-                    g2y,
-                    g2x - g1x,
-                    g1y - g2y
-
-            );
-            g.drawLine(sx, sy, (g1x + g2x) / 2, (g1y + g2y) / 2);
+            g.fill(zoom.mapGameCircleToScreen(gatherPoint.x, gatherPoint.y, 0.1));
+            g.draw(zoom.mapGameLineToScreen(gatherPoint.x, gatherPoint.y, location.x, location.y));
         }
+    }
+
+
+
+
+    private static double getAngle(double dx, double dy) {
+        if (Math.abs(dx) > 14-3)
+            return 180 * Math.atan(dy / dx) / Math.PI;
+        if (dy > 0)
+            return 90d;
+        else
+            return -90d;
+    }
+
+    private static void drawProjectile(Graphics2D g, ProjectileLaunch launch, double prevTime, double curTime) {
+        g.setColor(Color.yellow);
+        double theta = getAngle(launch.directionX, launch.directionY);
+        double spread = 15;
+        double innerRadius = launch.projectile.speed * (prevTime - launch.launchTime);
+        double outerRadius = launch.projectile.speed * (curTime - launch.launchTime);
+
+        Area inner = new Area(new Arc2D.Double(launch.launchLocation.x - innerRadius, launch.launchLocation.y - innerRadius, 2 * innerRadius, 2 * innerRadius, theta - spread, 2 * spread, Arc2D.PIE));
+        Area outer = new Area(new Arc2D.Double(launch.launchLocation.x - outerRadius, launch.launchLocation.y - outerRadius, 2 * outerRadius, 2 * outerRadius, theta - spread, 2 * spread, Arc2D.PIE));
+        outer.subtract(inner);
+        g.fill(outer);
     }
 }

@@ -3,9 +3,12 @@ package client.gui.mouse;
 import client.app.UiClientContext;
 import client.gui.game.GamePainter;
 import client.gui.game.Zoom;
+import client.state.ClientGameState;
 import common.msg.Message;
+import common.state.Occupancy;
 import common.state.spec.EntitySpec;
 
+import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
 
@@ -24,6 +27,11 @@ public class BuildingPlacer implements MouseMotionListener, MouseListener {
     public BuildingPlacer(UiClientContext context, Zoom zoom) {
         this.zoom = zoom;
         this.context = context;
+    }
+
+    public Rectangle getBuildingLocation() {
+        if (isNotPlacing()) return null;
+        return new Rectangle(buildingLocX, buildingLocY, building.size.width, building.size.height);
     }
 
     public boolean isNotPlacing() {
@@ -83,7 +91,7 @@ public class BuildingPlacer implements MouseMotionListener, MouseListener {
     }
 
     private boolean buildBuilding(final EntitySpec building, final int buildingLocX, final int buildingLocY) {
-        if (GamePainter.any(context.clientGameState.gameState.getOccupancyForAny(), buildingLocX, buildingLocY, building.size.width, building.size.height)) {
+        if (!canBuild()) {
             return false;
         }
 
@@ -110,5 +118,13 @@ public class BuildingPlacer implements MouseMotionListener, MouseListener {
         }
         buildingLocX = (int) zoom.mapScreenToGameX(mouseEvent.getX());
         buildingLocY = (int) zoom.mapScreenToGameY(mouseEvent.getY());
+    }
+
+    public boolean canBuild() {
+        return !Occupancy.isOccupied(
+                Occupancy.createConstructionOccupancy(context.clientGameState.gameState, context.clientGameState.exploration),
+                new Point(buildingLocX, buildingLocY),
+                building.size
+        );
     }
 }

@@ -6,39 +6,54 @@ import common.state.EntityReader;
 
 import java.util.Collection;
 
-public abstract class PushStack extends UnitAction {
-    final UnitActions.StackItem item;
-    final String arg;
+public class PushStack {
+    public static abstract class UnitStackItemPusher extends UnitAction {
+        final UnitActions.StackItem item;
 
-    PushStack(UiClientContext context, String label, UnitActions.StackItem item) {
-        super(context, label);
-        this.item = item;
-        this.arg = null;
-    }
-    PushStack(UiClientContext context, String label, UnitActions.StackItem item, String arg) {
-        super(context, label);
-        this.item = item;
-        this.arg = arg;
-    }
-
-    @Override
-    public void run(EntityReader entity) {
-        c.uiManager.unitActions.push(item, arg);
-    }
-
-    public static final class GlobalPushStack extends PushStack {
-        public GlobalPushStack(UiClientContext context, String label, UnitActions.StackItem item, String arg) {
-            super(context, label, item, arg);
+        UnitStackItemPusher(UiClientContext context, String label, UnitActions.StackItem item) {
+            super(context, label);
+            this.item = item;
         }
 
         @Override
-        public boolean isEnabled(EntityReader entity) {
+        public void run(EntityReader entity) {
+            c.uiManager.unitActions.push(item);
+        }
+    }
+
+
+    public static class GlobalStackItemPusher extends Action {
+        final UnitActions.StackItem item;
+
+        GlobalStackItemPusher(UiClientContext context, String label, UnitActions.StackItem item) {
+            super(context, label);
+            this.item = item;
+        }
+
+        @Override
+        public boolean isEnabled(Collection<EntityReader> currentlySelected) {
             return true;
         }
 
         @Override
         public void run(Collection<EntityReader> currentlySelected) {
-            c.uiManager.unitActions.push(item, arg);
+            c.uiManager.unitActions.push(item);
+        }
+    }
+
+    public static final class StackArgPusher extends Action {
+        StackArgPusher(UiClientContext context, String label) {
+            super(context, label);
+        }
+
+        @Override
+        public boolean isEnabled(Collection<EntityReader> currentlySelected) {
+            return true;
+        }
+
+        @Override
+        public void run(Collection<EntityReader> currentlySelected) {
+            c.uiManager.unitActions.pushArg(label);
         }
     }
 }

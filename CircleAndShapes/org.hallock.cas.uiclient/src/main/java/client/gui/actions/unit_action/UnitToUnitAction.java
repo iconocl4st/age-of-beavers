@@ -23,8 +23,7 @@ public abstract class UnitToUnitAction extends UnitAction {
             public void perform(DPoint location) {}
 
             @Override
-            public void perform(EntityId rId) {
-                EntityReader resource = new EntityReader(c.clientGameState.gameState, rId);
+            public void perform(EntityReader resource) {
                 if (!canRunOn(entity, resource)) return;
                 run(entity, resource);
             }

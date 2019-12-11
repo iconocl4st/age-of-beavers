@@ -3,16 +3,18 @@ package common.state.spec;
 import common.util.json.*;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Comparator;
 
-public class ResourceType implements Serializable {
-    public final int weight;
+public class ResourceType {
     public final String name;
+    public int weight;
+    public EntitySpec growsInto;
+    public int ordinal;
 
     public ResourceType(String name, int weight) {
         this.weight = weight;
         this.name = name;
+        this.growsInto = null;
     }
 
     public boolean equals(Object other) {
@@ -61,7 +63,7 @@ public class ResourceType implements Serializable {
         @Override
         public ResourceType parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
             reader.readBeginDocument();
-            ResourceType rt = spec.spec.getResourceType(reader.readString("name"));
+            ResourceType rt = spec.spec().getResourceType(reader.readString("name"));
             reader.readEndDocument();
             return rt;
         }

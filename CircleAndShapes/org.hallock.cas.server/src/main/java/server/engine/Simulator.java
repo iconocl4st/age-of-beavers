@@ -1,11 +1,13 @@
 package server.engine;
 
-import common.event.ActionCompleted;
 import common.Proximity;
 import common.action.Action;
-import common.algo.AStar;
+import common.event.ActionCompleted;
+import common.factory.Path;
+import common.factory.SearchDestination;
 import common.state.EntityId;
 import common.state.EntityReader;
+import common.state.Occupancy;
 import common.state.Player;
 import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
@@ -13,18 +15,24 @@ import common.state.spec.attack.Weapon;
 import common.state.spec.attack.WeaponClass;
 import common.state.spec.attack.WeaponSpec;
 import common.state.sst.GameStateHelper;
+import common.state.sst.OccupancyView;
 import common.state.sst.sub.ConstructionZone;
+import common.state.sst.sub.MovableEntity;
 import common.state.sst.sub.Load;
 import common.state.sst.sub.ProjectileLaunch;
 import common.state.sst.sub.capacity.Prioritization;
+import common.util.Bounds;
 import common.util.DPoint;
 import common.util.EvolutionSpec;
+import common.util.GridLocation;
+import common.util.json.Jsonable;
 import common.util.query.NearestEntityQuery;
 import common.util.query.NearestEntityQueryResults;
 import server.algo.UnGarrisonLocation;
 import server.app.ServerContext;
 import server.state.ServerGameState;
 import server.state.ServerStateManipulator;
+import server.state.TimeInfo;
 import server.util.IdGenerator;
 
 import java.awt.*;
@@ -38,15 +46,17 @@ public class Simulator {
     final ServerGameState state;
     final IdGenerator generator;
     final Evolution evolution;
+    final Random random;
 
     public Simulator(ServerContext context, ServerGameState state, IdGenerator generator, Random random) {
         this.context = context;
         this.state = state;
         this.generator = generator;
         this.evolution = new Evolution(state, random);
+        this.random = random;
     }
 
-    public void simulateUnitActions(EntityId entityId, ServerStateManipulator ssm, double prevTime, double timeDelta) {
+    public void simulateUnitActions(EntityId entityId, ServerStateManipulator ssm, TimeInfo info) {
         EntityReader entity = new EntityReader(state.state, entityId);
 
         Action action = state.state.actionManager.get(entityId);
@@ -60,31 +70,32 @@ public class Simulator {
 
         switch (action.type) {
             case Attack:
-                attack(entity, ssm, (Action.Attack) action, prevTime, timeDelta);
+                attack(entity, ssm, (Action.Attack) action, info.prevTime, info.timeDelta);
                 break;
             case Move:
-                move(entity, ssm, (Action.MoveSeq) action, timeDelta);
+                move(entity, ssm, (Action.MoveSeq) action, info.currentTime, info.timeDelta);
                 break;
             case Collect:
-                collect(entity, ssm, (Action.Collect) action, timeDelta);
+                collect(entity, ssm, (Action.Collect) action, info.timeDelta);
                 break;
             case Deposit:
-                deposit(entity, ssm, (Action.Deposit) action, timeDelta);
+                deposit(entity, ssm, (Action.Deposit) action, info.timeDelta);
                 break;
             case Idle:
                 break;
             case Wait:
-                wait(entity, ssm, (Action.Wait) action, timeDelta);
+                wait(entity, ssm, (Action.Wait) action, info.timeDelta);
                 break;
             case Build:
-                build(entity, ssm, (Action.Build) action, timeDelta);
+                build(entity, ssm, (Action.Build) action, info.timeDelta);
                 break;
             case Create:
-                create(entity, ssm, (Action.Create) action, timeDelta);
+                create(entity, ssm, (Action.Create) action, info.timeDelta);
                 break;
-//            case Chase:
-//                chase(entity, ssm, (Action.Chase) action, timeDelta);
-//                break;
+            case Plant:
+                plant(entity, ssm, (Action.Bury) action, info.timeDelta);
+            case Garden:
+                garden(entity, ssm, (Action.Garden) action, info.timeDelta);
             default:
                 throw new RuntimeException("Unknown action: " + action.type);
         }
@@ -105,8 +116,56 @@ public class Simulator {
         }
     }
 
+
+    private void garden(EntityReader entity, ServerStateManipulator ssm, Action.Garden action, double timeDelta) {
+        Object sync = entity.getSync();
+        if (sync == null) return;
+        synchronized (sync) {
+            if (entity.noLongerExists())
+                return;
+            double gardenSpeed = entity.getGardenSpeed();
+            double progress = action.progress + gardenSpeed * timeDelta;
+            if (progress < 1.0) {
+                ssm.updateActionProgress(entity, action, progress);
+                return;
+            }
+
+            // update the the timer on the next time this will need to be tended...
+
+            ssm.done(entity, ActionCompleted.ActionCompletedReason.Successful);
+        }
+    }
+
+    private void plant(EntityReader entity, ServerStateManipulator ssm, Action.Bury action, double timeDelta) {
+        Object sync = entity.getSync();
+        if (sync == null) return;
+        synchronized (sync) {
+            if (entity.noLongerExists())
+                return;
+            Load carrying = entity.getCarrying();
+            Integer numberOfSeeds = carrying.quantities.getOrDefault(action.seed, 0);
+            if (numberOfSeeds < 1)
+                ssm.done(entity, ActionCompleted.ActionCompletedReason.Invalid);
+
+            // check that there is not something already there...
+            // check that there is space for it...
+
+            double plantSpeed = entity.getPlantSpeed();
+            double progress = action.progress + plantSpeed * timeDelta;
+            if (progress < 1.0) {
+                ssm.updateActionProgress(entity, action, progress);
+                return;
+            }
+            // update the the timer on the next time this will need to be tended...
+
+            ssm.changePayload(entity.entityId, carrying, action.seed, numberOfSeeds - 1);
+
+            ssm.done(entity, ActionCompleted.ActionCompletedReason.Successful);
+        }
+    }
+
     private void create(EntityReader entity, ServerStateManipulator ssm, Action.Create action, double timeDelta) {
-        Object sync = entity.getOwner();
+        Object sync = entity.getSync();
         if (sync == null) return;
         synchronized (sync) {
             if (entity.noLongerExists())
@@ -129,15 +188,23 @@ public class Simulator {
                 return;
             }
 
-            UnGarrisonLocation unGarrisonLocation = UnGarrisonLocation.getUnGarrisonLocation(state.state, entity);
-            if (unGarrisonLocation.isImossible()) {
+            UnGarrisonLocation unGarrisonLocation = UnGarrisonLocation.getUnGarrisonLocation(state, entity, action.spec.createdType.size);
+            if (unGarrisonLocation.isImpossible()) {
                 ssm.setCreationProgress(entity.entityId, action, 0.0);
                 return;
             }
 
+            EvolutionSpec spec;
+            if (action.spec.createdType.containsClass("evolves")) {
+                spec = evolution.createEvolvedSpec(contributingUnits);
+            } else {
+                spec = new EvolutionSpec(action.spec.createdType);
+            }
             EntityId createdUnit = generator.generateId();
-            ssm.createUnit(createdUnit, action.spec.createdType, evolution.createEvolvedSpec(contributingUnits), unGarrisonLocation.point, entity.getOwner());
-            ssm.setUnitAction(new EntityReader(state.state, createdUnit), new Action.MoveSeq(unGarrisonLocation.path));
+            ssm.createUnit(createdUnit, action.spec.createdType, spec, new DPoint(unGarrisonLocation.point), entity.getOwner());
+            ssm.notifyProductionCompleted(entity.entityId, createdUnit, entity.getOwner());
+            if (unGarrisonLocation.path != null)
+                ssm.setUnitAction(new EntityReader(state.state, createdUnit), new Action.MoveSeq(unGarrisonLocation.path));
             ssm.done(entity, ActionCompleted.ActionCompletedReason.Successful);
         }
     }
@@ -303,9 +370,9 @@ public class Simulator {
                 return;
             }
 
-            if (!state.state.hasSpaceFor(constructionZone.location,  constructionZone.constructionSpec.size)) {
-                return;
-            }
+//            if (!state.state.hasSpaceFor(constructionZone.location,  constructionZone.constructionSpec.size)) {
+//                return;
+//            }
 
             ssm.killUnit(action.constructionId);
             EntitySpec resultingStructure = constructionZone.constructionSpec.resultingStructure;
@@ -414,68 +481,41 @@ public class Simulator {
         }
     }
 
-//    private void chase(EntityReader entity, ServerStateManipulator ssm, Action.Chase action, double timeDelta) {
-//        // TODO: can't travel directly there...
-//        Object synchronizationObject = entity.getSync();
-//        if (synchronizationObject == null) return;
-//
-//        synchronized (synchronizationObject) {
-//            DPoint idealLocation = state.state.locationManager.getLocation(action.chased);
-//            if (state.state.lineOfSight.isVisible(action.requestingPlayer, (int) idealLocation.x, (int) idealLocation.y)) {
-//                action.lastKnownLocation = idealLocation;
-//            }
-//            DPoint targetLocation = action.lastKnownLocation;
-//
-//            DPoint location = entity.getLocation();
-//            EntitySpec type = entity.getType();
-//            if (type == null)
-//                return;
-//            double speed = entity.getMovementSpeed();
-//
-//            double dx = targetLocation.x - location.x;
-//            double dy = targetLocation.y - location.y;
-//            double n = Math.sqrt(dx * dx + dy * dy);
-//            double distanceToTravel = timeDelta * speed;
-//
-//            boolean done = false;
-//            final DPoint desiredLocation;
-//            if (n > distanceToTravel) {
-//                desiredLocation = new DPoint(
-//                        location.x + distanceToTravel * dx / n,
-//                        location.y + distanceToTravel * dy / n
-//                );
-//            } else {
-//                desiredLocation = targetLocation;
-//                done = true;
-//            }
-//
-//            Point gridPoint = desiredLocation.toPoint();
-//            if (state.state.isOccupiedFor(gridPoint, entity.getOwner())) {
-//                ssm.done(entity, AiEvent.ActionCompletedReason.Invalid);
-//                return;
-//            }
-//
-//            ssm.changeUnitLocation(entity, desiredLocation);
-//            if (done)
-//                ssm.done(entity, AiEvent.ActionCompletedReason.RequestedAction);
-//        }
-//    }
+    private static boolean any(OccupancyView view, Set<Point> pnts) {
+        for (Point pnt : pnts)
+            if (view.isOccupied(pnt.x, pnt.y))
+                return true;
+        return false;
+    }
 
-    private void move(EntityReader entity, ServerStateManipulator ssm, Action.MoveSeq action, double timeDelta) {
+
+    private void move(EntityReader entity, ServerStateManipulator ssm, Action.MoveSeq action, double currentTime, double timeDelta) {
         Object synchronizationObject = entity.getSync();
         if (synchronizationObject == null) return;
 
         synchronized (synchronizationObject) {
-            if (action.path == null || action.path.isEmpty()) {
-                ssm.done(entity, ActionCompleted.ActionCompletedReason.Successful);
-                return;
-            }
-            DPoint destination = action.path.points.get(action.progress);
-
             DPoint location = entity.getLocation();
             EntitySpec type = entity.getType();
             if (type == null)
                 return;
+
+            if (action.path == null || action.path.points.isEmpty()) {
+                ssm.noiselyUpdateUnitLocation(MovableEntity.createStationary(entity, location));
+                ssm.done(entity, ActionCompleted.ActionCompletedReason.Successful);
+                return;
+            }
+
+            DPoint destination;
+            boolean onDetour;
+            if (action.detour != null) {
+                destination = action.detour.points.get(action.detourProgress);
+                onDetour = true;
+            } else {
+                destination = action.path.points.get(action.progress);
+                onDetour = false;
+            }
+            DPoint movementEnd = destination;
+
             double speed = entity.getMovementSpeed();
 
             double dx = destination.x - location.x;
@@ -494,66 +534,141 @@ public class Simulator {
             } else {
                 desiredLocation = destination;
                 changedDirection = true;
-                if (action.progress < action.path.points.size() - 1) {
-                    action.progress++;
+                if (onDetour) {
+                    if (action.detourProgress < action.detour.points.size() - 1) {
+                        movementEnd = action.detour.points.get(++action.detourProgress);
+                    } else {
+                        action.detour = null;
+                        action.detourProgress = 0;
+                        Path<? extends Jsonable> path = action.path.destination.findPath(state.pathFinder, entity);
+                        if (path == null || path.successful) {
+                            action.path.points.clear();
+                            action.path.points.addAll(path.points);
+                            action.progress = 0;
+                        }
+                        movementEnd = action.path.points.get(action.progress);
+                    }
                 } else {
-                    done = true;
+                    if (action.progress < action.path.points.size() - 1) {
+                        movementEnd = action.path.points.get(++action.progress);
+                    } else {
+                        done = true;
+                    }
                 }
             }
 
-            Point gridPoint = desiredLocation.toPoint();
-            if (state.state.isOccupiedFor(gridPoint, entity.getOwner())) {
+            OccupancyView structures = Occupancy.createStaticOccupancy(state.state, entity.getOwner());
+            Set<Point> overlappingTiles = GridLocation.getOverlappingTiles(desiredLocation, type.size);
+            if (any(structures, overlappingTiles)) {
                 ssm.done(entity, ActionCompleted.ActionCompletedReason.Invalid);
-                ssm.unitChangedDirection(entity.entityId, location, location, 0);
+                ssm.noiselyUpdateUnitLocation(MovableEntity.createStationary(entity, location));
                 return;
             }
-            if (true || state.state.locationManager.getEntitiesWithin(
-                    desiredLocation.x, desiredLocation.y, location.x + type.size.width, location.y + type.size.height,
-                    qEntity -> !entity.entityId.equals(qEntity)).isEmpty()) {
-                action.blockedCount = 0;
-                ssm.changeUnitLocation(entity, desiredLocation);
+
+            OccupancyView unitOccupancy = Occupancy.createUnitOccupancy(entity);
+            if (!any(unitOccupancy, overlappingTiles)) {
                 if (done) {
                     ssm.done(entity, ActionCompleted.ActionCompletedReason.Successful);
-                    ssm.unitChangedDirection(entity.entityId, location, location, 0);
+                    ssm.noiselyUpdateUnitLocation(MovableEntity.createStationary(entity, destination));
                 } else if (changedDirection) {
-                    ssm.unitChangedDirection(entity.entityId, desiredLocation, action.path.points.get(action.progress), speed);
+                    MovableEntity changeDirections = new MovableEntity();
+                    changeDirections.entity = entity;
+                    changeDirections.size = type.size;
+                    changeDirections.currentLocation = desiredLocation;
+                    changeDirections.movementBegin = desiredLocation;
+                    changeDirections.movementEnd = movementEnd;
+                    changeDirections.movementSpeed = speed;
+                    changeDirections.movementStartTime = currentTime;
+                    ssm.noiselyUpdateUnitLocation(changeDirections);
+                } else if (action.blockedCount > 0){
+                    MovableEntity changeDirections = new MovableEntity();
+                    changeDirections.entity = entity;
+                    changeDirections.size = type.size;
+                    changeDirections.currentLocation = desiredLocation;
+                    changeDirections.movementBegin = desiredLocation;
+                    changeDirections.movementEnd = destination;
+                    changeDirections.movementSpeed = speed;
+                    changeDirections.movementStartTime = currentTime;
+                    ssm.noiselyUpdateUnitLocation(changeDirections);
+                } else {
+                    ssm.quietlyUpdateUnitLocation(entity, desiredLocation);
                 }
+                action.blockedCount = 0;
+                action.detourFailures = 0;
+                return;
+            }
 
+            if (action.blockedCount == 0) {
+                ssm.noiselyUpdateUnitLocation(MovableEntity.createStationary(entity, location));
+                action.amountOfTimeToWait = random.nextInt(20 + 10 * action.detourFailures);
+            }
+
+            if (action.blockedCount++ < action.amountOfTimeToWait) {
                 return;
             }
-            if (action.blockedCount++ < 3) {
+
+            action.blockedCount = 0;
+            if (action.detourFailures++ > 6) {
+                ssm.noiselyUpdateUnitLocation(MovableEntity.createStationary(entity, location));
+                ssm.done(entity, ActionCompleted.ActionCompletedReason.Blocked);
                 return;
             }
-            AStar.PathSearch path = AStar.findPath(location, destination, state.state.locationManager.createOccupancyView(entity.entityId));
+
+
+            OccupancyView view = OccupancyView.combine(unitOccupancy, structures);
+            DPoint intermediateDestination = action.path.points.get(random.nextInt(action.path.points.size()));
+            int r = (int) Math.ceil(Math.max(10, intermediateDestination.distanceTo(location)));
+            Bounds bounds = Bounds.fromRadius((int) location.x, (int) location.y, r);
+
+            Path<? extends Jsonable> path;
+            if (action.path.destination.isWithin(bounds)) {
+                path = action.path.destination.findPath(
+                        state.pathFinder,
+                        view,
+                        entity,
+                        bounds
+                );
+            } else {
+                path = state.pathFinder.findPath(
+                        view,
+                        entity,
+                        new SearchDestination(destination),
+                        bounds
+                );
+            }
             if (!path.successful) {
-                ssm.done(entity, ActionCompleted.ActionCompletedReason.Invalid);
+                System.out.println("Unable to find a points");
                 return;
             }
+            action.detour = path;
+            action.detourProgress = 0;
         }
     }
 
-    public void processProjectile(ServerStateManipulator ssm, EntityId entityId, ProjectileLaunch launch) {
-        DPoint currentLocation = launch.getLocation(state.state.currentTime);
-        if (currentLocation == null) {
+    public void processProjectile(ServerStateManipulator ssm, EntityId entityId, ProjectileLaunch launch, double previousTime, double currentTime) {
+        DPoint previousLocation = launch.getLocation(previousTime);
+        DPoint currentLocation = launch.getLocation(currentTime);
+        if (previousLocation == null || currentLocation == null) {
             ssm.removeProjectile(entityId);
             return;
         }
 
+        // TODO: should be intersects over the whole time period
         NearestEntityQueryResults queryResults = state.state.locationManager.query(new NearestEntityQuery(
                 state.state,
                 currentLocation,
                 entity -> {
-                    EntitySpec entitySpec = state.state.typeManager.get(entity);
-                    Player player = state.state.playerManager.get(entity);
+                    EntitySpec entitySpec = entity.getType();
+                    Player player = entity.getOwner();
                     if (entitySpec == null || player == null) return false;
                     return entitySpec.containsClass("unit") && !player.equals(launch.launchingPlayer); //  should be enemies
                 },
                 launch.projectile.radius,
-                null
+                1
         ));
 
         if (queryResults.successful() && launch.hit(entityId)) {
-            ssm.receiveDamage(queryResults.entityId, launch.damage, launch.damageType);
+            ssm.receiveDamage(queryResults.entity.entityId, launch.damage, launch.damageType);
 
             if (launch.projectile.stopsOnFirst) {
                 ssm.removeProjectile(entityId);

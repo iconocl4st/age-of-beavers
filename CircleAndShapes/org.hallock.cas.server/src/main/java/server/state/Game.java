@@ -1,17 +1,11 @@
 package server.state;
 
-import common.msg.Message;
 import common.state.EntityId;
-import common.util.json.JsonWrapper;
-import common.util.json.JsonWriterWrapperSpec;
-import common.util.json.WriteOptions;
+import common.state.spec.GameSpec;
 import server.app.Lobby;
-import server.app.ServerConnectionContext;
 import server.app.ServerContext;
 import server.engine.Simulator;
 import server.util.IdGenerator;
-
-import java.io.IOException;
 
 public class Game {
     ServerContext context;
@@ -20,18 +14,18 @@ public class Game {
     public ServerGameState serverState;
     Simulator simulator;
 
-    public boolean tick(ServerStateManipulator ssm, double prevTime, double currentTime, double timeDelta) {
+    public boolean tick(ServerStateManipulator ssm, TimeInfo info) {
 
         // todo create deer as needed...
 
-        ssm.updateGameTime(currentTime);
+        ssm.updateGameTime(info);
 
         for (EntityId entity : serverState.state.entityManager.allKeys()) {
-            simulator.simulateUnitActions(entity, ssm, prevTime, timeDelta);
+            simulator.simulateUnitActions(entity, ssm, info);
         }
 
         for (EntityId entityId : serverState.state.projectileManager.allKeys()) {
-            simulator.processProjectile(ssm, entityId, serverState.state.projectileManager.get(entityId));
+            simulator.processProjectile(ssm, entityId, serverState.state.projectileManager.get(entityId), info.prevTime, info.currentTime);
         }
 
         lobby.ticked();
@@ -48,12 +42,12 @@ public class Game {
         return false;
     }
 
-    public static Game createGame(ServerContext context, Lobby lobby) {
+    public static Game createGame(ServerContext context, Lobby lobby, GameSpec spec, int numPlayers) {
         Game game = new Game();
         game.lobby = lobby;
         game.context = context;
         game.idGenerator = new IdGenerator(lobby.random);
-        game.serverState = ServerGameState.createServerGameState(lobby.getCurrentSpec(), lobby.getNumPlayers());
+        game.serverState = ServerGameState.createServerGameState(spec, numPlayers);
         game.simulator = new Simulator(context, game.serverState, game.idGenerator, lobby.random);
         return game;
     }

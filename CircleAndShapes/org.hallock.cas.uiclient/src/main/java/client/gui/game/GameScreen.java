@@ -9,6 +9,8 @@ import common.state.spec.GameSpec;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentListener;
+import java.awt.image.BufferedImage;
 
 
 public class GameScreen extends JPanel {
@@ -32,11 +34,10 @@ public class GameScreen extends JPanel {
 
     public GameScreen(UiClientContext context) {
         this.context = context;
-
     }
 
     public void initialize(GameSpec spec) {
-        zoom.initialize(spec);
+        zoom.initialize(spec, getWidth(),  getHeight());
         renderer.initialize(spec);
 
         if (context.clientGameState.isSpectating()) {
@@ -90,6 +91,14 @@ public class GameScreen extends JPanel {
 
     public void paintComponent(Graphics graphics) {
         renderer.renderGame((Graphics2D) graphics, zoom);
+
+//        BufferedImage bufferedImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+//        Graphics2D g2d = bufferedImage.createGraphics();
+//
+//        renderer.renderGame(g2d, zoom);
+//
+//        Graphics2D g2dComponent = (Graphics2D) graphics;
+//        g2dComponent.drawImage(bufferedImage, null, 0, 0);
     }
 
 
@@ -98,7 +107,7 @@ public class GameScreen extends JPanel {
         gs.setFocusable(true);
         gs.setRequestFocusEnabled(true);
 
-        gs.zoom = new Zoom(gs, context);
+        gs.zoom = new CenterZoom(gs);
 
         gs.goToListener = new GoToListener(context);
         gs.addKeyListener(gs.goToListener);
@@ -134,6 +143,10 @@ public class GameScreen extends JPanel {
         gs.selectionListener.removeSelection();
 
         gs.renderer = new GamePainter(context, gs.selectionListener, gs.placer, gs);
+
+        if (gs.zoom instanceof ComponentListener) {
+            gs.addComponentListener((ComponentListener) gs.zoom);
+        }
 
         return gs;
     }

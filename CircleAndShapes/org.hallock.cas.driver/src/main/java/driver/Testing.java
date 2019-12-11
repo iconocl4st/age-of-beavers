@@ -13,117 +13,64 @@ import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
 public class Testing {
+
     public static void main(String[] args) throws InterruptedException, IOException, ParseException {
-        // update client actions
-        // direction changed
-        // chase ai
-        // while refactoring ai, make sure it uses the entity tracker
+        // TODO:
 
+        // Priority 0 (doing right now)
+        //      implement farms
+        //      implement bee hives
+        //      implement houses
+        //      replenish natural resources
+        //      implements weapons in capacity spec
+        //      drop resources into a loot natural resource
+        //      make natural resources less special
+        //      implement evolution params in the brothel/feeding trough
+        //      create a dies-on-empty class
+        //      draw orientations
+        //      implement mining (add some sort of digging)
+        //      create fight ai
+        //      plankimplement tools
 
-        // create a listeners debug view
+        // Priority 1 (before i can implement nueral ai)
+        //      fix the clustering in the ai
+        //      implement repair
+        //      research action
+        //      implement railroads
+        //      make the double progress actions have a a timestamp of when it was started so that we don't need as many messages...
+        //      use armor manager
 
-        // TODO
-
-        // TODO: stance
-
-        // repair action
-        // research action
-
-
-        // missing buildings
-        // amory
-        // weapon manufactorer (probably different kinds) / blacksmith
-        // refinery
-        // track
-        // archery range
-        // lancing thing
-        // stable
-        // city hall (what for?)
-        // university
-        // hospital
-        // farm
-        // stance
-        // mill (by water or slaves)
-        // shooting range
-        // market
-        // outpost
-        // tower
-        // wall
-        // castle
-        // dock
-        // fishing ship
-        // airport
-        // bar
-        // winery
-        // grape vine
-        // granary
-        // statue
-        // portal
-        // gunpowder: sulfur, charcoal potassium
-        // expeditions
-        // mine
-        // oil
-        // select old
-
-
-
-        // create nueral ai
+        // Priority 2 (implement nueral ai)
         //      create export to tensor
 
-        // questionable
+
+        // Priority 3 (after that)
+        //      implement seasons, day/night cycle
+        //      farms grow faster over green
         //      make a testing framework
         //      update the spec on the fly
-
-        // make the action have a timestamp of when it was setResourceLocation by the server (to enable multiple client renders  for one server tick)
-        // image manager
-        // make the game time also depend on the current time (as an option)
-
-        // fix pathing:
-        //    implement an obstacle search
-        //    implement blocked counter
-        //    make units occupy
-
-        // small changes
-        //      draw orientations
-        //      use armor manager
+        //      make the buildings have doors that depend on their orientation
+        //      create a spectator window
+        //      add sounds
+        //      common actions when multiple are selected
+        //      use bson
+        //      refactor the ai to reuse other ais
         //      use entity reader
         //      control click pathing indicator
-        //      create natural resource for dropped resources...
-        //      implement evolution params in the brothel/feeding trough
-
-        // add a spectate
-
-        // add sounds
-        // common actions when multiple are selected
-        // using bson
-
-
-        // write the first player client.ai
-        //      refactor ai
-        //      create a while within proximity client.ai
-        //      create an WithNoOtherResources sub - client.ai
-        //      in range listener
-        //      intercept/chase client.ai
-        //      refactor out a move to client.ai
-
+        //      implement stances
 
 
         // BUGS
-        // transporting before demand is set?
-        //
-        // don't let extra resources be in construction zone.
-        // players can move to a spot, but still not be close enough to interact...
+        // wagons are too fast
         //  To finish astar:
-        //          make the path start/stop at the floor of the first and last points
+        //          make the points start/stop at the floor of the first and last points
         //          make sure that +1, +2 is also feasible unless the point is integer
         //          this is still slightly too conservative
         //          could also do intersections of all corners of the unit
 
-        // fix the unit/building creation
 
-
-        int numSpectators = 1;
-        int numGames = 0;
+        int numSpectators = 0;
+        int numGames = 1;
         int numAis = 1;
 
         System.out.println("Starting server");
@@ -202,7 +149,7 @@ public class Testing {
 
         // pudge hook
 
-        // lc, abadon, bb quell, mars, silencer, earthshaker, sven, kunkka ship, magnus rp
+        // abadon, bb quell, mars, silencer, earthshaker, sven, kunkka ship, magnus rp
         // omniknight, phoenix, spirit breaker, timbersaw, undying, qop
         // bloodseeker, clinkz (2 spells), (ember portal), brood, naga, phantom lancer, sniper
         // spectre, ursa, dazzle, leshrac, lich, natures prophet, rubick, techies, windranger,

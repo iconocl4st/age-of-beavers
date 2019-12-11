@@ -1,8 +1,8 @@
 package client.gui.actions;
 
+import client.ai.ActionRequester;
 import client.ai.ResponsiveConnectionWriter;
 import client.app.UiClientContext;
-import client.ai.ActionRequester;
 import common.state.EntityReader;
 
 import java.util.Collection;

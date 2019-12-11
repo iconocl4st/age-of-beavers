@@ -34,6 +34,9 @@ public class Gather extends DefaultAiTask {
     public EntityReader getCurrentResource() {
         return currentTarget;
     }
+    public HashSet<ResourceType> getGatheringResourceTypes() {
+        return gatheringResources;
+    }
 
     public String toString() {
         return "Gathering " + naturalResourceSpec.name;
@@ -42,7 +45,11 @@ public class Gather extends DefaultAiTask {
     @Override
     protected AiAttemptResult requestActions(AiContext aiContext) {
         aiContext = aiContext.controlling(entity);
+        int count = 0;
         while (true) {
+            if (++count > 1000) {
+                throw new IllegalStateException();
+            }
             switch (currentState) {
                 case Delivering: {
                     AiAttemptResult result = OneTripTransport.deliverAllResources(aiContext);
@@ -50,7 +57,7 @@ public class Gather extends DefaultAiTask {
                     currentState = GatherState.Gathering;
                 } // fall through
                 case Gathering: {
-                    if (currentTarget == null || currentTarget.noLongerExists())
+                    if (currentTarget == null || currentTarget.noLongerExists() || currentTarget.getCarrying().getWeight() == 0)
                         currentTarget = aiContext.locator.locateNearestNaturalResource(entity, naturalResourceSpec);
                     if (currentTarget == null)
                         return AiAttemptResult.Completed;

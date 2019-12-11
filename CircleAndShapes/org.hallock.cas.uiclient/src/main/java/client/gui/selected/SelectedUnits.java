@@ -2,7 +2,6 @@ package client.gui.selected;
 
 import client.app.UiClientContext;
 import client.state.SelectionManager;
-import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.spec.GameSpec;
 

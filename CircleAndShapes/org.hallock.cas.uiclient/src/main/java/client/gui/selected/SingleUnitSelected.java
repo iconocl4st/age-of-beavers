@@ -5,7 +5,6 @@ import client.gui.ImagePanel;
 import common.action.Action;
 import common.state.EntityReader;
 import common.state.Player;
-import common.state.spec.ConstructionSpec;
 import common.state.spec.EntitySpec;
 import common.state.spec.GameSpec;
 import common.state.spec.ResourceType;
@@ -49,7 +48,7 @@ public class SingleUnitSelected extends JPanel {
 
     private EntityReader entity;
 
-    private ResourceType[] resourceTypes;
+//    private ResourceType[] resourceTypes;
     private final Map<ResourceType, JLabel> resourceLabels = new HashMap<>();
 
     private SingleUnitSelected(UiClientContext context) {
@@ -67,7 +66,6 @@ public class SingleUnitSelected extends JPanel {
     }
 
     public void initalize(GameSpec spec) {
-        this.resourceTypes = spec.resourceTypes;
         resourcesPanel.removeAll();
         for (ResourceType resourceType : spec.resourceTypes) {
             JLabel label = new JLabel();
@@ -107,21 +105,24 @@ public class SingleUnitSelected extends JPanel {
         Object sync = entity.getSync();
         if (sync == null) return;
         synchronized (sync) {
-            if (entity.noLongerExists())
+            if (entity.noLongerExists()) {
+                setDead();
                 return;
+            }
 
             EntitySpec currentType = entity.getType();
-            imagePanel.setImage(context.imageCache.get(currentType.image));
+            imagePanel.setImage(context.imageCache.get(entity.getGraphics()));
 
             Load load = entity.getCarrying();
             resourcesBorder.setTitle("Total weight carried: " + ResourceType.formatWeight(load.getWeight()));
-            if (currentType instanceof ConstructionSpec) {
-                Map<ResourceType, Integer> requiredResources = ((ConstructionSpec) currentType).resultingStructure.requiredResources;
+            if (currentType.containsClass("construction-zone")) {
+//                Map<ResourceType, Integer> requiredResources = currentType.resultingStructure.requiredResources;
                 for (Map.Entry<ResourceType, JLabel> entry : resourceLabels.entrySet()) {
                     entry.getValue().setText(
                             entry.getKey().name + ": " +
                             load.quantities.getOrDefault(entry.getKey(), 0) + "/" +
-                            requiredResources.getOrDefault(entry.getKey(), 0)
+                                    ("unknown")
+//                            requiredResources.getOrDefault(entry.getKey(), 0)
                     );
                 }
             } else {
@@ -145,7 +146,7 @@ public class SingleUnitSelected extends JPanel {
                 action.setText("idle");
             }
 
-            age.setText("Age: " + String.valueOf(entity.getCurrentAge()));
+            age.setText("Age: " + String.format("%.1f", entity.getCurrentAge()));
 
             String currentAi = context.clientGameState.aiManager.getDisplayString(entity);
             ai.setText("AiStack: " + currentAi);
@@ -165,7 +166,7 @@ public class SingleUnitSelected extends JPanel {
             depositSpeed.setText("Deposit speed: " + String.valueOf(entity.getDepositSpeed()));
             collectSpeed.setText("Collect speed: " + String.valueOf(entity.getCollectSpeed()));
             moveSpeed.setText("Move speed: " + String.valueOf(entity.getMovementSpeed()));
-            lineOfSight.setText("Line of sight: " + String.valueOf(entity.getBaseLineOfSight()));
+            lineOfSight.setText("Line of sight: " + String.valueOf(entity.getLineOfSight()));
 
             PrioritizedCapacitySpec currentCapacity = entity.getCapacity();
             if (currentCapacity != null) {
@@ -199,6 +200,39 @@ public class SingleUnitSelected extends JPanel {
                 buildProgress.setText("Build progress: " + "N/A");
             }
         }
+    }
+
+    private void setDead() {
+        EntitySpec currentType = entity.getType();
+        imagePanel.setImage(context.imageCache.get("na.png"));
+
+        resourcesBorder.setTitle("N/A");
+        for (Map.Entry<ResourceType, JLabel> entry : resourceLabels.entrySet()) {
+            entry.getValue().setText(entry.getKey().name + ": 0");
+        }
+
+        isRiding.setText("unknown");
+        action.setText("No action");
+        age.setText("Ageless");
+        ai.setText("No intelligence");
+        gateState.setText("Beyond the gate");
+
+        weapons.setText("Weaponless");
+
+        garrisoned.setText("No Garrisoned");
+        buildSpeed.setText("Cannot build");
+        attackSpeed.setText("Cannot attack");
+        depositSpeed.setText("Cannot deposit");
+        collectSpeed.setText("Cannot collect");
+        moveSpeed.setText("Cannot move");
+        lineOfSight.setText("Cannot see");
+        capacity.setText("Cannot carry");
+
+        type.setText("No type");
+        owner.setText("Owner: Nobody");
+        location.setText("No location");
+        health.setText("No health");
+        buildProgress.setText("Not under construction");
     }
 
     public static SingleUnitSelected createSingleSelect(UiClientContext context) {

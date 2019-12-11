@@ -1,7 +1,6 @@
 package server.app;
 
 import common.msg.Message;
-import server.state.ServerStateManipulator;
 
 import java.io.IOException;
 
@@ -71,7 +70,11 @@ public class ServerMessageHandler {
             break;
             case LAUNCH: {
                 System.out.println("Requested launch");
-                c.launch();
+                try {
+                    c.launch();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
             break;
             case PLACE_BUILDING:
@@ -86,6 +89,7 @@ public class ServerMessageHandler {
             case STOP_RIDING:
             case SET_EVOLUTION_SELECTION:
             case SET_DESIRED_CAPACITY:
+            case REQUEST_LISTEN_FOR_RANGE:
                 return c.getMessageHandler().send(message);
             default:
                 System.out.println("Server: Ignoring unknown message type " + message.getMessageType());

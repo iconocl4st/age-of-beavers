@@ -1,7 +1,6 @@
 package common.state.sst.manager;
 
 import common.state.EntityId;
-import common.state.spec.GameSpec;
 import common.util.json.JsonReaderWrapperSpec;
 import common.util.json.Jsonable;
 import common.util.json.ReadOptions;

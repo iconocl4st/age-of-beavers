@@ -1,0 +1,22 @@
+{
+  "parent": "building",
+  "image": "unit/storage_yard.png",
+  "health-points": 100,
+  "garrison-capacity": 20,
+  "size": {
+    "width": 4,
+    "height": 4
+  },
+  "building-path": "economic",
+  "line-of-sight": 15,
+  "name": "storage-yard",
+  "can-craft": {
+    "children": [],
+    "type": "branch"
+  },
+  "carry-capacity": {},
+  "can-create": {
+    "children": [],
+    "type": "branch"
+  }
+}

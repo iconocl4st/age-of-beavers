@@ -1,11 +1,10 @@
 package common.state.sst;
 
-import common.state.EntityReader;
-import common.state.spec.EntitySpec;
 import common.state.EntityId;
+import common.state.EntityReader;
 import common.state.Player;
+import common.state.spec.EntitySpec;
 import common.state.sst.manager.ManagerImpl;
-import common.util.json.EmptyJsonable;
 
 public class GameStateHelper {
     public static boolean playerCanRide(Player player, EntityReader rider, EntityReader ridden) {

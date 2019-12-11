@@ -1,25 +1,25 @@
 package common.state.sst.manager;
 
-import common.state.spec.GameSpec;
 import common.state.EntityId;
 import common.state.EntityReader;
-import common.state.sst.GameState;
-import common.util.*;
+import common.state.spec.GameSpec;
+import common.state.sst.sub.MovableEntity;
+import common.util.DPoint;
+import common.util.GridLocation;
 import common.util.json.JsonReaderWrapperSpec;
 import common.util.json.JsonWriterWrapperSpec;
 import common.util.json.ReadOptions;
 import common.util.json.WriteOptions;
-import common.util.query.EntityQueryFilter;
+import common.util.query.EntityReaderFilter;
 import common.util.query.NearestEntityQuery;
 import common.util.query.NearestEntityQueryResults;
 
 import java.awt.*;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
-public class LocationManager implements Serializable /* implements ManagerSpec<DPoint>*/ {
+public class LocationManager /* implements ManagerSpec<DPoint>*/ {
 
     // todo: remove
 //    GameState gameState;
@@ -36,19 +36,19 @@ public class LocationManager implements Serializable /* implements ManagerSpec<D
         gridLocations = new GridLocation(spec.width, spec.height, 20, 20);
     }
 
-    public Set<EntityId> getEntitiesWithin(double gr1x, double gr1y, double gr2x, double gr2y, EntityQueryFilter filter) {
+    public Set<EntityReader> getEntitiesWithin(double gr1x, double gr1y, double gr2x, double gr2y, EntityReaderFilter filter) {
         synchronized (gridLocations) {
             return gridLocations.getEntitiesWithin(gr1x,  gr1y, gr2x, gr2y, filter);
         }
     }
 
-    public Set<EntityId> getEntities(DPoint destination, EntityQueryFilter filter) {
+    public Set<EntityReader> getEntities(DPoint destination, EntityReaderFilter filter) {
         synchronized (gridLocations) {
             return gridLocations.getAt(destination, filter);
         }
     }
 
-    public Set<EntityId> getEntities(Point destination, EntityQueryFilter filter) {
+    public Set<EntityReader> getEntities(Point destination, EntityReaderFilter filter) {
         synchronized (gridLocations) {
             return gridLocations.getAt(destination, filter);
         }
@@ -60,9 +60,9 @@ public class LocationManager implements Serializable /* implements ManagerSpec<D
         }
     }
 
-    public void setLocation(EntityReader entity, DPoint desiredLocation) {
+    public void setLocation(MovableEntity entity) {
         synchronized (gridLocations) {
-            gridLocations.setLocation(entity, desiredLocation);
+            gridLocations.setLocation(entity);
         }
     }
 
@@ -85,12 +85,6 @@ public class LocationManager implements Serializable /* implements ManagerSpec<D
         }
     }
 
-    public List<NearestEntityQueryResults> multiQuery(NearestEntityQuery query) {
-        synchronized (gridLocations) {
-            return gridLocations.multiQuery(query);
-        }
-    }
-
     public List<GridLocation.GraphicalDebugRectangle> getDebugRectangles() {
         return gridLocations.getDebugRectangles();
     }
@@ -107,7 +101,35 @@ public class LocationManager implements Serializable /* implements ManagerSpec<D
         }
     }
 
-    public GameState.OccupancyView createOccupancyView(EntityId entityId) {
-        return gridLocations.createOccupancyView(entityId);
+    public MovableEntity getDirectedEntity(EntityId entityId) {
+        synchronized (gridLocations) {
+            return gridLocations.getDirectedEntity(entityId);
+        }
     }
+
+    public void updateCachedLocation(EntityReader entity, DPoint cachedCurrentLocation) {
+        synchronized (gridLocations) {
+            MovableEntity directedEntity = gridLocations.getDirectedEntity(entity.entityId);
+            if (directedEntity == null) return;
+            gridLocations.updateCachedLocation(directedEntity, cachedCurrentLocation);
+        }
+    }
+
+    public void setTime(double currentGameTime) {
+        synchronized (gridLocations) {
+            gridLocations.setTime(currentGameTime);
+        }
+    }
+
+    public DPoint getLocation(EntityId entityId, double currentGameTime) {
+        synchronized (gridLocations) {
+            return gridLocations.getLocation(entityId, currentGameTime);
+        }
+    }
+
+//    public OccupancyView getOccupancyView(EntityReader entity) {
+//        synchronized (gridLocations) {
+//            return gridLocations.createUnitOccupancyView(entity);
+//        }
+//    }
 }

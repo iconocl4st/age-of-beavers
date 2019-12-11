@@ -1,8 +1,8 @@
 package client.gui.actions.unit_action;
 
 import client.app.UiClientContext;
-import common.state.spec.CreationSpec;
 import common.state.EntityReader;
+import common.state.spec.CreationSpec;
 
 public class Create extends UnitAction {
 
@@ -17,9 +17,9 @@ public class Create extends UnitAction {
     public boolean isEnabled(EntityReader entity) {
         if (!defaultGuardStatement(entity))
             return false;
-        if (!entity.getType().canCreate.contains(spec))
+        if (!entity.getType().canCreate.anyMatch(spec::equals))
             return false;
-        if (!entity.getCarrying().canAfford(spec.createdType.requiredResources))
+        if (!entity.getCarrying().canAfford(spec.requiredResources))
             return false;
         return entity.isIdle() && !c.clientGameState.aiManager.isControlling(entity);
     }

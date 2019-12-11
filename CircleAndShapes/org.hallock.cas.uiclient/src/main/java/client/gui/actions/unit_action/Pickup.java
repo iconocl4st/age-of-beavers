@@ -1,10 +1,9 @@
 package client.gui.actions.unit_action;
 
 import client.ai.ai2.OneTripTransportFrom;
-import client.ai.ai2.OneTripTransportTo;
 import client.app.UiClientContext;
-import common.state.spec.ResourceType;
 import common.state.EntityReader;
+import common.state.spec.ResourceType;
 import common.util.MapUtils;
 
 public class Pickup extends UnitToUnitAction {

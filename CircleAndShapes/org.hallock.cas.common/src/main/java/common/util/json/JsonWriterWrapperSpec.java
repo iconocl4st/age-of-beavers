@@ -1,13 +1,7 @@
 package common.util.json;
 
-import common.state.spec.GameSpec;
-import common.state.spec.ResourceType;
-import org.bson.BsonType;
-
-import java.awt.*;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 public abstract class JsonWriterWrapperSpec implements AutoCloseable {

@@ -23,7 +23,7 @@
 //    }
 //
 //    static AiAttemptResult beRidden(ActionRequester requester, EntityReader entity, EntityReader rider) {
-//        AiAttemptResult result = AiUtils.moveToProximity(entity, rider);
+//        AiAttemptResult result = OldAiUtils.moveToProximity(entity, rider);
 //        if (!result.equals(AiAttemptResult.NothingDone)) return result;
 //        requester.setUnitActionToMount(rider, entity);
 //        return AiAttemptResult.RequestedAction;

@@ -5,11 +5,9 @@ import common.event.ActionCompleted;
 import common.state.EntityReader;
 import common.util.DPoint;
 
-import java.util.Set;
-
 public class Move extends AiTask {
 
-//    private DPoint currentLocation;
+    //    private DPoint currentLocation;
     private DPoint destination;
 
     public Move(EntityReader controlling, DPoint location) {
@@ -30,8 +28,9 @@ public class Move extends AiTask {
 //        currentLocation = location;
 //        if (currentLocation.distanceTo(destination) < 1e-2)
 //            return AiAttemptResult.Completed;
-        if (aiContext.requester.setUnitActionToMove(entity, destination).equals(AiAttemptResult.Unsuccessful))
-            return AiAttemptResult.Unsuccessful;
+        AiAttemptResult aiAttemptResult = aiContext.requester.setUnitActionToMove(aiContext.clientGameState.pathFinder, this.entity, destination);
+        if (aiAttemptResult.failed())
+            return aiAttemptResult;
         return AiAttemptResult.RequestedAction;
     }
 

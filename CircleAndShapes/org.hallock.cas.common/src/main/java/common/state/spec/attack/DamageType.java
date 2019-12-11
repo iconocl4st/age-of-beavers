@@ -1,8 +1,6 @@
 package common.state.spec.attack;
 
-import java.io.Serializable;
-
-public enum DamageType implements Serializable {
+public enum DamageType {
     Pierce,
     Bash,
     Slice,

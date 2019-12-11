@@ -4,6 +4,8 @@ import app.DebugSnapshot;
 import client.state.ClientGameState;
 import common.DebugGraphics;
 import common.state.EntityReader;
+import common.state.spec.EntitySpec;
+import common.util.DPoint;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -26,11 +28,11 @@ final class EntityViewer extends JPanel {
 
     private EntityViewer() {}
 
-    private static String valueOf(Set<String> assignments) {
-        StringBuilder builder = new StringBuilder();
-        for (String s : assignments) builder.append(s).append(", ");
-        return builder.toString();
-    }
+//    private static String valueOf(Set<String> assignments) {
+//        StringBuilder builder = new StringBuilder();
+//        for (String s : assignments) builder.append(s).append(", ");
+//        return builder.toString();
+//    }
     private static String valueOf2(Set<EntityReader> assignments) {
         StringBuilder builder = new StringBuilder();
         for (EntityReader s : assignments) builder.append(s.entityId.id).append(", ");
@@ -39,11 +41,15 @@ final class EntityViewer extends JPanel {
 
     void show(ClientGameState clientGameState, EntityReader reader, DebugSnapshot.EntityInformation information, EntityReader highlight) {
         id.setReader(reader, highlight);
-        type.setText("Type: " + reader.getType().name);
-        location.setText("Loc: " + reader.getLocation());
+        EntitySpec type = reader.getType();
+        DPoint eLocation = reader.getLocation();
+        if (type == null || location == null) return;
+        if (reader.getType() == null) return;
+        this.type.setText("Type: " + type.name);
+        location.setText("Loc: " + eLocation);
         riding.setReader(information.riding, highlight);
         rider.setReader(information.rider, highlight);
-        assignments.setText(valueOf(information.assignments));
+        assignments.setText("(" + information.assignmentPriority + ") " + information.assignment);
         garrisoners.setText("Garrisoners: " + valueOf2(information.garrisoners));
         garrisoned.setText("Garrisoned: " + valueOf2(information.garrisoners));
         ai.setText("Ai: " + clientGameState.aiManager.getDisplayString(reader));

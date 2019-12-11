@@ -1,52 +1,51 @@
 package server.algo;
 
-import common.algo.AStar;
+import common.factory.Path;
+import common.factory.PathFinder;
+import common.factory.SearchDestination;
 import common.state.EntityReader;
+import common.state.Occupancy;
 import common.state.Player;
 import common.state.spec.EntitySpec;
-import common.state.sst.GameState;
+import common.state.sst.OccupancyView;
 import common.util.DPoint;
-import common.util.query.GridLocationQuerier;
+import common.util.json.Jsonable;
+import server.state.ServerGameState;
 
+import java.awt.*;
 import java.util.Set;
 
 public final class UnGarrisonLocation {
-    public final DPoint point;
-    public final AStar.Path path;
+    public final Point point;
+    public final Path<? extends Jsonable> path;
 
-    public UnGarrisonLocation(DPoint location, AStar.Path path) {
+    public UnGarrisonLocation(Point location, Path<? extends Jsonable> path) {
         this.point = location;
         this.path = path;
     }
 
-    public static UnGarrisonLocation getUnGarrisonLocation(GameState state, EntityReader holder) {
-        Player owner = holder.getOwner();
-        GameState.OccupancyView occupancyState = state.getOccupancyView(owner);
+    public static UnGarrisonLocation getUnGarrisonLocation(ServerGameState state, EntityReader holder, Dimension heldSize) {
+        OccupancyView occView = Occupancy.createUnitOccupancy(state.state, holder.getOwner());
         EntitySpec type = holder.getType();
         DPoint location = holder.getLocation();
         DPoint gatherPoint = holder.getCurrentGatherPoint();
-
         if (gatherPoint != null) {
-            AStar.PathSearch path = GridLocationQuerier.findPath(state, holder.entityId, gatherPoint, owner);
-            if (path != null) {
-                return new UnGarrisonLocation(path.path.points.get(0), path.path);
-            }
+            Path<? extends Jsonable> path = state.pathFinder.findExitPath(occView, holder, heldSize, new SearchDestination(gatherPoint));
+            if (path != null)
+                return new UnGarrisonLocation(path.points.get(0).toPoint(), path);
         }
-        Set<DPoint> dPoints = GridLocationQuerier.enumerateNeighbors(location, type.size, occupancyState);
-
-        DPoint minimum = null;
-        for (DPoint point : dPoints) {
-            if (minimum == null || point.y < minimum.y) {
+        Set<Point> dPoints = PathFinder.enumerateNeighbors(location.toPoint(), type.size, occView);
+        Point minimum = null;
+        for (Point point : dPoints) {
+            if (minimum == null || point.y < minimum.y)
                 minimum = point;
-            }
-            if (minimum == null || (point.x < minimum.x && point.y <= minimum.y)) {
+            if (minimum == null || (point.x < minimum.x && point.y <= minimum.y))
                 minimum = point;
-            }
         }
         return new UnGarrisonLocation(minimum, null);
     }
 
-    public boolean isImossible() {
+    public boolean isImpossible() {
         return this.point == null;
     }
 }

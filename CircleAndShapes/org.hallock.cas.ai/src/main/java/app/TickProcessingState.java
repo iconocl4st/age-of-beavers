@@ -1,196 +1,164 @@
 package app;
 
-import app.algo.KMeans;
+import app.assign.AiCheckContext;
+import app.assign.Assigner;
+import app.assign.UnitAssignment;
+import client.ai.ai2.AiTask;
 import client.ai.ai2.Gather;
-import client.ai.ai2.Move;
 import client.ai.ai2.Produce;
-import client.ai.ai2.TransportAi;
-import common.algo.AStar;
-import common.algo.ConnectedSet;
+import common.action.Action;
 import common.msg.Message;
 import common.state.EntityReader;
-import common.state.Player;
-import common.state.spec.CreationSpec;
+import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
 import common.state.sst.sub.ConstructionZone;
 import common.state.sst.sub.capacity.Prioritization;
+import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
 import common.util.MapUtils;
-import common.util.query.GridLocationQuerier;
 
-import java.awt.*;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 public class TickProcessingState {
 
     private final PlayerAiContext context;
 
-    int population;
+    public int population;
+    public int storageSpace;
 
-    HashMap<ResourceType, Integer> peopleOnResource = new HashMap<>();
-    HashMap<ResourceType, Integer> desiredResources = new HashMap<>();
-    HashMap<ResourceType, Integer> collectedResources = new HashMap<>();
-    int storageSpace;
+    public final HashMap<ResourceType, Integer> desiredResources = new HashMap<>();
+    public final HashMap<ResourceType, Integer> collectedResources = new HashMap<>();
 
-    LinkedList<EntityReader> garrisonsToService = new LinkedList<>();
-    LinkedList<EntityReader> constructionToService = new LinkedList<>();
+    public final HashSet<EntityReader> garrisoners = new HashSet<>();
+    public final HashSet<EntityReader> constructionZones = new HashSet<>();
 
-//    LinkedList<DPoint> storageLocations = new LinkedList<>();
+    public final HashMap<String, Integer> currentlyBuilding = new HashMap<>();
+    public final HashMap<String, Integer> currentlyOwned = new HashMap<>();
 
-    HashSet<String> currentlyBuilding = new HashSet<>();
-    HashSet<String> currentlyOwned = new HashSet<>();
+    public static final class GatherLocation { DPoint location; ResourceType resource; }
+    public final HashMap<EntityReader, GatherLocation> gatherLocations = new HashMap<>();
+    public static final class StorageLocation { DPoint location; Set<ResourceType> resources; };
+    public final HashMap<EntityReader, StorageLocation> storageLocations = new HashMap<>();
 
-    PeoplePuller peoplePuller;
-
-    KMeans[] resourceClusters;
-
-    public TickProcessingState(PlayerAiContext context, PeoplePuller puller) {
+    TickProcessingState(PlayerAiContext context) {
         this.context = context;
-        peoplePuller = puller;
-
-        resourceClusters = new KMeans[2];
     }
 
-    void reset(PersistentAiState state) {
+    void reset() {
         storageSpace = 0;
         population = 0;
         desiredResources.clear();
         collectedResources.clear();
-        garrisonsToService.clear();
-        constructionToService.clear();
-        peopleOnResource.clear();
-        peoplePuller.clear();
         currentlyBuilding.clear();
-//        storageLocations.clear();
-        if (resourceClusters[0] == null || resourceClusters[0].getK() != state.dropOffs.size()) {
-            resourceClusters[0] = new KMeans(context.random, state.dropOffs.size());
-            resourceClusters[1] = new KMeans(context.random, state.dropOffs.size() + 2);
-        } else {
-            for (KMeans resourceCluster : resourceClusters) resourceCluster.reset();
+        currentlyOwned.clear();
+        gatherLocations.clear();
+    }
+
+    private static void increaseCount(String type, HashMap<String, Integer> counts) {
+        counts.put(type, counts.getOrDefault(type, 0) + 1);
+    }
+
+    private void addGatherLocation(EntityReader entity, AiTask currentAi) {
+        if (!(currentAi instanceof Gather)) return;
+        Gather gather = (Gather) currentAi;
+        EntityReader currentResource = gather.getCurrentResource();
+        if (currentResource == null) return;
+        HashSet<ResourceType> gatheringResourceTypes = gather.getGatheringResourceTypes();
+        if (gatheringResourceTypes == null) return;
+        DPoint center = currentResource.getCenterLocation();
+        if (center == null) return;
+        for (ResourceType resourceType : gatheringResourceTypes) {
+            GatherLocation location = new GatherLocation();
+            location.resource = resourceType;
+            location.location = center;
+            gatherLocations.put(entity, location);
         }
     }
 
-    private void moveDropOffToDesiredLocation(EntityReader entity, PersistentAiState persistentAiState, EntityReader riding) {
-        DPoint desiredLocation = persistentAiState.desiredDropOffLocations.get(riding);
-        if (desiredLocation == null)
-            return;
-        if (desiredLocation.distanceTo(entity.getLocation()) < 5)
-            return;
-        Point nearestEmptyTile = ConnectedSet.findNearestEmptyTile(context.clientGameState.gameState.gameSpec, desiredLocation.toPoint(), context.clientGameState.gameState.getOccupancyView(context.clientGameState.currentPlayer));
-        if (nearestEmptyTile == null)
-            return;
-        AStar.PathSearch path = GridLocationQuerier.findPath(context.clientGameState.gameState, entity.entityId, new DPoint(nearestEmptyTile), context.clientGameState.currentPlayer);
-        if (path == null)
-            return;
-        context.clientGameState.aiManager.set(entity, new Move(entity, new DPoint(nearestEmptyTile)));
-//        context.msgQueue.send(new Message.RequestAction(entity.entityId, new Action.MoveSeq(path.path)));
-    }
+    void update(EntityReader entity, AiCheckContext c) {
+        EntitySpec type = entity.getType();
+        increaseCount(type.name, currentlyOwned);
 
-    void update(EntityReader entity, PersistentAiState persistentAiState) {
-        currentlyOwned.add(entity.getType().name);
+        boolean isHuman = type.name.equals("human");
+        Action currentAction = entity.getCurrentAction();
+        AiTask currentAi = context.clientGameState.aiManager.get(entity);
+        UnitAssignment currentAssignment = c.assignments.get(entity);
+        boolean idle = currentAi == null && (currentAction == null || currentAction instanceof Action.Idle);
 
-        client.ai.ai2.AiTask currentAi = context.clientGameState.aiManager.get(entity);
-        if (entity.getType().name.equals("wagon") && currentAi == null) {
-            EntityReader riding = entity.getRiding();
-            if (riding != null && persistentAiState.transporters.contains(riding)) {
-                context.clientGameState.aiManager.set(entity, new TransportAi(entity));
-            } else if (riding != null && persistentAiState.dropOffs.contains(riding)) {
-                moveDropOffToDesiredLocation(entity, persistentAiState, riding);
+
+        if (idle) {
+            if (currentAssignment == null) {
+                Assigner.assignToNothing(c, entity, AiConstants.IDLE_PRIORITY);
+            } else {
+                currentAssignment.onIdle.isIdle();
             }
         }
 
-        if (currentAi instanceof Gather) {
-            EntityReader currentResource = ((Gather) currentAi).getCurrentResource();
-            DPoint location;
-            if (currentResource != null && (location = currentResource.getCenterLocation()) != null) {
-                for (KMeans resourceCluster : resourceClusters)
-                    resourceCluster.setResourceLocation(entity.entityId, location.toPoint());
-            }
-        }
+        addGatherLocation(entity, currentAi);
+        if (isHuman) ++population;
 
-        boolean isHuman = entity.getType().name.equals("human");
-        if (isHuman) population += 1;
+        if (type.containsClass("can-garrison-others"))
+            garrisoners.add(entity);
 
-        if (persistentAiState.isIdle(entity)) {
-            if (isHuman) {
-                peoplePuller.addIdle(entity);
-            } else if (!entity.getType().canCreate.isEmpty()) {
-                if (entity.getOwner().equals(context.clientGameState.currentPlayer)) {
-                    CreationSpec spec = persistentAiState.getRecommendedCreation(entity.getType().canCreate);
-                    if (spec != null)
-                        context.clientGameState.aiManager.set(entity, new Produce(entity, spec));
-                } else if (entity.getOwner().equals(Player.GAIA) && !persistentAiState.garrisonServicers.containsKey(entity)) {
-                    garrisonsToService.add(entity);
-                }
-            }
-        }
-
-        if (entity.getType().containsClass("can-garrison-others")) {
-            if (persistentAiState.getDesiredNumGarrisons(entity) > entity.getNumGarrisonedUnits() && persistentAiState.garrisonServicers.get(entity) == null) {
-                garrisonsToService.add(entity);
-            }
-        }
-
-        if (entity.getType().containsClass("storage")) {
+        if (type.containsClass("storage")) {
             MapUtils.add(collectedResources, entity.getCarrying().quantities);
-            storageSpace += entity.getCapacity().getMaximumWeightHoldable();
+            PrioritizedCapacitySpec capacity = entity.getCapacity();
+            storageSpace += capacity.getMaximumWeightHoldable();
             DPoint centerLocation = entity.getCenterLocation();
             if (centerLocation != null) {
-                for (KMeans resourceCluster : resourceClusters) {
-                    resourceCluster.setStorageLocation(entity.entityId, centerLocation.toPoint());
-                }
+                StorageLocation storage = new StorageLocation();
+                storage.location = centerLocation;
+                storage.resources = entity.getAmountOfResourceAbleToAccept().keySet();
+                storageLocations.put(entity, storage);
             }
         }
 
         // TODO: setResourceLocation demands...
         if (currentAi instanceof Produce) {
             Produce createAi = (Produce) currentAi;
-            Map<ResourceType, Integer> creationResources = MapUtils.multiply(MapUtils.copy(createAi.getCreating().createdType.requiredResources), 2);
-            checkDemands(entity, creationResources);
+            Map<ResourceType, Integer> creationResources = MapUtils.multiply(MapUtils.copy(createAi.getCreating().requiredResources), AiConstants.MULTIPLY_CREATION_PRODUCE_DEMAND);
+            checkDemands(entity, creationResources, AiConstants.PRODUCE_DEMAND_PRIORITY);
             MapUtils.add(desiredResources, creationResources);
         }
 
 
         ConstructionZone constructionZone = entity.getConstructionZone();
         if (constructionZone != null) {
-            currentlyBuilding.add(constructionZone.constructionSpec.resultingStructure.name);
+            increaseCount(constructionZone.constructionSpec.resultingStructure.name, currentlyBuilding);
+
+
+            PrioritizedCapacitySpec capacity = context.clientGameState.gameState.capacityManager.get(null);
+            Map<ResourceType, Integer> creationResources = capacity.getMaximumAmounts();
+
+//            Map<ResourceType, Integer> creationResources = constructionZone.constructionSpec.gresultingStructure.requiredResources;
+            checkDemands(entity, creationResources, AiConstants.CONSTRUCTION_DEMAND_PRIORITY);
+
             Map<ResourceType, Integer> missingConstructionResources = entity.getMissingConstructionResources();
-            if (MapUtils.sum(missingConstructionResources) == 0) {
-                if (!persistentAiState.constructionZones.contains(entity))
-                    constructionToService.add(entity);
-            } else {
-                MapUtils.add(desiredResources, missingConstructionResources);
-            }
+            MapUtils.add(desiredResources, missingConstructionResources);
+
+            constructionZones.add(entity);
         }
     }
 
-    private void checkDemands(EntityReader entity, Map<ResourceType, Integer> creationResources) {
+    private void checkDemands(EntityReader entity, Map<ResourceType, Integer> creationResources, int priority) {
         for (Map.Entry<ResourceType, Integer> entry : creationResources.entrySet()) {
             Prioritization prioritization = entity.getCapacity().getPrioritization(entry.getKey());
             int desiredMinimum = Math.min(prioritization.maximumAmount, entry.getValue());
-            if (prioritization.desiredAmount < desiredMinimum) {
-                context.clientGameState.actionRequester.getWriter().send(new Message.SetDesiredCapacity(entity.entityId, entry.getKey(), 1, desiredMinimum, prioritization.maximumAmount));
+            if (prioritization.desiredAmount < desiredMinimum || prioritization.priority != priority) {
+                context.clientGameState.actionRequester.getWriter().send(new Message.SetDesiredCapacity(entity.entityId, entry.getKey(), priority, desiredMinimum, prioritization.maximumAmount));
             }
         }
     }
 
-    public Map<ResourceType, Integer> getMissingResources() {
-        return MapUtils.positivePart(MapUtils.subtract(MapUtils.copy(desiredResources), collectedResources));
+    public int getNumberOf(String type) {
+        return currentlyBuilding.getOrDefault(type, 0) + currentlyOwned.getOrDefault(type, 0);
     }
 
-    public void determineShiftableVillagers(Map<ResourceType, Integer> desiredAllocations) {
-        peoplePuller.addExcess(MapUtils.positivePart(MapUtils.subtract(MapUtils.copy(peopleOnResource), desiredAllocations)).entrySet());
-    }
-
-    public LinkedList<Map.Entry<ResourceType, Integer>> determineMissingAllocations(Map<ResourceType, Integer> desiredAllocations) {
-        return new LinkedList<>(MapUtils.positivePart(MapUtils.subtract(MapUtils.copy(desiredAllocations), peopleOnResource)).entrySet());
-    }
-
-    public Map<ResourceType, Integer> determineExcessResources() {
-        return MapUtils.positivePart(MapUtils.subtract(MapUtils.copy(collectedResources), desiredResources));
+    public int getNumberBuilding(String type) {
+        return currentlyBuilding.getOrDefault(type, 0);
     }
 
     public double determineStoragePercentage() {

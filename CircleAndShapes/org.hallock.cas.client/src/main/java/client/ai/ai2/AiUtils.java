@@ -10,7 +10,7 @@ public class AiUtils {
         if (Proximity.closeEnoughToInteract(context.controlling, destination)) {
             return AiAttemptResult.NothingDone;
         }
-        return context.requester.setUnitActionToMove(context.controlling, destination);
+        return context.requester.setUnitActionToMove(context.clientGameState.pathFinder, context.controlling, destination);
     }
     public static AiAttemptResult moveToRange(AiContext context, EntityReader destination, double radius) {
         DPoint loc1 = context.controlling.getCenterLocation();
@@ -22,6 +22,6 @@ public class AiUtils {
             return AiAttemptResult.NothingDone;
         }
 
-        return context.requester.setUnitActionToMove(context.controlling, destination);
+        return context.requester.setUnitActionToMove(context.clientGameState.pathFinder, context.controlling, destination);
     }
 }

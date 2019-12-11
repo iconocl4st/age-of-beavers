@@ -1,9 +1,14 @@
 package common.util.json;
 
 import common.state.spec.GameSpec;
-import common.state.spec.attack.WeaponSpec;
+import common.state.sst.GameState;
 
 public class ReadOptions {
-    public GameSpec spec;
+    public GameState state;
 
+    public GameSpec spec() {
+        if (state == null)
+            return null;
+        return state.gameSpec;
+    }
 }

@@ -1,0 +1,17 @@
+{
+  "is-carrying": [],
+  "parent": "natural-resource",
+  "size": {
+    "width": 0,
+    "height": 0
+  },
+  "name": "berry",
+  "can-craft": {
+    "children": [],
+    "type": "branch"
+  },
+  "can-create": {
+    "children": [],
+    "type": "branch"
+  }
+}

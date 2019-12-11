@@ -1,0 +1,19 @@
+{
+  "parent": "unit",
+  "image": "unit/horse.jpg",
+  "health-points": 40,
+  "size": {
+    "width": 0,
+    "height": 0
+  },
+  "name": "horse",
+  "can-craft": {
+    "children": [],
+    "type": "branch"
+  },
+  "can-create": {
+    "children": [],
+    "type": "branch"
+  },
+  "move-speed": 3
+}

@@ -1,0 +1,17 @@
+{
+  "health-points": 500,
+  "size": {
+    "width": 0,
+    "height": 0
+  },
+  "line-of-sight": 15,
+  "name": "building",
+  "can-craft": {
+    "children": [],
+    "type": "branch"
+  },
+  "can-create": {
+    "children": [],
+    "type": "branch"
+  }
+}

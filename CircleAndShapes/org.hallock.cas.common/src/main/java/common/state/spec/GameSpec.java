@@ -1,59 +1,48 @@
 package common.state.spec;
 
 import common.state.spec.attack.WeaponSpec;
-import common.state.spec.attack.Weapons;
-import common.util.json.*;
+import common.util.Immutable;
 
-import java.io.IOException;
 import java.util.*;
 
-public class GameSpec implements Jsonable {
+public class GameSpec {
+    public final double gameSpeed;
+    public final int width;
+    public final int height;
+    public final VisibilitySpec visibility;
 
-    public enum VisibilitySpec {
-        FOG,
-        EXPLORED,
-        ALL_VISIBLE,
+    public final Immutable.ImmutableList<ResourceType> resourceTypes;
+    public final Immutable.ImmutableList<EntitySpec> unitSpecs;
+    public final Immutable.ImmutableList<WeaponSpec> weaponTypes;
+
+    public final GenerationSpec generationSpec;
+
+    public GameSpec(
+            double gameSpeed,
+            int width,
+            int height,
+            Immutable.ImmutableList<ResourceType> resourceTypes,
+            Immutable.ImmutableList<EntitySpec> unitSpecs,
+            Immutable.ImmutableList<WeaponSpec> weaponTypes,
+            GenerationSpec generationSpec,
+            VisibilitySpec visibility
+    ) {
+        this.gameSpeed = gameSpeed;
+        this.width = width;
+        this.height = height;
+        this.resourceTypes = resourceTypes;
+        this.unitSpecs = unitSpecs;
+        this.generationSpec = generationSpec;
+        this.weaponTypes = weaponTypes;
+        this.visibility = visibility;
     }
-
-    public int width;
-    public int height;
-    public int numPlayers;
-    public ResourceType[] resourceTypes;
-    public EntitySpec[] naturalResources;
-    public EntitySpec[] unitSpecs;
-    public GenerationSpec generationSpec;
-    public WeaponSpec[] weaponTypes = new WeaponSpec[] {
-            Weapons.Sword,
-            Weapons.Bow,
-            Weapons.Fist,
-            Weapons.LaserGun,
-            Weapons.Rifle,
-    };
-    public VisibilitySpec visibility = VisibilitySpec.ALL_VISIBLE;
 
     public ResourceType getResourceType(String name) {
-        for (ResourceType rt : resourceTypes) {
-            if (rt.name.equals(name)) {
-                return rt;
-            }
-        }
-        return null;
+        return getResourceType(resourceTypes, name);
     }
-    public EntitySpec getNaturalResource(String name) {
-        for (EntitySpec rt : naturalResources) {
-            if (rt.name.equals(name)) {
-                return rt;
-            }
-        }
-        return null;
-    }
+
     public EntitySpec getUnitSpec(String name) {
-        for (EntitySpec rt : unitSpecs) {
-            if (rt.name.equals(name)) {
-                return rt;
-            }
-        }
-        return null;
+        return getUnitSpec(unitSpecs, name);
     }
 
     public WeaponSpec getWeaponSpec(String s) {
@@ -65,6 +54,27 @@ public class GameSpec implements Jsonable {
         return null;
     }
 
+
+    public static ResourceType getResourceType(Immutable.ImmutableList<ResourceType> resourceTypes, String name) {
+        for (ResourceType rt : resourceTypes) {
+            if (rt.name.equals(name)) {
+                return rt;
+            }
+        }
+        return null;
+    }
+    public static EntitySpec getUnitSpec(Immutable.ImmutableList<EntitySpec> unitSpecs, String name) {
+        for (EntitySpec rt : unitSpecs) {
+            if (rt.name.equals(name)) {
+                return rt;
+            }
+        }
+        return null;
+    }
+
+
+
+
     public Set<EntitySpec> getUnitSpecsByClass(String clazz) {
         Set<EntitySpec> ret = new HashSet<>();
         for (EntitySpec rt : unitSpecs) {
@@ -75,30 +85,72 @@ public class GameSpec implements Jsonable {
         return ret;
     }
 
-    public static class BuildingPathNode {
-        public final Map<String, BuildingPathNode> children = new TreeMap<>();
-        public final List<EntitySpec> buildings = new LinkedList<>();
-    }
-    public BuildingPathNode compileBuildingPaths() {
-        BuildingPathNode root = new BuildingPathNode();
-        for (EntitySpec spec : unitSpecs) {
-            if (spec.buildingPath == null)
-                continue;
-            BuildingPathNode node = root;
-            for (String str : spec.buildingPath) {
-                node = node.children.computeIfAbsent(str, e -> new BuildingPathNode());
-            }
-            node.buildings.add(spec);
-        }
-        return root;
-    }
+    // TODO:
+//    public static class BuildingPathNode {
+//        public final Map<String, BuildingPathNode> children = new TreeMap<>();
+//        public final List<EntitySpec> buildings = new LinkedList<>();
+//    }
+//    public BuildingPathNode compileBuildingPaths() {
+//        BuildingPathNode root = new BuildingPathNode();
+//        for (EntitySpec spec : unitSpecs) {
+//            if (spec.buildingPath == null)
+//                continue;
+//            BuildingPathNode node = root;
+//            for (String str : spec.buildingPath) {
+//                node = node.children.computeIfAbsent(str, e -> new BuildingPathNode());
+//            }
+//            node.buildings.add(spec);
+//        }
+//        return root;
+//    }
 
+
+
+
+
+
+
+
+
+
+
+
+
+//    = new WeaponSpec[] {
+//            Weapons.Sword,
+//            Weapons.Bow,
+//            Weapons.Fist,
+//            Weapons.LaserGun,
+//            Weapons.Rifle,
+//    };
+
+
+
+
+
+//    public EntitySpec[] naturalResources;
+
+//    public int numPlayers;
+
+
+//    public EntitySpec getNaturalResource(String name) {
+//        for (EntitySpec rt : naturalResources) {
+//            if (rt.name.equals(name)) {
+//                return rt;
+//            }
+//        }
+//        return null;
+//    }
+
+
+    /*
     @Override
     public void writeTo(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
         writer.writeBeginDocument();
         writer.write("width", width);
         writer.write("height", height);
-        writer.write("num-players", numPlayers);
+//        writer.write("num-players", numPlayers);
+        writer.write("game-speed", gameSpeed);
         writer.write("resource-types", resourceTypes, ResourceType.EntireSerializer, options);
         writer.write("natural-resource-types", naturalResources, EntitySpec.IgnoreCanCreateSerializer, options);
         writer.write("unit-types", unitSpecs, EntitySpec.IgnoreCanCreateSerializer, options);
@@ -126,7 +178,8 @@ public class GameSpec implements Jsonable {
             reader.readBeginDocument();
             ret.width = reader.readInt32("width");
             ret.height = reader.readInt32("height");
-            ret.numPlayers = reader.readInt32("num-players");
+//            ret.numPlayers = reader.readInt32("num-players");
+            ret.gameSpeed = reader.readDouble("game-speed");
             ret.resourceTypes = reader.read("resource-types", new ResourceType[0], ResourceType.EntireSerializer, spec);
             ret.naturalResources = reader.read("natural-resource-types", new EntitySpec[0], EntitySpec.IgnoreCanCreateSerializer, spec);
             ret.unitSpecs = reader.read("unit-types", new EntitySpec[0], EntitySpec.IgnoreCanCreateSerializer, spec);
@@ -147,4 +200,8 @@ public class GameSpec implements Jsonable {
             return ret;
         }
     };
+
+
+
+    */
 }

@@ -3,17 +3,13 @@ package common.state.sst;
 import common.action.Action;
 import common.state.EntityId;
 import common.state.EntityReader;
-import common.state.Occupancy;
 import common.state.Player;
-import common.state.los.LineOfSightSpec;
 import common.state.spec.EntitySpec;
 import common.state.spec.GameSpec;
-import common.state.sst.manager.BooleanManager;
-import common.state.sst.manager.LocationManager;
-import common.state.sst.manager.ManagerImpl;
-import common.state.sst.manager.ReversableManagerImpl;
+import common.state.sst.manager.*;
 import common.state.sst.sub.*;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
+import common.util.BitArray;
 import common.util.DPoint;
 import common.util.EvolutionSpec;
 import common.util.json.*;
@@ -22,8 +18,11 @@ import java.awt.*;
 import java.io.IOException;
 
 public class GameState implements Jsonable {
+
+    public long timeOfGameTime;
     public double currentTime;
     public GameSpec gameSpec;
+    public int numPlayers;
 
     // todo: rename to syncs
     public LocationManager locationManager;
@@ -54,22 +53,28 @@ public class GameState implements Jsonable {
     public ManagerImpl<EvolutionSpec> evolutionManager;
     public ManagerImpl<WeaponSet> weaponsManager;
     public ManagerImpl<ProjectileLaunch> projectileManager;
+    public ManagerImpl<String> graphicsManager;
+    public ManagerImpl<Double> gardenSpeed;
+    public ManagerImpl<Double> burySpeed;
+    public ManagerImpl<GrowthInfo> crops;
 //    public ManagerImpl<Armor> armorManager;
 
-    public LineOfSightSpec lineOfSight;
-    public Occupancy occupancyState;
+    // for natural resources and buildings...
+    // rename...
+    public BitArray staticOccupancy;
+    public BitArray buildingOccupancy;
+    public Textures textures;
 
-    public static GameState createGameState(GameSpec spec, LineOfSightSpec los) {
+    public static GameState createGameState(GameSpec spec, int numPlayers) {
         GameState gs = new GameState();
+        gs.numPlayers = numPlayers;
         gs.actionManager = new ReversableManagerImpl<>(action -> action.type, Action.Serializer);
         gs.carryingManager = new ManagerImpl<>(Load.Serializer);
         gs.entityManager = new ManagerImpl<>(DataSerializer.EmptyJsonableSerializer);
         gs.healthManager = new ManagerImpl<>(DataSerializer.DoubleSerializer);
         gs.locationManager = new LocationManager(spec);
         gs.playerManager = new ReversableManagerImpl<>(p -> p, Player.Serializer);
-        gs.occupancyState = new Occupancy(spec.width, spec.height);
         gs.typeManager = new ReversableManagerImpl<>(e -> e, EntitySpec.Serializer);
-        gs.lineOfSight = los;
         gs.constructionManager = new ManagerImpl<>(ConstructionZone.Serializer);
         gs.garrisonManager = new ReversableManagerImpl<>(e -> e, EntityId.Serializer);
         gs.ridingManager = new ReversableManagerImpl<>(e -> e, EntityId.Serializer);
@@ -90,11 +95,19 @@ public class GameState implements Jsonable {
         gs.collectSpeedManager = new ManagerImpl<>(DataSerializer.DoubleSerializer);
         gs.depositSpeedManager = new ManagerImpl<>(DataSerializer.DoubleSerializer);
         gs.evolutionManager = new ManagerImpl<>(EvolutionSpec.Serializer);
+        gs.staticOccupancy = new BitArray(spec.width, spec.height);
+        gs.buildingOccupancy = new BitArray(spec.width, spec.height);
+        gs.textures = new Textures();
+        gs.graphicsManager = new ManagerImpl<>(DataSerializer.StringSerializer);
+        gs.crops = new ManagerImpl<>(GrowthInfo.Serializer);
+        gs.gardenSpeed = new ManagerImpl<>(DataSerializer.DoubleSerializer);
+        gs.burySpeed = new ManagerImpl<>(DataSerializer.DoubleSerializer);
         gs.gameSpec = spec;
         return gs;
     }
 
     public void updateAll(JsonReaderWrapperSpec reader, ReadOptions options) throws IOException {
+        options.state = this;
         reader.readBeginDocument();
         reader.readName("actionManager"); actionManager.updateAll(reader, options);
         reader.readName("carryingManager"); carryingManager.updateAll(reader, options);
@@ -119,12 +132,17 @@ public class GameState implements Jsonable {
         reader.readName("buildSpeedManager"); buildSpeedManager.updateAll(reader, options);
         reader.readName("projectileManager"); projectileManager.updateAll(reader, options);
         reader.readName("constructionManager"); constructionManager.updateAll(reader, options);
-        reader.readName("occupancy"); occupancyState.updateAll(reader, options);
-        reader.readName("line-of-sight"); lineOfSight.updateAll(reader, options);
         reader.readName("line-of-sight-manager"); lineOfSightManager.updateAll(reader, options);
         reader.readName("collect-speed-manager"); collectSpeedManager.updateAll(reader, options);
         reader.readName("deposit-speed-manager"); depositSpeedManager.updateAll(reader, options);
         reader.readName("evolution-manager"); evolutionManager.updateAll(reader, options);
+        reader.readName("static-occupancy"); staticOccupancy.updateAll(reader, options);
+        reader.readName("building-occupancy"); buildingOccupancy.updateAll(reader, options);
+        reader.readName("textures"); textures.updateAll(reader, options);
+        reader.readName("graphics"); graphicsManager.updateAll(reader, options);
+        reader.readName("crops"); crops.updateAll(reader, options);
+        reader.readName("gardening-speeds"); gardenSpeed.updateAll(reader, options);
+        reader.readName("bury-speeds"); burySpeed.updateAll(reader, options);
         reader.readEndDocument();
     }
 
@@ -155,12 +173,17 @@ public class GameState implements Jsonable {
         writer.writeName("buildSpeedManager"); buildSpeedManager.writeTo(writer, options);
         writer.writeName("projectileManager"); projectileManager.writeTo(writer, options);
         writer.writeName("constructionManager"); constructionManager.writeTo(writer, options);
-        writer.writeName("occupancy"); occupancyState.writeTo(writer, options);
-        writer.writeName("line-of-sight"); lineOfSight.writeTo(writer, options);
         writer.writeName("line-of-sight-manager"); lineOfSightManager.writeTo(writer, options);
         writer.writeName("collect-speed-manager"); collectSpeedManager.writeTo(writer, options);
         writer.writeName("deposit-speed-manager"); depositSpeedManager.writeTo(writer, options);
         writer.writeName("evolution-manager"); evolutionManager.writeTo(writer, options);
+        writer.writeName("static-occupancy"); staticOccupancy.writeTo(writer, options);
+        writer.writeName("building-occupancy"); buildingOccupancy.writeTo(writer, options);
+        writer.writeName("textures"); textures.writeTo(writer, options);
+        writer.writeName("graphics"); graphicsManager.writeTo(writer, options);
+        writer.writeName("crops"); crops.writeTo(writer, options);
+        writer.writeName("gardening-speeds"); gardenSpeed.writeTo(writer, options);
+        writer.writeName("bury-speeds"); burySpeed.writeTo(writer, options);
         writer.writeEndDocument();
     }
 
@@ -192,31 +215,20 @@ public class GameState implements Jsonable {
             collectSpeedManager.remove(entity);
             depositSpeedManager.remove(entity);
             evolutionManager.remove(entity);
+            graphicsManager.remove(entity);
+            crops.remove(entity);
+            gardenSpeed.remove(entity);
+            burySpeed.remove(entity);
         }
     }
 
-    // TODO: use/move
-    public boolean isOccupiedFor(Point p, Player player) {
-        return occupancyState.isGloballyOccupied(p.x, p.y) || GateInfo.isOccupiedFor(p, player, gateStateManager, playerManager);
+    public void updateTime(double currentGameTime, long timeOfGameTime) {
+        currentTime = currentGameTime;
+        this.timeOfGameTime = timeOfGameTime;
+        locationManager.setTime(getCurrentGameTime());
     }
 
-    public interface OccupancyView { boolean isOccupied(int x, int y); }
-    public OccupancyView getOccupancyView(Player player) {
-        return (x, y) -> occupancyState.isOutOfBounds(x, y) || occupancyState.isGloballyOccupied(x, y) || GateInfo.isOccupiedFor(new Point(x, y), player, gateStateManager, playerManager);
-    }
-    public OccupancyView getOccupancyForAny() {
-        return (x, y) -> occupancyState.isOutOfBounds(x, y) || occupancyState.isGloballyOccupied(x, y) || !gateStateManager.getByType(new Point(x, y)).isEmpty();
-    }
-
-    public boolean hasSpaceFor(DPoint location, Dimension size) {
-        GameState.OccupancyView view = getOccupancyForAny();
-        for (int x = 0; x < size.width; x++) {
-            for (int y = 0; y < size.height; y++) {
-                if (view.isOccupied((int) location.x + x, (int) location.y + y)) {
-                    return false;
-                }
-            }
-        }
-        return true;
+    public double getCurrentGameTime() {
+        return currentTime + gameSpec.gameSpeed * (System.nanoTime() - timeOfGameTime) / 1e9d;
     }
 }

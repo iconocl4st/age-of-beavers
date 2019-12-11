@@ -1,0 +1,74 @@
+{"resource-types": [
+  {
+    "name": "arrow",
+    "weight": 1
+  },
+  {
+    "name": "bread",
+    "weight": 0
+  },
+  {
+    "name": "bullet",
+    "weight": 1
+  },
+  {
+    "name": "food",
+    "weight": 100
+  },
+  {
+    "name": "gold",
+    "weight": 200
+  },
+  {
+    "name": "honey",
+    "weight": 100
+  },
+  {
+    "name": "iron-ore",
+    "weight": 0
+  },
+  {
+    "name": "leather",
+    "weight": 0
+  },
+  {
+    "name": "plank",
+    "weight": 0
+  },
+  {
+    "name": "pumpkin",
+    "weight": 50
+  },
+  {
+    "name": "pumpkin-seed",
+    "weight": 1
+  },
+  {
+    "name": "rawhide",
+    "weight": 0
+  },
+  {
+    "name": "salt",
+    "weight": 0
+  },
+  {
+    "name": "stone",
+    "weight": 100
+  },
+  {
+    "name": "sulfur-ore",
+    "weight": 0
+  },
+  {
+    "name": "wheat",
+    "weight": 50
+  },
+  {
+    "name": "wheat-seed",
+    "weight": 1
+  },
+  {
+    "name": "wood",
+    "weight": 100
+  }
+]}

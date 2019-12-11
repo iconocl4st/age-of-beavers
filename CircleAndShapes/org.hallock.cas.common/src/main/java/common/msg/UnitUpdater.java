@@ -1,29 +1,18 @@
 package common.msg;
 
 import common.action.Action;
-import common.state.spec.EntitySpec;
 import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.Player;
+import common.state.spec.EntitySpec;
 import common.state.sst.sub.GateInfo;
 import common.state.sst.sub.Load;
 import common.state.sst.sub.WeaponSet;
-import common.state.sst.sub.capacity.Prioritization;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
 import common.util.EvolutionSpec;
 
 public class UnitUpdater {
-
-    public static Message.UnitUpdated updateUnitLineOfSight(EntityId unitId, Player player, DPoint oldLocation, DPoint newLocation, Double los) {
-        Message.UnitUpdated unitUpdated = new Message.UnitUpdated();
-        unitUpdated.unitId = unitId;
-        unitUpdated.losOldLocation = oldLocation;
-        unitUpdated.losNewLocation = newLocation;
-        unitUpdated.losDistance = los;
-        unitUpdated.losPlayer = player;
-        return unitUpdated;
-    }
 
     public static Message.UnitUpdated updateUnitLocation(EntityId unitId, DPoint newLocation) {
         Message.UnitUpdated unitUpdated = new Message.UnitUpdated();

@@ -1,0 +1,71 @@
+{"globally-placeable": {
+  "children": [
+    {
+      "key": "husbandry",
+      "child": {
+        "children": [
+          {
+            "key": "feeding trough",
+            "child": {
+              "type": "leaf",
+              "value": {
+                "creation-method": "Construction",
+                "creation-time": 10,
+                "created-unit": "feeding-trough",
+                "required-resources": [{
+                  "amount": 10,
+                  "resource": "wood"
+                }]
+              }
+            }
+          },
+          {
+            "key": "fence gate",
+            "child": {
+              "type": "leaf",
+              "value": {"required-resources": []}
+            }
+          },
+          {
+            "key": "fence",
+            "child": {
+              "type": "leaf",
+              "value": {"required-resources": []}
+            }
+          }
+        ],
+        "type": "branch"
+      }
+    },
+    {
+      "key": "economic",
+      "child": {
+        "children": [
+          {
+            "key": "storage yard",
+            "child": {
+              "type": "leaf",
+              "value": {"required-resources": []}
+            }
+          },
+          {
+            "key": "brothel",
+            "child": {
+              "type": "leaf",
+              "value": {"required-resources": []}
+            }
+          },
+          {
+            "key": "carpenter shop",
+            "child": {
+              "type": "leaf",
+              "value": {"required-resources": []}
+            }
+          }
+        ],
+        "type": "branch"
+      }
+    }
+  ],
+  "type": "branch"
+}}

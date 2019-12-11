@@ -48,9 +48,9 @@ public class CommandListener implements MouseListener {
                 zoom.mapScreenToGameX(mouseEvent.getX()),
                 zoom.mapScreenToGameY(mouseEvent.getY())
         );
-        Set<EntityId> entities = context.clientGameState.gameState.locationManager.getEntities(
+        Set<EntityReader> entities = context.clientGameState.gameState.locationManager.getEntities(
                 destination,
-                entity -> !context.clientGameState.gameState.hiddenManager.get(entity)
+                entity -> !entity.isHidden()
         );
 
         if (entities.size() > 1) {
@@ -82,7 +82,7 @@ public class CommandListener implements MouseListener {
                     break;
                 }
             } else {
-                EntityReader target = new EntityReader(context.clientGameState.gameState, entities.iterator().next());
+                EntityReader target = entities.iterator().next();
                 for (UnitToUnitAction action : toUnitActions) {
                     if (!action.isEnabled(entity))
                         continue;

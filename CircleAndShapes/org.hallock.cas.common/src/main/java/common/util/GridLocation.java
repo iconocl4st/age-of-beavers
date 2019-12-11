@@ -1,90 +1,34 @@
 package common.util;
 
-import common.algo.AStar;
+import common.factory.Path;
 import common.state.EntityId;
 import common.state.EntityReader;
-import common.state.LocatedEntitySpec;
-import common.state.sst.GameState;
-import common.util.json.*;
-import common.util.query.*;
+import common.state.sst.sub.MovableEntity;
+import common.util.json.JsonReaderWrapperSpec;
+import common.util.json.JsonWriterWrapperSpec;
+import common.util.json.ReadOptions;
+import common.util.json.WriteOptions;
+import common.util.query.EntityReaderFilter;
+import common.util.query.KeepSmallest;
+import common.util.query.NearestEntityQuery;
+import common.util.query.NearestEntityQueryResults;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.*;
 import java.util.List;
 
-public class GridLocation implements Serializable {
+public class GridLocation {
 
-    public GameState.OccupancyView createOccupancyView(EntityId entityId) {
-        return (x, y) -> {
-            if (x < 0 || x >= width || y < 0 || y > height)
-                return true;
-            Set<EntityId> at = getAt(new Point(x, y), GridLocationQuerier.ANY);
-            if (at.isEmpty()) return false;
-            if (at.contains(entityId) && at.size() == 1) return false;
-            return true;
-        };
-    }
-
-    private static final class ListOfEntityIds implements Serializable {
-        Set<LocatedEntity> entityIds = new HashSet<>();
-
-        public void clear() {
-            entityIds.clear();
-        }
-
-        public void add(EntityId t, DPoint location, Dimension size) {
-            LocatedEntity lc = new LocatedEntity();
-            lc.entityId = t;
-            lc.location = location;
-            lc.size = size;
-            entityIds.add(lc);
-        }
-
-        public void remove(final EntityId t) {
-            entityIds.removeIf(e -> e.entityId.equals(t));
-        }
-
-        public void setLocation(EntityId t, DPoint point, Dimension size) {
-            for (LocatedEntity lc : entityIds) {
-                if (lc.entityId.equals(t)) {
-                    lc.location = point;
-                    lc.size = size;
-                    return;
-                }
-            }
-            throw new RuntimeException("Was supposed to be here, but it wasn't found.");
-        }
-    }
-
-    private static final class LocatedEntity implements Serializable {
-        EntityId entityId;
-        DPoint location;
-        Dimension size;
-
-        public DPoint locationCenter() {
-            return new DPoint(location.x + size.width / 2.0, location.y + size.height / 2.0);
-        }
-
-        public boolean equals(Object other) {
-            return other instanceof LocatedEntity && ((LocatedEntity) other).entityId.equals(entityId);
-        }
-
-        public int hashCode() {
-            return entityId.hashCode();
-        }
-    }
-
-    private final HashMap<EntityId, DPoint> locations = new HashMap<>();
+    private final HashMap<EntityId, MovableEntity> locations = new HashMap<>();
 
     private final int width;
+
     private final int height;
     private final int numGridX;
     private final int numGridY;
-
-    private final ListOfEntityIds[][] grid;
+    private final DirectedEntitySet[][] grid;
 
 
     public GridLocation(int width, int height, int numGridX, int numGridY) {
@@ -93,15 +37,20 @@ public class GridLocation implements Serializable {
         this.numGridX = numGridX;
         this.numGridY = numGridY;
 
-        grid = new ListOfEntityIds[numGridX][numGridY];
+        grid = new DirectedEntitySet[numGridX][numGridY];
         for (int i = 0; i < numGridX; i++) {
             for (int j = 0; j < numGridY; j++) {
-                grid[i][j] = new ListOfEntityIds();
+                grid[i][j] = new DirectedEntitySet();
             }
         }
     }
 
+    public MovableEntity getDirectedEntity(EntityId entityId) {
+        return locations.get(entityId);
+    }
+
     public static class GraphicalDebugRectangle { public Rectangle2D rectangle; public String description; };
+
     public List<GraphicalDebugRectangle> getDebugRectangles() {
         double gridWidth = width / (double) numGridX;
         double gridHeight = height / (double) numGridY;
@@ -115,16 +64,15 @@ public class GridLocation implements Serializable {
                     gridWidth,
                     gridHeight
                 );
-                r.description = "[" + i + "," + j + "] " + grid[i][j].entityIds.size();
+                r.description = "[" + i + "," + j + "] " + grid[i][j].size();
                 ret.add(r);
             }
         }
         return ret;
     }
-
     public void clear() {
-        for (ListOfEntityIds[] lists : grid) {
-            for (ListOfEntityIds list : lists) {
+        for (DirectedEntitySet[] lists : grid) {
+            for (DirectedEntitySet list : lists) {
                 list.clear();
             }
         }
@@ -136,7 +84,7 @@ public class GridLocation implements Serializable {
             locations.putAll(otherLocations.locations);
             for (int i = 0; i < grid.length; i++) {
                 for (int j = 0; j < grid[i].length; j++) {
-                    grid[i][j].entityIds.addAll(otherLocations.grid[i][j].entityIds);
+                    grid[i][j].addAll(otherLocations.grid[i][j]);
                 }
             }
         }
@@ -150,22 +98,22 @@ public class GridLocation implements Serializable {
         return Math.min(numGridY - 1, Math.max(0, (int) (d * numGridY / height)));
     }
 
-    public Set<EntityId> getEntitiesWithin(double gr1x, double gr1y, double gr2x, double gr2y, EntityQueryFilter filter) {
-        Set<EntityId> ret = new HashSet<>();
+    public Set<EntityReader> getEntitiesWithin(double gr1x, double gr1y, double gr2x, double gr2y, EntityReaderFilter filter) {
+        Set<EntityReader> ret = new HashSet<>();
         int uppX = Math.min(numGridX - 1, getIndexX(gr2x));
         int uppY = Math.min(numGridY - 1, getIndexY(gr2y));
         for (int x = getIndexX(gr1x); x <= uppX; x++) {
             for (int y = getIndexY(gr1y); y <= uppY; y++) {
                 synchronized (grid[x][y]) {
-                    for (LocatedEntity t : grid[x][y].entityIds) {
-                        if (t.location.x > gr2x) continue;
-                        if (t.location.x + t.size.width < gr1x) continue;
-                        if (t.location.y > gr2y) continue;
-                        if (t.location.y + t.size.height < gr1y) continue;
-                        if (!filter.include(t.entityId)) {
+                    for (MovableEntity t : grid[x][y]) {
+                        if (t.currentLocation.x > gr2x) continue;
+                        if (t.currentLocation.x + t.size.width < gr1x) continue;
+                        if (t.currentLocation.y > gr2y) continue;
+                        if (t.currentLocation.y + t.size.height < gr1y) continue;
+                        if (!filter.include(t.entity)) {
                             continue;
                         }
-                        ret.add(t.entityId);
+                        ret.add(t.entity);
                     }
                 }
             }
@@ -180,139 +128,169 @@ public class GridLocation implements Serializable {
     private Point getIndex(Point p) {
         return getIndex(p.x, p.y);
     }
-    private Point getIndex(int x, int y) {
-        return new Point(getIndexX(x), getIndexY(y));
-    }
 
-    private void addToGrid(EntityId t, DPoint location, Dimension size) {
+
+    public static Set<Point> getOverlappingTiles(DPoint p, Dimension size) {
+        // seems to be missing the top part of buildings...
+        Set<Point> ret = new HashSet<>();
+        int x = (int) p.x;
+        int y = (int) p.y;
+        boolean dx = Math.abs(p.x - x) > 1e-4;
+        boolean dy = Math.abs(p.y - y) > 1e-4;
         for (int i = 0; i < size.width; i++) {
             for (int j = 0; j < size.height; j++) {
-                Point index = getIndex((int) (location.x + i), (int) (location.y + j));
-                synchronized (grid[index.x][index.y]) {
-                    grid[index.x][index.y].add(t, location, size);
-                }
-            }
-        }
-    }
-
-    private void removeFromGrid(EntityId t, Point location, Dimension size) {
-        for (int i = 0; i < size.width; i++) {
-            for (int j = 0; j < size.height; j++) {
-                Point index = getIndex(location.x + i, location.y + j);
-                synchronized (grid[index.x][index.y]) {
-                    grid[index.x][index.y].remove(t);
-                }
-            }
-        }
-    }
-
-    public void move(LocatedEntitySpec t, DPoint point) {
-        // TODO synchronize...
-        Dimension size = t.getSize();
-        removeFromGrid(t.getEntityId(), locations.get(t.getEntityId()).toPoint(), size);
-        addToGrid(t.getEntityId(), point, size);
-        locations.put(t.getEntityId(), point);
-    }
-
-    public void add(LocatedEntitySpec t, DPoint location) {
-        // TODO synchronize...
-        addToGrid(t.getEntityId(), location, t.getSize());
-        locations.put(t.getEntityId(), location);
-    }
-
-    public void remove(EntityReader t) {
-        // TODO synchronize...
-        synchronized (locations) {
-            DPoint cLoc = locations.remove(t.entityId);
-            if (cLoc == null) return;
-            removeFromGrid(t.entityId, cLoc.toPoint(), t.getType().size);
-        }
-    }
-
-
-    public Set<EntityId> getAt(DPoint point, EntityQueryFilter filter) {
-        Set<EntityId> ret = new HashSet<>();
-        Point index = getIndex(point);
-        synchronized (grid[index.x][index.y]) {
-            for (LocatedEntity lc : grid[index.x][index.y].entityIds) {
-                // todo: dry
-                if (lc.location.x > point.x) continue;
-                if (lc.location.y > point.y) continue;
-                if (lc.location.x + lc.size.width < point.x) continue;
-                if (lc.location.y + lc.size.height < point.y) continue;
-                if (!filter.include(lc.entityId))
-                    continue;
-                ret.add(lc.entityId);
+                ret.add(new Point(x, y));
+                if (dx) ret.add(new Point(x + 1, y));
+                if (dy) ret.add(new Point(x, y + 1));
+                if (dx && dy) ret.add(new Point(x + 1, y + 1));
             }
         }
         return ret;
     }
 
-    public Set<EntityId> getAt(Point point, EntityQueryFilter filter) {
-        Set<EntityId> ret = new HashSet<>();
+    private Point getIndex(int x, int y) {
+        return new Point(getIndexX(x), getIndexY(y));
+    }
+
+    private void addToGrid(MovableEntity entity) {
+        for (Point p : getOverlappingTiles(entity.currentLocation, entity.size)) {
+            Point index = getIndex(p);
+            synchronized (grid[index.x][index.y]) {
+                grid[index.x][index.y].add(entity);
+            }
+        }
+    }
+
+    private void removeFromGrid(MovableEntity entity) {
+        for (Point p : getOverlappingTiles(entity.currentLocation, entity.size)) {
+            Point index = getIndex(p);
+            synchronized (grid[index.x][index.y]) {
+                grid[index.x][index.y].remove(entity);
+            }
+        }
+    }
+
+    public DPoint getLocation(EntityId entityId, double currentGameTime) {
+        return getLocation(locations.get(entityId), currentGameTime);
+    }
+    public DPoint getLocation(MovableEntity entity, double currentGameTime) {
+        if (entity == null)
+            return null;
+        if (Math.abs(entity.movementSpeed) < 1e-4)
+            return entity.movementBegin;
+        DPoint mb = entity.movementBegin;
+        DPoint me = entity.movementEnd;
+
+        double dx = me.x - mb.x;
+        double dy = me.y - mb.y;
+        double n = Math.sqrt(dx*dx+dy*dy);
+        if (n < 1e-4)
+            return entity.movementBegin;
+        dx /= n;
+        dy /= n;
+        double dt = currentGameTime - entity.movementStartTime;
+        double d = Math.min(entity.movementSpeed * dt, n);
+        return new DPoint(
+            mb.x + d * dx,
+            mb.y + d * dy
+        );
+    }
+
+    public void setTime(double currentGameTime) {
+        for (MovableEntity entity : locations.values()) {
+            updateCachedLocation(entity, getLocation(entity, currentGameTime));
+        }
+    }
+
+    public void updateCachedLocation(MovableEntity previous, DPoint newCachedLocation) {
+        if (newCachedLocation == null)
+            throw new NullPointerException();
+        // TODO synchronize...
+        if (previous.currentLocation.equals(newCachedLocation))
+            return;
+        removeFromGrid(previous);
+        previous.currentLocation = newCachedLocation;
+        addToGrid(previous);
+    }
+
+    public void setLocation(MovableEntity entity) {
+        if (entity.currentLocation == null || entity.movementEnd == null || entity.movementBegin == null)
+            throw new NullPointerException();
+        MovableEntity previous = locations.get(entity.entity.entityId);
+        if (previous == null)
+            add(entity);
+        else
+            directionChanged(previous, entity);
+    }
+
+    private void directionChanged(MovableEntity previous, MovableEntity current) {
+        // TODO synchronize...
+        removeFromGrid(previous);
+        addToGrid(current);
+        locations.put(current.entity.entityId, current);
+    }
+
+    public void add(MovableEntity entity) {
+        // TODO synchronize...
+        addToGrid(entity);
+        locations.put(entity.entity.entityId, entity);
+    }
+
+    public void remove(EntityReader t) {
+        // TODO synchronize...
+        synchronized (locations) {
+            MovableEntity cLoc = locations.remove(t.entityId);
+            if (cLoc == null) return;
+            removeFromGrid(cLoc);
+        }
+    }
+
+    public Set<EntityReader> getAt(DPoint point, EntityReaderFilter filter) {
+        Set<EntityReader> ret = new HashSet<>();
         Point index = getIndex(point);
         synchronized (grid[index.x][index.y]) {
-            for (LocatedEntity id : grid[index.x][index.y].entityIds) {
-                if (!id.location.toPoint().equals(point))
+            for (MovableEntity lc : grid[index.x][index.y]) {
+                // todo: dry
+                if (lc.currentLocation.x > point.x) continue;
+                if (lc.currentLocation.y > point.y) continue;
+                if (lc.currentLocation.x + lc.size.width < point.x) continue;
+                if (lc.currentLocation.y + lc.size.height < point.y) continue;
+                if (!filter.include(lc.entity))
                     continue;
-                if (!filter.include(id.entityId))
+                ret.add(lc.entity);
+            }
+        }
+        return ret;
+    }
+
+    public Set<EntityReader> getAt(Point point, EntityReaderFilter filter) {
+        Set<EntityReader> ret = new HashSet<>();
+        Point index = getIndex(point);
+        synchronized (grid[index.x][index.y]) {
+            for (MovableEntity de : grid[index.x][index.y]) {
+                if (!getOverlappingTiles(de.currentLocation, de.size).contains(point))
                     continue;
-                ret.add(id.entityId);
+                if (!filter.include(de.entity))
+                    continue;
+                ret.add(de.entity);
             }
         }
         return ret;
     }
 
     public DPoint getLocation(EntityId t) {
-        return locations.get(t);
+        MovableEntity e = locations.get(t);
+        if (e == null) return null;
+        return e.currentLocation;
     }
-
-    public void setLocation(LocatedEntitySpec entity, DPoint desiredLocation) {
-        if (locations.containsKey(entity.getEntityId())) {
-            move(entity, desiredLocation);
-        } else {
-            add(entity, desiredLocation);
-        }
-    }
-
-
-
-
-
-
-
-
-
-
-
-
 
     public void updateAll(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
+        clear();
+
         reader.readBeginDocument();
         reader.readBeginArray("located-entities");
-        while (reader.hasMoreInArray()) {
-            reader.readBeginDocument();
-            EntityId entity = reader.read("entity", EntityId.Serializer, spec);
-            DPoint location = reader.read("location", DPoint.Serializer, spec);
-            Dimension size = reader.read("size", DataSerializer.DimensionSerializer, spec);
-            add(new LocatedEntitySpec() {
-                @Override
-                public EntityId getEntityId() {
-                    return entity;
-                }
-
-                @Override
-                public DPoint getLocation() {
-                    return location;
-                }
-
-                @Override
-                public Dimension getSize() {
-                    return size;
-                }
-            }, location);
-            reader.readEndDocument();
-        }
+        while (reader.hasMoreInArray())
+            add(reader.read(MovableEntity.Serializer, spec));
         reader.readEndArray();
         reader.readEndDocument();
     }
@@ -320,23 +298,10 @@ public class GridLocation implements Serializable {
 
 
     public void writeTo(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
-        HashSet<LocatedEntity> alreadyWritten = new HashSet<>();
-
         writer.writeBeginDocument();
         writer.writeBeginArray("located-entities");
-        for (int i = 0; i < grid.length; i++) {
-            for (int j = 0; j < grid[i].length; j++) {
-                for (LocatedEntity entity : grid[i][j].entityIds) {
-                    if (!alreadyWritten.add(entity))
-                        continue;
-                    writer.writeBeginDocument();
-                    writer.write("entity", entity.entityId, EntityId.Serializer, options);
-                    writer.write("location", entity.location, DPoint.Serializer, options);
-                    writer.write("size", entity.size, DataSerializer.DimensionSerializer, options);
-                    writer.writeEndDocument();
-                }
-            }
-        }
+        for (MovableEntity e : locations.values())
+            writer.write(e, MovableEntity.Serializer, options);
         writer.writeEndArray();
         writer.writeEndDocument();
     }
@@ -363,22 +328,16 @@ public class GridLocation implements Serializable {
 
 
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     private boolean isInGridBounds(int x, int y) {
         return 0 <= x && x < numGridX && 0 <= y && y < numGridY;
-    }
-
-    private double minimumDistanceToSquare(double x, double y, double xmin, double xmax, double ymin, double ymax) {
-        double dx = x - Math.min(xmax, Math.max(xmin, x));
-        double dy = y - Math.min(ymax, Math.max(ymin, y));
-        return Math.sqrt(dx*dx + dy*dy);
     }
 
     private double getMinDistanceFrom(DPoint location, int ndxX, int ndxY) {
         double gridWidth = width / (double) numGridX;
         double gridHeight = height / (double) numGridY;
-        return minimumDistanceToSquare(location.x, location.y,
+        return Util.minimumDistanceToSquare(location.x, location.y,
                 ndxX * gridWidth, (ndxX + 1) * gridWidth,
                 ndxY * gridHeight, (ndxY + 1) * gridHeight
         );
@@ -391,15 +350,16 @@ public class GridLocation implements Serializable {
     }
 
     private static class UnPathEntityQueryResults {
-        EntityId entityId;
+
+        EntityReader entity;
         DPoint location;
         double  distance;
-
-        public UnPathEntityQueryResults(EntityId entityId, DPoint location, double distance) {
-            this.entityId = entityId;
+        public UnPathEntityQueryResults(EntityReader entity, DPoint location, double distance) {
+            this.entity = entity;
             this.location = location;
             this.distance = distance;
         }
+
     }
     public NearestEntityQueryResults query(NearestEntityQuery query) {
         if (query.numToReturn != 1) throw new IllegalArgumentException();
@@ -412,7 +372,6 @@ public class GridLocation implements Serializable {
         );
         return nearestEntityQueryResults.iterator().next();
     }
-
     public List<NearestEntityQueryResults> multiQuery(NearestEntityQuery query) {
         KeepSmallest<NearestEntityQueryResults> smallest = new KeepSmallest<>(query.numToReturn);
         DPoint startingLocation = query.location;
@@ -424,22 +383,22 @@ public class GridLocation implements Serializable {
                 // adds four points twice
                 if (shouldCheck(index.x + i, index.y - r, startingLocation, query.maxDistance, smallest.bound())) {
                     tooFar = false;
-                    if (!grid[index.x + i][index.y - r].entityIds.isEmpty())
+                    if (!grid[index.x + i][index.y - r].isEmpty())
                         toSearch.add(new Point(index.x + i, index.y - r));
                 }
                 if (shouldCheck(index.x + i, index.y + r, startingLocation, query.maxDistance, smallest.bound())) {
                     tooFar = false;
-                    if (!grid[index.x + i][index.y + r].entityIds.isEmpty())
+                    if (!grid[index.x + i][index.y + r].isEmpty())
                         toSearch.add(new Point(index.x + i, index.y + r));
                 }
                 if (shouldCheck(index.x - r, index.y + i, startingLocation, query.maxDistance, smallest.bound())) {
                     tooFar = false;
-                    if (!grid[index.x - r][index.y + i].entityIds.isEmpty())
+                    if (!grid[index.x - r][index.y + i].isEmpty())
                         toSearch.add(new Point(index.x - r, index.y + i));
                 }
                 if (shouldCheck(index.x + r, index.y + i, startingLocation, query.maxDistance, smallest.bound())) {
                     tooFar = false;
-                    if (!grid[index.x + r][index.y + i].entityIds.isEmpty())
+                    if (!grid[index.x + r][index.y + i].isEmpty())
                         toSearch.add(new Point(index.x + r, index.y + i));
                 }
             }
@@ -449,36 +408,55 @@ public class GridLocation implements Serializable {
             TreeSet<UnPathEntityQueryResults> ordered = new TreeSet<>(Comparator.comparingDouble(a -> a.distance));
             for (Point point : toSearch) {
                 synchronized (grid[point.x][point.y]) {
-                    for (LocatedEntity lc : grid[point.x][point.y].entityIds) {
-                        if (minimumDistanceToSquare(
+                    for (MovableEntity lc : grid[point.x][point.y]) {
+                        if (Util.minimumDistanceToSquare(
                                 startingLocation.x,
                                 startingLocation.y,
-                                lc.location.x,
-                                lc.location.x + lc.size.width,
-                                lc.location.y,
-                                lc.location.y + lc.size.height
+                                lc.currentLocation.x,
+                                lc.currentLocation.x + lc.size.width,
+                                lc.currentLocation.y,
+                                lc.currentLocation.y + lc.size.height
                             ) > query.maxDistance) {
                             continue;
                         }
-                        if (!query.filter.include(lc.entityId)) {
+                        if (!query.filter.include(lc.entity)) {
                             continue;
                         }
-                        ordered.add(new UnPathEntityQueryResults(lc.entityId, lc.location, startingLocation.distanceTo(lc.locationCenter())));
+                        ordered.add(new UnPathEntityQueryResults(lc.entity, lc.currentLocation, startingLocation.distanceTo(lc.locationCenter())));
                     }
                 }
             }
             for (UnPathEntityQueryResults results : ordered) {
-                AStar.Path path = null;
-                if (query.needsPath) {
-                    AStar.PathSearch pathSearch = query.findPath(startingLocation, results.entityId);
-                    if (pathSearch == null) {
+                Path path = null;
+                if (query.pathFinder != null) {
+                    Path pathSearch = query.findPath(results.entity);
+                    if (!pathSearch.successful) {
                         continue;
                     }
-                    path = pathSearch.path;
+                    path = pathSearch;
                 }
-                smallest.add(results.distance, new NearestEntityQueryResults(results.entityId, results.location, path, results.distance));
+                smallest.add(results.distance, new NearestEntityQueryResults(results.entity, results.location, path, results.distance));
             }
         }
         return smallest.toList();
     }
+
+
+
+
+    private static final class DirectedEntitySet extends HashSet<MovableEntity> {}
+
+
+
+
+//    public GameState.OccupancyView createOccupancyView(EntityId entityId) {
 }
+//        return (x, y) -> {
+//            if (x < 0 || x >= width || y < 0 || y > height)
+//                return true;
+//            Set<EntityId> at = getAt(new Point(x, y), GridLocationQuerier.ANY);
+//            if (at.isEmpty()) return false;
+//            if (at.contains(entityId) && at.size() == 1) return false;
+//            return true;
+//        };
+//    }

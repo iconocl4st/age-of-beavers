@@ -1,37 +1,39 @@
 package server.state;
 
 import client.ai.RandomlyWaitAndMove;
-import common.event.*;
 import common.Proximity;
 import common.action.Action;
 import common.algo.Ballistics;
+import common.algo.ConnectedSet;
+import common.event.ActionCompleted;
+import common.event.BuildingPlacementChanged;
+import common.event.ProductionComplete;
+import common.event.TargetKilled;
 import common.msg.Message;
 import common.msg.UnitUpdater;
 import common.state.EntityId;
 import common.state.EntityReader;
+import common.state.Occupancy;
 import common.state.Player;
 import common.state.los.VisibilityChange;
 import common.state.spec.*;
 import common.state.spec.attack.DamageType;
 import common.state.spec.attack.Weapon;
 import common.state.spec.attack.WeaponSpec;
-import common.state.spec.attack.Weapons;
 import common.state.sst.GameState;
 import common.state.sst.GameStateHelper;
+import common.state.sst.OccupancyView;
 import common.state.sst.sub.*;
 import common.state.sst.sub.capacity.Prioritization;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
-import common.util.query.GridLocationQuerier;
-import common.util.json.EmptyJsonable;
-import common.algo.ConnectedSet;
-import server.algo.UnGarrisonLocation;
 import common.util.EvolutionSpec;
+import common.util.Util;
+import common.util.query.GridLocationQuerier;
+import server.algo.UnGarrisonLocation;
 import server.app.BroadCaster;
 
 import java.awt.*;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +63,8 @@ public class ServerStateManipulator {
     }
     public void setUnitAction(EntityReader entity, Action daAction) {
         daAction.requestingPlayer = player;
+        if (daAction instanceof Action.DoubleProgressAction)
+            ((Action.DoubleProgressAction) daAction).progress = 0;
         switch (daAction.type) {
             case Attack: {
                 Action.Attack action = (Action.Attack) daAction;
@@ -111,7 +115,7 @@ public class ServerStateManipulator {
                 Action.Create action = (Action.Create) daAction;
                 if (!entity.isOwnedBy(player)) return;
                 if (entity.isHidden()) return;
-                action.timeRemaining = action.spec.createdType.creationTime;
+                action.timeRemaining = action.spec.creationTime;
 
                 final Object sync = entity.getSync();
                 if (sync == null) return;
@@ -123,14 +127,14 @@ public class ServerStateManipulator {
                     if (currentAction != null && !(currentAction instanceof Action.Idle))
                         return;
                     Load load = entity.getCarrying();
-                    if (!load.canAfford(action.spec.createdType.requiredResources))
+                    if (!load.canAfford(action.spec.requiredResources))
                         return;
                     EntitySpec creatorType = entity.getType();
-                    if (creatorType == null || !creatorType.canCreate.contains(action.spec)) {
+                    if (creatorType == null /* || !creatorType.canCreate.contains(action.spec) */) {
                         return;
                     }
-                    action.timeRemaining = action.spec.createdType.creationTime;
-                    load.subtract(action.spec.createdType.requiredResources);
+                    action.timeRemaining = action.spec.creationTime;
+                    load.subtract(action.spec.requiredResources);
                     broadCaster.broadCast(UnitUpdater.updateUnitLoad(entity.entityId, load));
                 }
             }
@@ -139,13 +143,29 @@ public class ServerStateManipulator {
                 Action.Idle action = (Action.Idle) daAction;
                 if (!entity.isOwnedBy(player)) return;
                 if (entity.isHidden()) return;
-
             }
             break;
             case Wait: {
                 Action.Wait action = (Action.Wait) daAction;
                 if (!entity.isOwnedBy(player)) return;
                 if (entity.isHidden()) return;
+
+            }
+            break;
+            case Garden: {
+                Action.Wait action = (Action.Wait) daAction;
+                if (!entity.isOwnedBy(player)) return;
+                if (entity.isHidden()) return;
+                // check that the plant is actually a plant...
+
+            }
+            break;
+            case Plant: {
+                Action.Wait action = (Action.Wait) daAction;
+                if (!entity.isOwnedBy(player)) return;
+                if (entity.isHidden()) return;
+                // check if there is anything there
+                // check if the entity has the seed
 
             }
             break;
@@ -161,15 +181,19 @@ public class ServerStateManipulator {
 
 
     public void placeBuilding(EntitySpec spec, Point location) {
-        // check if there is space...
+        OccupancyView constructionOccupancy = Occupancy.createConstructionOccupancy(game.serverState.state, game.serverState.explorations[player.number - 1]);
+        if (Occupancy.isOccupied(constructionOccupancy, location, spec.size))
+            return;
+
         if (spec.containsClass("constructed")) {
-            spec = spec.createConstructionSpec(game.lobby.getCurrentSpec());
+            spec = spec.createConstructionSpec(EntitySpec.getCarryCapacity(game.serverState.state.gameSpec, null));
         }
-        System.out.println("Building created.");
 
         EntityId constructionId = game.idGenerator.generateId();
         createUnit(constructionId, spec, new EvolutionSpec(spec), new DPoint(location), Player.GAIA);
         constructionChanged(player, constructionId, null);
+
+        System.out.println("Building created.");
     }
 
 
@@ -234,8 +258,9 @@ public class ServerStateManipulator {
             if (!entity.isOwnedBy(player)) return;
             EntityReader holder = entity.getHolder();
             if (holder == null) return;
-            UnGarrisonLocation unGarrisonLocation = UnGarrisonLocation.getUnGarrisonLocation(game.serverState.state, holder);
-            if (unGarrisonLocation.isImossible()) return;
+            UnGarrisonLocation unGarrisonLocation = UnGarrisonLocation.getUnGarrisonLocation(game.serverState, holder, entity.getType().size);
+            if (unGarrisonLocation.isImpossible()) return;
+            DPoint start = new DPoint(unGarrisonLocation.point);
 
             game.serverState.state.garrisonManager.remove(entity.entityId);
             broadCaster.broadCast(UnitUpdater.updateUnitGarrison(entity.entityId, EntityId.NONE));
@@ -243,13 +268,13 @@ public class ServerStateManipulator {
             game.serverState.state.hiddenManager.set(entity.entityId, false);
             broadCaster.broadCast(UnitUpdater.updateUnitVisibiliy(entity.entityId, false));
 
-            game.serverState.state.locationManager.setLocation(entity, unGarrisonLocation.point);
-            broadCaster.broadCast(UnitUpdater.updateUnitLocation(entity.entityId, unGarrisonLocation.point));
+            game.serverState.state.locationManager.setLocation(MovableEntity.createStationary(entity, start));
+            broadCaster.broadCast(UnitUpdater.updateUnitLocation(entity.entityId, start));
 
             if (game.serverState.state.garrisonManager.getByType(holder.entityId).isEmpty())
                 setOwner(holder, Player.GAIA);
 
-            updateLineOfSight(entity.entityId, null, unGarrisonLocation.point);
+            updateLineOfSight(entity.entityId, null, start);
 
             EntitySpec type = holder.getType();
             if (type.containsClass("player-occupies"))
@@ -324,7 +349,7 @@ public class ServerStateManipulator {
 //                game.serverState.state.movementSpeedManager.set(rider.entityId, prev.movementSpeed);
 //                broadCaster.broadCast(UnitUpdater.updateUnitMovementSpeed(rider.entityId, prev.movementSpeed));
 
-                game.serverState.state.locationManager.setLocation(ridden, newLocation);
+                game.serverState.state.locationManager.setLocation(MovableEntity.createStationary(ridden, newLocation));
                 broadCaster.broadCast(UnitUpdater.updateUnitLocation(ridden.entityId, newLocation));
 
                 updateLineOfSight(ridden.entityId, null, newLocation);
@@ -382,7 +407,7 @@ public class ServerStateManipulator {
         }
         synchronized (sync) {
             if (entity.noLongerExists()) return;
-            if (!entity.isOwnedBy(player)) return;
+            if (!entity.isOwnedBy(player) && !entity.isOwnedBy(Player.GAIA)) return;
             if (!entity.getType().containsClass("storage")) return;
 
             PrioritizedCapacitySpec capacitySpec = game.serverState.state.capacityManager.get(entityId);
@@ -457,13 +482,17 @@ public class ServerStateManipulator {
         broadCaster.broadCast(UnitUpdater.updateUnitHealth(entityId, newHealth));
     }
 
-    public void changeUnitLocation(EntityReader entity, DPoint desiredLocation) {
+    public void noiselyUpdateUnitLocation(MovableEntity newLocation) {
+        DPoint oldLocation = game.serverState.state.locationManager.getLocation(newLocation.entity.entityId);
+        game.serverState.state.locationManager.setLocation(newLocation);
+        broadCaster.broadCast(new Message.DirectedLocationChange(newLocation));
+        updateLineOfSight(newLocation.entity.entityId, oldLocation, newLocation.movementBegin);
+    }
+
+    public void quietlyUpdateUnitLocation(EntityReader entity, DPoint newLocation) {
         DPoint oldLocation = game.serverState.state.locationManager.getLocation(entity.entityId);
-
-        game.serverState.state.locationManager.setLocation(entity, desiredLocation);
-        broadCaster.broadCast(UnitUpdater.updateUnitLocation(entity.entityId, desiredLocation));
-
-        updateLineOfSight(entity.entityId, oldLocation, desiredLocation);
+        game.serverState.state.locationManager.updateCachedLocation(entity, newLocation);
+        updateLineOfSight(entity.entityId, oldLocation, newLocation);
     }
 
     public void dropAll(EntityId entityId, Load load) {
@@ -476,32 +505,38 @@ public class ServerStateManipulator {
         broadCaster.broadCast(UnitUpdater.updateUnitAction(entityId, action));
     }
 
+    public void updateActionProgress(EntityReader entity, Action.DoubleProgressAction action, double v) {
+        action.progress = v;
+        broadCaster.broadCast(UnitUpdater.updateUnitAction(entity.entityId, action));
+    }
 
-    public void updateGateOccupancy(EntityReader entity) {
+
+    private void updateGateOccupancy(EntityReader entity) {
         DPoint location = entity.getLocation();
         if (game.serverState.state.gateStateManager.getByType(location.toPoint()).isEmpty()) {
             return;
         }
-        for (int i = 0; i < game.lobby.getNumPlayers(); i++) {
+        Dimension size = entity.getSize();
+        for (int i = 0; i < game.serverState.state.numPlayers; i++) {
             Player player = new Player(i + 1);
-            Dimension size = entity.getType().size;
             boolean occupiedFor = GateInfo.isOccupiedFor(entity.entityId, player, game.serverState.state.gateStateManager, game.serverState.state.playerManager);
-            broadCaster.send(player, new Message.OccupancyChanged(location.toPoint(), size, occupiedFor));
+            game.serverState.state.staticOccupancy.set(location.toPoint(), size, occupiedFor);
+            broadCaster.send(player, new Message.OccupancyChanged(location.toPoint(), size, occupiedFor, false));
         }
     }
 
     public void createUnit(EntityId id, EntitySpec spec, EvolutionSpec eSpec, DPoint location, Player player) {
         GameState state = game.serverState.state;
+
         if (state.entityManager.get(id) == null)
-            state.entityManager.set(id, new EmptyJsonable());
+            state.entityManager.set(id, new Object());
         state.typeManager.set(id, spec);
-        state.locationManager.setLocation(new EntityReader(state, id), location);
+        state.locationManager.setLocation(MovableEntity.createStationary(new EntityReader(state, id), location));
         state.playerManager.set(id, spec.containsClass("owned") ? player : Player.GAIA);
         state.ageManager.set(id, state.currentTime);
         if (eSpec.initialBaseHealth != 0.0) state.healthManager.set(id, eSpec.initialBaseHealth);
         if (eSpec.initialBaseHealth != 0.0) state.baseHealthManager.set(id, eSpec.initialBaseHealth);
         if (eSpec.initialMovementSpeed != 0.0) state.movementSpeedManager.set(id, eSpec.initialMovementSpeed);
-        state.orientationManager.set(id, 0.0);
         if (eSpec.initialRotationSpeed != 0.0) state.rotationSpeedManager.set(id, eSpec.initialRotationSpeed);
         if (eSpec.carryCapacity != null) state.capacityManager.set(id, eSpec.carryCapacity);
         else state.capacityManager.set(id, new PrioritizedCapacitySpec(spec.carryCapacity));
@@ -510,6 +545,15 @@ public class ServerStateManipulator {
         if (eSpec.initialDepositSpeed != 0.0) state.depositSpeedManager.set(id, eSpec.initialDepositSpeed);
         if (eSpec.initialCollectSpeed != 0.0) state.collectSpeedManager.set(id, eSpec.initialCollectSpeed);
         if (eSpec.initialLineOfSight != 0.0) state.lineOfSightManager.set(id, eSpec.initialLineOfSight);
+        state.orientationManager.set(id, 0.0); // might should be passed in
+        state.graphicsManager.set(id, spec.graphicsImage);
+
+        if (spec.name.equals("human")) {
+            WeaponSet s = new WeaponSet();
+            // TODO: make this generic...
+            s.add(new Weapon(state.gameSpec.getWeaponSpec("fist")));
+            state.weaponsManager.set(id, s);
+        }
 
         Load load = new Load();
         for (CarrySpec cSpec : spec.carrying) {
@@ -517,12 +561,12 @@ public class ServerStateManipulator {
         }
         state.carryingManager.set(id, load);
 
-        if (spec instanceof ConstructionSpec) {
-            state.constructionManager.set(id, new ConstructionZone((ConstructionSpec) spec, location));
+        if (spec.containsClass("construction-zone")) {
+            state.constructionManager.set(id, new ConstructionZone(spec, location));
         }
         
-        for (CreationSpec creationSpec : spec.canCreate) {
-            if (creationSpec.method.equals(CreationMethod.Garrison)) {
+        for (CreationSpec creationSpec : spec.canCreate.collect()) {
+            if (creationSpec.method.equals(CreationMethod.Garrison)) { // Is this necessary?
                 state.evolutionManager.set(id, EvolutionSpec.uniformWeights());
                 break;
             }
@@ -531,22 +575,15 @@ public class ServerStateManipulator {
         if (spec.containsClass("player-occupies")) {
             state.gateStateManager.set(id, new GateInfo(location.toPoint(), GateInfo.GateState.UnlockedForPlayerOnly));
         }
-
+        game.serverState.state.actionManager.set(id, new Action.Idle());
         broadCaster.broadCast(createCreateUnitMessage(id));
+        broadCaster.broadCast(new Message.UnitCreated(id));
 
-        updateLineOfSight(id, null, location);
+        EntityReader createdEntity = new EntityReader(state, id);
 
-        if (spec.containsClass("occupies")) {
-            game.serverState.state.occupancyState.setOccupancy(location.toPoint(), spec.size, true);
-            broadCaster.broadCast(new Message.OccupancyChanged(location.toPoint(), spec.size, true));
-        }
-
-        if (spec.containsClass("player-occupies")) {
-            updateGateOccupancy(new EntityReader(game.serverState.state, id));
-        }
-
+        updateLineOfSight(id, null, createdEntity.getCenterLocation());
         moveOtherUnitsOutOfTheWay(spec, location);
-
+        addOccupancies(createdEntity);
 
         if (spec.ai != null) {
             switch (spec.ai) {
@@ -556,7 +593,7 @@ public class ServerStateManipulator {
                     game.serverState.gaiaAi.setAi(
                         id,
                         new RandomlyWaitAndMove(
-                            game.serverState.state,
+                            game.serverState,
                             id,
                             game.lobby.random,
                             game.serverState.state.gameSpec,
@@ -569,70 +606,57 @@ public class ServerStateManipulator {
                 default:
                     throw new RuntimeException("Unknown ai: " + spec.ai);
             }
-        } else {
-            game.serverState.state.actionManager.set(id, new Action.Idle());
         }
+    }
 
-        // For debugging...
-        if (spec.name.equals("human")) {
-            Load weaponsLoad = state.carryingManager.get(id);
-            WeaponSet s = new WeaponSet();
-            switch ((int)(5 * Math.random())) {
-                case 0:
-                    s.add(new Weapon(Weapons.Fist));
-                    break;
-                case 1:
-                    s.add(new Weapon(Weapons.Bow));
-                    weaponsLoad.setQuantity(Weapons.RESOURCES_REQUIRED_BY_WEAPONS[0], 100);
-                    state.carryingManager.set(id, weaponsLoad);
-                    break;
-                case 2:
-                    s.add(new Weapon(Weapons.LaserGun));
-                    break;
-                case 3:
-                    s.add(new Weapon(Weapons.Rifle));
-                    weaponsLoad.setQuantity(Weapons.RESOURCES_REQUIRED_BY_WEAPONS[1], 100);
-                    state.carryingManager.set(id, weaponsLoad);
-                    break;
-                case 4:
-                    s.add(new Weapon(Weapons.Sword));
-                    break;
-            }
-            s.add(new Weapon(Weapons.Sword));
-
-            state.weaponsManager.set(id, s);
+    private void addOccupancies(EntityReader entity) {
+        EntitySpec spec = entity.getType();
+        DPoint location = entity.getLocation();
+        if (spec.containsClass("construction-zone")) {
+            game.serverState.state.buildingOccupancy.set(location.toPoint(), spec.size, true);
+            broadCaster.broadCast(new Message.OccupancyChanged(location.toPoint(), spec.size, false, true));
         }
+        if (spec.containsClass("occupies")) {
+            game.serverState.state.staticOccupancy.set(location.toPoint(), spec.size, true);
+            broadCaster.broadCast(new Message.OccupancyChanged(location.toPoint(), spec.size, true, false));
+        }
+        if (spec.containsClass("player-occupies"))
+            updateGateOccupancy(entity);
     }
 
     private void moveOtherUnitsOutOfTheWay(EntitySpec spec, DPoint location) {
         if (!spec.containsClass("player-occupies") && !spec.containsClass("occupies"))
             return;
-        for (EntityId entityId : game.serverState.state.locationManager.getEntitiesWithin(
+        for (EntityReader entity : game.serverState.state.locationManager.getEntitiesWithin(
                 location.x,
                 location.y,
                 location.x + spec.size.width,
                 location.y + spec.size.height,
                 entity -> {
-                    EntitySpec entitySpec = game.serverState.state.typeManager.get(entity);
+                    EntitySpec entitySpec = entity.getType();
                     if (entitySpec == null) return false;
-                    if (game.serverState.state.locationManager.getLocation(entity) == null) return false;
-                    Double movementSpeed = game.serverState.state.movementSpeedManager.get(entity);
-                    return movementSpeed != null && movementSpeed > 0;
+                    DPoint location1 = entity.getLocation();
+                    if (location1 == null) return false;
+                    double movementSpeed = entity.getMovementSpeed();
+                    return movementSpeed > 0;
                 }
         )) {
-            EntityReader entity = new EntityReader(game.serverState.state, entityId);
             DPoint toMoveLocation = entity.getLocation();
             if (toMoveLocation == null) continue;
-            Point nearestEmptyTile = ConnectedSet.findNearestEmptyTile(game.serverState.state.gameSpec, toMoveLocation.toPoint(), game.serverState.state.getOccupancyForAny());
+            // TODO: This didn't work
+
+            Point nearestEmptyTile = ConnectedSet.findNearestEmptyTile(
+                    game.serverState.state.gameSpec,
+                    toMoveLocation.toPoint(),
+                    Occupancy.createUnitOccupancy(entity)
+            );
             if (nearestEmptyTile == null) continue;
-            changeUnitLocation(entity, new DPoint(nearestEmptyTile));
+            // not quite right...
+            noiselyUpdateUnitLocation(MovableEntity.createStationary(entity, new DPoint(nearestEmptyTile)));
         }
     }
 
     public void killUnit(EntityId target) {
-        // TODO: remove all garrisoned units...
-        // garrisoned...
-        // ridden...
         EntityReader reader = new EntityReader(game.serverState.state, target);
         EntityReader riding = reader.getRiding();
         if (riding != null) {
@@ -645,12 +669,13 @@ public class ServerStateManipulator {
             }
         }
 
-        DPoint targetLocation = game.serverState.state.locationManager.getLocation(target);
-        EntitySpec targetType = game.serverState.state.typeManager.get(target);
+        DPoint targetLocation = reader.getLocation();
+        EntitySpec targetType = reader.getType();
 
-        if (targetType.containsClass("occupies") || targetType.containsClass("player-occupies")) {
-            game.serverState.state.occupancyState.setOccupancy(targetLocation.toPoint(), targetType.size, false);
-            broadCaster.broadCast(new Message.OccupancyChanged(targetLocation.toPoint(), targetType.size, false));
+        if (targetType.containsAnyClass("occupies", "construction-zone", "player-occupies")) {
+            game.serverState.state.staticOccupancy.set(targetLocation.toPoint(), targetType.size, false);
+            game.serverState.state.buildingOccupancy.set(targetLocation.toPoint(), targetType.size, false);
+            broadCaster.broadCast(new Message.OccupancyChanged(targetLocation.toPoint(), targetType.size, false, false));
         }
 
         updateLineOfSight(target, targetLocation, null);
@@ -702,58 +727,25 @@ public class ServerStateManipulator {
         // might have to change occupancies as well...
     }
 
-    private static double zin(Double d) {
-        if (d == null) return 0.0;
-        return d;
-    }
     private void updateLineOfSight(EntityId entityId, DPoint oldLocation, DPoint newLocation) {
-        if (oldLocation != null && newLocation != null && oldLocation.toPoint().equals(newLocation.toPoint())) return;
         if (oldLocation == null && newLocation == null) return;
-
-        double lineOfSight = zin(game.serverState.state.lineOfSightManager.get(entityId));
-        Message.UnitUpdated updateUnitLineOfSight = UnitUpdater.updateUnitLineOfSight(
-                entityId,
-                game.serverState.state.playerManager.get(entityId),
-                oldLocation,
-                newLocation,
-                lineOfSight
-        );
-        broadCaster.send(updateUnitLineOfSight.losPlayer, updateUnitLineOfSight);
-
-        processVisibilityChanges(
-                updateUnitLineOfSight.losPlayer,
-                game.serverState.state.lineOfSight.updateLineOfSight(
-                        updateUnitLineOfSight.losPlayer,
-                        updateUnitLineOfSight.losOldLocation,
-                        updateUnitLineOfSight.losNewLocation,
-                        updateUnitLineOfSight.losDistance
-                )
-        );
-    }
-
-    private void processVisibilityChanges(Player player, VisibilityChange change) {
+        Player player = game.serverState.state.playerManager.get(entityId);
+        if (player.number == 0) return;
+        double lineOfSight = Util.zin(game.serverState.state.lineOfSightManager.get(entityId));
+        VisibilityChange change = game.serverState.lineOfSights[player.number - 1].move(oldLocation, newLocation, lineOfSight);
         for (Point p : change.gainedVision) {
-            for (EntityId entity : game.serverState.state.locationManager.getEntities(p, GridLocationQuerier.ANY)) {
-                becameVisible(player, entity);
-                broadCaster.send(player, new Message.OccupancyChanged(p, new Dimension(1, 1), game.serverState.state.isOccupiedFor(p, player)));
+            for (EntityReader entity : game.serverState.state.locationManager.getEntities(p, GridLocationQuerier.ANY_ENTITY)) {
+                broadCaster.send(player, createCreateUnitMessage(entity.entityId));
+                addOccupancies(entity);
             }
         }
         for (Point p : change.lostVision) {
-            for (EntityId entity : game.serverState.state.locationManager.getEntities(p, GridLocationQuerier.ANY)) {
-                lostVision(player, entity);
+            for (EntityReader entity : game.serverState.state.locationManager.getEntities(p, GridLocationQuerier.ANY_ENTITY)) {
+                if (game.serverState.state.typeManager.get(entity.entityId).containsClass("visible-in-fog"))
+                    continue;
+                broadCaster.send(player, new Message.UnitRemoved(entity.entityId));
             }
         }
-    }
-
-    private void lostVision(Player losPlayer, EntityId entity) {
-        if (game.serverState.state.typeManager.get(entity).containsClass("visible-in-fog")) {
-            return;
-        }
-        broadCaster.send(losPlayer, new Message.UnitRemoved(entity));
-    }
-
-    private void becameVisible(Player losPlayer, EntityId entity) {
-        broadCaster.send(losPlayer, createCreateUnitMessage(entity));
     }
 
     private Message.UnitUpdated createCreateUnitMessage(EntityId entity) {
@@ -782,6 +774,7 @@ public class ServerStateManipulator {
         unitUpdate.capacity = state.capacityManager.get(entity);
         unitUpdate.buildSpeed = state.buildSpeedManager.get(entity);
         unitUpdate.evolutionWeights = state.evolutionManager.get(entity);
+        unitUpdate.graphics = state.graphicsManager.get(entity);
         return unitUpdate;
     }
 
@@ -801,9 +794,9 @@ public class ServerStateManipulator {
         updateGateOccupancy(entity);
     }
 
-    public void updateGameTime(double currentTime) {
-        game.serverState.state.currentTime = currentTime;
-        broadCaster.broadCast(new Message.TimeChange(currentTime));
+    public void updateGameTime(TimeInfo info) {
+        game.serverState.state.currentTime = info.currentTime;
+        broadCaster.broadCast(new Message.TimeChange(info.currentTime, info.timeOfGameTime));
     }
 
     public void setActionProgress(EntityId entityId, Action action) {
@@ -815,8 +808,7 @@ public class ServerStateManipulator {
         // to do damage type
         double newHealth = oldHealth - damage;
         if (newHealth > 0) {
-            game.serverState.state.healthManager.set(attacked, newHealth);
-            broadCaster.broadCast(UnitUpdater.updateUnitHealth(attacked, newHealth));
+            setUnitHealth(attacked, newHealth);
             return false;
         }
 
@@ -833,7 +825,7 @@ public class ServerStateManipulator {
         Action attackedAction = attacked.getCurrentAction();
         if (attackedAction instanceof Action.MoveSeq) {
             Action.MoveSeq attackedMove = (Action.MoveSeq) attackedAction;
-            DPoint attackedDestination = attackedMove.path.points.get(attackedMove.progress);
+            DPoint attackedDestination = (DPoint) attackedMove.path.points.get(attackedMove.progress);
             double dx = attackedDestination.x - attackedLocation.x;
             double dy = attackedDestination.y - attackedLocation.y;
             double n = Math.sqrt(dx * dx + dy * dy);
@@ -912,10 +904,9 @@ public class ServerStateManipulator {
         broadCaster.send(owner, new Message.AiEventMessage(new BuildingPlacementChanged(constructionId, buildingId)));
     }
 
-    public void unitChangedDirection(EntityId entity, DPoint currentLocation, DPoint endLocation, double speed) {
-        broadCaster.broadCast(new Message.AiEventMessage(new UnitChangedDirection(entity, currentLocation, endLocation, speed)));
+    public void notifyProductionCompleted(EntityId creator, EntityId createdUnit, Player owner) {
+        broadCaster.send(owner, new Message.AiEventMessage(new ProductionComplete(creator, createdUnit)));
     }
-
 
 //
 //    public void die(EntityId entityId) {
@@ -1008,7 +999,7 @@ public class ServerStateManipulator {
 //            for (EntityId entity : entityId) {
 //                DPoint location = Zoom.serverState.state.locationManager.getLocation(entity);
 //                UnitSpec type = (UnitSpec) Zoom.serverState.state.typeManager.getType(entity);
-//                changeUnitLocation(entity, location, unGarrisonLocation, type.initialLineOfSight);
+//                changeUnitsDirectedLocation(entity, location, unGarrisonLocation, type.initialLineOfSight);
 //            }
 //
 //            if (hType.containsClass("return-to-gaia")) {
@@ -1019,4 +1010,35 @@ public class ServerStateManipulator {
 //        broadCaster.broadCast(new Message.AllUnGarrisoned(toUnGarrison));
 //    }
 
+
+
+//
+//    // For debugging...
+//        if (spec.name.equals("human")) {
+//        Load weaponsLoad = state.carryingManager.get(id);
+//        WeaponSet s = new WeaponSet();
+//        switch ((int)(5 * Math.random())) {
+//            case 0:
+//                s.add(new Weapon(Weapons.Sword));
+//                break;
+//            case 1:
+//                s.add(new Weapon(Weapons.Bow));
+//                weaponsLoad.setQuantity(Weapons.RESOURCES_REQUIRED_BY_WEAPONS[0], 100);
+//                state.carryingManager.set(id, weaponsLoad);
+//                break;
+//            case 2:
+//                s.add(new Weapon(Weapons.LaserGun));
+//                break;
+//            case 3:
+//                s.add(new Weapon(Weapons.Rifle));
+//                weaponsLoad.setQuantity(Weapons.RESOURCES_REQUIRED_BY_WEAPONS[1], 100);
+//                state.carryingManager.set(id, weaponsLoad);
+//                break;
+//            case 4:
+//                s.add(new Weapon(Weapons.Sword));
+//                break;
+//        }
+//        s.add(new Weapon(Weapons.Fist));
+//        state.weaponsManager.set(id, s);
+//    }
 }

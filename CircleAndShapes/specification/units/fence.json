@@ -1,0 +1,19 @@
+{
+  "parent": "building",
+  "image": "unit/fence.png",
+  "health-points": 10,
+  "size": {
+    "width": 1,
+    "height": 1
+  },
+  "building-path": "husbandry",
+  "name": "fence",
+  "can-craft": {
+    "children": [],
+    "type": "branch"
+  },
+  "can-create": {
+    "children": [],
+    "type": "branch"
+  }
+}

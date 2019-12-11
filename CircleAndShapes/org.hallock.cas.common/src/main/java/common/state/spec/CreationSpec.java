@@ -8,19 +8,30 @@ import common.util.DPoint;
 import common.util.json.*;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class CreationSpec implements Jsonable {
     public final EntitySpec createdType;
     public final CreationMethod method;
-    public final HashMap<String, String> creationMethodParams = new HashMap<>();
+    public final Map<ResourceType, Integer> requiredResources;
+    public final double creationTime;
+    public final Map<String, String> creationMethodParams;
+    public final SpecTree.SpecNodeReference reference;
 
-    public CreationSpec(EntitySpec t, CreationMethod m) {
+    public CreationSpec(
+            EntitySpec t,
+            CreationMethod m,
+            Map<ResourceType, Integer> requiredResources,
+            double creationTime,
+            Map<String, String> creationMethodParams,
+            SpecTree.SpecNodeReference reference
+    ) {
         createdType = t;
         method = m;
+        this.requiredResources = requiredResources;
+        this.creationTime = creationTime;
+        this.creationMethodParams = creationMethodParams;
+        this.reference = reference;
     }
 
     public boolean equals(Object o) {
@@ -47,17 +58,14 @@ public class CreationSpec implements Jsonable {
 
             DPoint location = state.locationManager.getLocation(entityId);
 
-            HashSet<EntityReader> ret = new HashSet<>();
-            for (EntityId e : state.locationManager.getEntitiesWithin(
+            return new HashSet<>(state.locationManager.getEntitiesWithin(
                     location.x - auraWidth,
                     location.y - auraWidth,
                     location.x + auraWidth,
                     location.y + auraWidth,
-                    e -> state.typeManager.get(e).name.equals(creatorType) &&
-                            (!mustBeGaia || state.playerManager.get(e).equals(Player.GAIA))
-            ))
-                ret.add(new EntityReader(state, e));
-            return ret;
+                    e -> e.getType().name.equals(creatorType) &&
+                            (!mustBeGaia || e.getOwner().equals(Player.GAIA))
+            ));
         }
         return Collections.emptySet();
     }
@@ -65,22 +73,18 @@ public class CreationSpec implements Jsonable {
     @Override
     public void writeTo(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
         writer.writeBeginDocument();
-        writer.write("entity", createdType, EntitySpec.Serializer, options);
-        writer.write("method", method.ordinal());
-        writer.write("params", creationMethodParams, DataSerializer.StringSerializer, DataSerializer.StringSerializer, options);
+        writer.write("reference", reference, SpecTree.SpecNodeReference.Serializer, options);
         writer.writeEndDocument();
     }
+
 
     public static final DataSerializer<CreationSpec> Serializer = new DataSerializer.JsonableSerializer<CreationSpec>() {
         @Override
         public CreationSpec parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
             reader.readBeginDocument();
-            EntitySpec entity = reader.read("entity", EntitySpec.Serializer, spec);
-            CreationMethod method = reader.b(CreationMethod.values(), reader.readInt32("method"));
-            CreationSpec cspec = new CreationSpec(entity, method);
-            reader.read("params", cspec.creationMethodParams, DataSerializer.StringSerializer, DataSerializer.StringSerializer, spec);
+            SpecTree.SpecNodeReference reference = reader.read("reference", SpecTree.SpecNodeReference.Serializer, spec);
             reader.readEndDocument();
-            return cspec;
+            return reference.entity.canCreate.get(reference.path).getValue();
         }
     };
 }

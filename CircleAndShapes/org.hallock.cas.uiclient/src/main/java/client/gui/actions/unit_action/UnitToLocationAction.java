@@ -23,7 +23,7 @@ public abstract class UnitToLocationAction extends UnitAction {
             }
 
             @Override
-            public void perform(EntityId rId) {
+            public void perform(EntityReader rId) {
             }
         });
     }

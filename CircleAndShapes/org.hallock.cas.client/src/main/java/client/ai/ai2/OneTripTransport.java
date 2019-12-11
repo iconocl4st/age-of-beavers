@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 public abstract class OneTripTransport extends DefaultAiTask {
-
+    // TODO: Actually use this in the other classes...
     final Map<ResourceType, Integer> resourcesToTransport;
 
     enum TransportState {

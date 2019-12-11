@@ -4,7 +4,6 @@ import client.ai.ai2.AiTask;
 import client.ai.ai2.QueueAi;
 import client.app.UiClientContext;
 import client.gui.keys.ContextKeyManager;
-import common.state.EntityId;
 import common.state.EntityReader;
 
 import java.awt.event.KeyEvent;

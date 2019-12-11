@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/org.hallock.cas.ai/org.hallock.cas.ai.iml" filepath="$PROJECT_DIR$/org.hallock.cas.ai/org.hallock.cas.ai.iml" />
       <module fileurl="file://$PROJECT_DIR$/org.hallock.cas.client/org.hallock.cas.client.iml" filepath="$PROJECT_DIR$/org.hallock.cas.client/org.hallock.cas.client.iml" />
-      <module fileurl="file://$PROJECT_DIR$/org.hallock.cas.uiclient/org.hallock.cas.uiclient.iml" filepath="$PROJECT_DIR$/org.hallock.cas.uiclient/org.hallock.cas.uiclient.iml" />
     </modules>
   </component>
 </project>

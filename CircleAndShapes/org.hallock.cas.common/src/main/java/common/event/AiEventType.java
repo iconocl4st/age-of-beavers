@@ -10,4 +10,9 @@ public enum AiEventType {
     BuildingPlacementChanged,
     Initialize,
     UnitChangedDirection,
+    Bell,
+    UnitCreated,
+    UnitRemoved,
+    ProductionComplete,
+    GrowthChanged,
 }

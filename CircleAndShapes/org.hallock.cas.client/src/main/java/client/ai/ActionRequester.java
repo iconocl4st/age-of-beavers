@@ -2,15 +2,18 @@ package client.ai;
 
 import common.AiAttemptResult;
 import common.action.Action;
-import common.algo.AStar;
+import common.factory.Path;
+import common.factory.PathFinder;
+import common.factory.SearchDestination;
 import common.msg.Message;
 import common.msg.NoExceptionsConnectionWriter;
 import common.state.EntityReader;
+import common.state.spec.CraftingSpec;
 import common.state.spec.CreationSpec;
 import common.state.spec.ResourceType;
 import common.state.spec.attack.Weapon;
 import common.util.DPoint;
-import common.util.query.GridLocationQuerier;
+import common.util.json.Jsonable;
 
 public class ActionRequester {
     private final NoExceptionsConnectionWriter writer;
@@ -68,35 +71,24 @@ public class ActionRequester {
     }
 
 
-    public void setUnitActionToMove(EntityReader unit, AStar.Path path) {
+    public void setUnitActionToMove(EntityReader unit, Path<? extends Jsonable> path) {
         writer.send(new Message.RequestAction(unit.entityId, new Action.MoveSeq(path)));
     }
 
-    public AiAttemptResult setUnitActionToMove(EntityReader unit, DPoint destination) {
-        DPoint location = unit.getLocation();
-        if (location == null || unit.getMovementSpeed() <= 0.0) return AiAttemptResult.Unsuccessful;
-
-        AStar.PathSearch path = GridLocationQuerier.findPath(
-                unit.getState(),
-                location,
-                destination,
-                unit.getOwner()
-        );
-        if (path == null) return AiAttemptResult.Unsuccessful;
-        setUnitActionToMove(unit, path.path);
+    public AiAttemptResult setUnitActionToMove(PathFinder pathFinder, EntityReader unit, SearchDestination destination) {
+        if (unit.getMovementSpeed() <= 0.0) return AiAttemptResult.Unsuccessful;
+        Path<? extends Jsonable> path = pathFinder.findPath(unit, destination);
+        if (path == null || !path.successful) return AiAttemptResult.Unsuccessful;
+        setUnitActionToMove(unit, path);
         return AiAttemptResult.RequestedAction;
     }
 
-    public AiAttemptResult setUnitActionToMove(EntityReader unit, EntityReader destination) {
-        AStar.PathSearch path = GridLocationQuerier.findPath(
-                unit.getState(),
-                unit.getLocation(),
-                destination.entityId,
-                unit.getOwner()
-        );
-        if (path == null) return AiAttemptResult.Unsuccessful;
-        setUnitActionToMove(unit, path.path);
-        return AiAttemptResult.RequestedAction;
+    public AiAttemptResult setUnitActionToMove(PathFinder pathFinder, EntityReader unit, DPoint destination) {
+        return setUnitActionToMove(pathFinder, unit, new SearchDestination(destination));
+    }
+
+    public AiAttemptResult setUnitActionToMove(PathFinder pathFinder, EntityReader unit, EntityReader destination) {
+        return setUnitActionToMove(pathFinder, unit, new SearchDestination(destination));
     }
 
     public void setUnitActionToSuicide(EntityReader unit) {
@@ -113,5 +105,17 @@ public class ActionRequester {
 
     public void setUnitActionToIdle(EntityReader entity) {
         writer.send(new Message.RequestAction(entity.entityId, new Action.Idle()));
+    }
+
+    public void setUnitActionToPlant(EntityReader entity, ResourceType type) {
+        writer.send(new Message.RequestAction(entity.entityId, new Action.Bury(type)));
+    }
+
+    public void setUnitActionToGarden(EntityReader entity, EntityReader plant) {
+        writer.send(new Message.RequestAction(entity.entityId, new Action.Garden(plant.entityId)));
+    }
+
+    public void craft(EntityReader entity, CraftingSpec spec) {
+        writer.send(new Message.Craft(entity.entityId, spec));
     }
 }

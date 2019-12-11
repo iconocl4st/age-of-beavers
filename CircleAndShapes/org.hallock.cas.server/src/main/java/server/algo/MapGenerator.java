@@ -1,12 +1,16 @@
 package server.algo;
 
+import common.algo.UnionFind2d;
 import common.state.EntityId;
+import common.state.Occupancy;
 import common.state.Player;
 import common.state.spec.GameSpec;
 import common.state.spec.GenerationSpec;
-import common.state.sst.GameState;
+import common.state.sst.OccupancyView;
+import common.state.sst.manager.Textures;
 import common.util.DPoint;
 import common.util.EvolutionSpec;
+import common.util.Util;
 import server.state.ServerGameState;
 import server.state.ServerStateManipulator;
 import server.util.IdGenerator;
@@ -49,15 +53,11 @@ public class MapGenerator {
         return min;
     }
 
-    private GameState.OccupancyView getOccupancy() {
-        return gameState.state.getOccupancyForAny();
-    }
-
-    private UnionFind createUnionFind() {
+    private UnionFind2d createUnionFind() {
         int w = gameState.state.gameSpec.width;
         int h = gameState.state.gameSpec.height;
-        GameState.OccupancyView occupancy = getOccupancy();
-        UnionFind unionFind = new UnionFind(w, h);
+        OccupancyView occupancy = Occupancy.createGenerationOccupancy(gameState.state);
+        UnionFind2d unionFind = new UnionFind2d(w, h);
         for (int i = 0; i < w; i++) {
             for (int j = 0; j < h; j++) {
                 if (occupancy.isOccupied(i, j))
@@ -83,8 +83,8 @@ public class MapGenerator {
         );
     }
 
-    void generateResources(ServerGameState state) {
-        GameState.OccupancyView occupancy = getOccupancy();
+    void generateResources() {
+        OccupancyView occupancy = Occupancy.createGenerationOccupancy(gameState.state);
         for (GenerationSpec.ResourceGen rg : spec.generationSpec.resources) {
             if (rg == null) {
                 throw new RuntimeException("Unable to find resource.");
@@ -102,7 +102,9 @@ public class MapGenerator {
         }
     }
 
-    private void generatePatch(GameState.OccupancyView occupancy, GenerationSpec.ResourceGen rg, Point startingPoint, boolean avoidPlayers) {
+
+
+    private void generatePatch(OccupancyView occupancy, GenerationSpec.ResourceGen rg, Point startingPoint, boolean avoidPlayers) {
         HashSet<Point> horizon = new HashSet<>();
         horizon.add(startingPoint);
 
@@ -110,7 +112,35 @@ public class MapGenerator {
             Point next = pickRandomElement(horizon);
             if (next == null) // ran out of room
                 break;
+
             ssm.createUnit(idGenerator.generateId(), rg.type, new EvolutionSpec(rg.type), new DPoint(next), Player.GAIA);
+
+
+            int R;
+            switch (rg.type.name) {
+                case "tree":
+                    R = 20;
+                    break;
+                case "berry":
+                    R = 2;
+                    break;
+                default:
+                    R = -1;
+            }
+            if (R > 0) {
+                gameState.state.textures.textures.put(next, new Textures.TileTexture(next.x, next.y, Textures.TileType.Grass));
+                for (int i = -R; i <= R; i++) {
+                    for (int j = -R; j <= R; j++) {
+                        if (next.x + i >= spec.width || next.x + i < 0 || next.y + j >= spec.height || next.y + j < 0)
+                            continue;
+                        if (Math.random() < 0.5 && new DPoint(next).distanceTo(new DPoint(next.x + i, next.y + j)) < R)
+                            gameState.state.textures.textures.put(
+                                    new Point(next.x + i, next.y + j),
+                                    new Textures.TileTexture(next.x + i, next.y + j, Textures.TileType.Grass)
+                            );
+                    }
+                }
+            }
 
             for (int dx=-1; dx<2; dx++) {
                 for (int dy = -1; dy<2; dy++) {
@@ -141,14 +171,26 @@ public class MapGenerator {
         return next;
     }
 
-    private DPoint getFreeLocation(Dimension size, DPoint close, double maxDistance, UnionFind unionFind) {
+    private DPoint getFreeLocation(Util.SpiralIterator iterator, Dimension size, DPoint close, double maxDistance, UnionFind2d unionFind) {
         Point p2 = close.toPoint();
+        OccupancyView generationOccupancy = Occupancy.createGenerationOccupancy(gameState.state);
+        while (iterator.getRadius() < maxDistance) {
+            Point p1 = Util.getSpaceForBuilding(iterator, size, generationOccupancy, spec.width, 4);
+            if (!unionFind.areConnected(p1.x, p1.y, p2.x, p2.y))
+                continue;
+            return new DPoint(p1);
+        }
+        throw new RuntimeException("Could not find a spot");
+    }
+
+    private DPoint getFreeLocation(Dimension size, DPoint close, double minDistance, double maxDistance) {
+        Point p2 = close.toPoint();
+        OccupancyView generationOccupancy = Occupancy.createGenerationOccupancy(gameState.state);
         for (int i = 0; i < 1000; i++) {
             DPoint randomLocation = getRandomLocation(close, maxDistance);
-            if (!gameState.state.hasSpaceFor(randomLocation, size))
+            if (randomLocation.distanceTo(close) < minDistance)
                 continue;
-            Point p1 = randomLocation.toPoint();
-            if (unionFind != null && !unionFind.areConnected(p1.x, p1.y, p2.x, p2.y))
+            if (Occupancy.isOccupied(generationOccupancy, randomLocation.toPoint(), size))
                 continue;
             return randomLocation;
         }
@@ -159,7 +201,7 @@ public class MapGenerator {
     private DPoint getFreeLocation(Dimension size) {
         for (int i = 0; i < 1000; i++) {
             DPoint randomLocation = getRandomLocation();
-            if (gameState.state.hasSpaceFor(randomLocation, size)) {
+            if (!Occupancy.isOccupied(Occupancy.createGenerationOccupancy(gameState.state), randomLocation.toPoint(), size)) {
                 return randomLocation;
             }
         }
@@ -167,7 +209,7 @@ public class MapGenerator {
     }
 
     private void generatePlayers(int numPlayers) {
-        GameState.OccupancyView occupancy = getOccupancy();
+        OccupancyView occupancy = Occupancy.createGenerationOccupancy(gameState.state);
         for (int p = 0; p < numPlayers; p++) {
             DPoint playerLocation = new DPoint(playerLocations[p]);
             for (GenerationSpec.ResourceGen rGen : spec.generationSpec.perPlayerResources) {
@@ -175,16 +217,17 @@ public class MapGenerator {
                     generatePatch(
                             occupancy,
                             rGen,
-                            getFreeLocation(rGen.type.size, playerLocation, MIN_DISTANCE_TO_PLAYER, null).toPoint(),
+                            getFreeLocation(rGen.type.size, playerLocation, 4,  MIN_DISTANCE_TO_PLAYER).toPoint(),
                             false
                     );
                 }
             }
         }
 
-        UnionFind unionFind = createUnionFind();
+        UnionFind2d unionFind = createUnionFind();
         for (int p = 0; p < numPlayers; p++) {
             DPoint playerLocation = new DPoint(playerLocations[p]);
+            Util.SpiralIterator spiralIterator = new Util.SpiralIterator(playerLocations[p]);
             Player player = new Player(p + 1);
             for (GenerationSpec.UnitGen uGen : spec.generationSpec.perPlayerUnits) {
                 for (int i = 0; i < uGen.number; i++) {
@@ -193,7 +236,7 @@ public class MapGenerator {
                             generatedId,
                             uGen.type,
                             new EvolutionSpec(uGen.type),
-                            getFreeLocation(uGen.type.size, playerLocation, MIN_DISTANCE_TO_PLAYER, unionFind),
+                            getFreeLocation(spiralIterator, uGen.type.size, playerLocation, MIN_DISTANCE_TO_PLAYER, unionFind),
                             player
                     );
                     gameState.startingUnits.get(p).add(generatedId);
@@ -204,7 +247,7 @@ public class MapGenerator {
     }
 
     private void generateGaia() {
-//        UnionFind unionFind = createUnionFind();
+//        UnionFind2d unionFind = createUnionFind();
         for (GenerationSpec.UnitGen uGen : spec.generationSpec.gaia) {
             for (int i = 0; i < uGen.number; i++) {
                 EntityId id = idGenerator.generateId();
@@ -220,20 +263,41 @@ public class MapGenerator {
     }
 
     public static ServerGameState randomlyGenerateMap(ServerGameState gameState, GameSpec spec, int numPlayers, Random random, IdGenerator idGenerator, ServerStateManipulator ssm) {
-        gameState.playerStarts = new Point[numPlayers];
         for (int i = 0; i < numPlayers; i++) {
             int x = spec.width / 2 + (int) (0.75 * spec.width / 2 * Math.cos(2 * Math.PI * i / (double) numPlayers));
             int y = spec.height / 2 + (int) (0.75 * spec.height / 2 * Math.sin(2 * Math.PI * i / (double) numPlayers));
             gameState.playerStarts[i] = new Point(x, y);
         }
-        gameState.startingUnits = new ArrayList<>(numPlayers + 1);
-        for (int i = 0; i < numPlayers + 1; i++) {
-            gameState.startingUnits.add(new HashSet<>());
-        }
+
         MapGenerator gen = new MapGenerator(gameState.playerStarts, gameState, random, idGenerator, ssm);
-        gen.generateResources(gameState);
+        gen.generateResources();
         gen.generatePlayers(numPlayers);
         gen.generateGaia();
+
+        int width = 3;
+        int max = gameState.state.gameSpec.width - width;
+        int min = width;
+        int x = gameState.state.gameSpec.width / 2;// random.nextInt(gameState.state.gameSpec.width);
+        int y = 0;
+        int pdx = 0;
+        while (y < gameState.state.gameSpec.height) {
+            for (int i = 0; i < 15; i++) {
+                gameState.state.textures.textures.put(new Point(x + i + width, y), new Textures.TileTexture(x + i + width, y, Textures.TileType.Grass));
+                gameState.state.textures.textures.put(new Point(x - i - width, y), new Textures.TileTexture(x - i - width, y, Textures.TileType.Grass));
+            }
+            for (int i = -width; i < width; i++)
+                gameState.state.textures.textures.put(new Point(x + i, y), new Textures.TileTexture(x + i, y, Textures.TileType.Water));
+            switch (pdx) {
+                case -1: pdx = random.nextInt(2) - 1; break;
+                case +0: pdx = random.nextInt(3) - 1; break;
+                case +1: pdx = random.nextInt(2); break;
+            }
+
+            x += pdx;
+            if (x <= min) x = min + 1;
+            if (x >= max) x = max - 1;
+            y += 1;
+        }
         return gameState;
     }
 }

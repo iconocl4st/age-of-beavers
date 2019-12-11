@@ -6,6 +6,8 @@ import common.util.json.*;
 import java.io.IOException;
 import java.util.*;
 
+
+// TODO: remove this class?
 public class EntityId implements Jsonable {
     public final int id;
     // TODO: Could have an index, and then all of the managers just have an array...

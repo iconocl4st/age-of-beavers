@@ -43,7 +43,7 @@ public class Produce extends DefaultAiTask {
         if (carrying == null)
             return AiAttemptResult.Unsuccessful;
 
-        if (!carrying.canAfford(spec.createdType.requiredResources)) {
+        if (!carrying.canAfford(spec.requiredResources)) {
             return AiAttemptResult.RequestedAction;
         }
         aiContext.requester.setUnitActionToCreate(entity, spec);

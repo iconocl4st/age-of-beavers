@@ -1,7 +1,6 @@
 package client.gui.actions.unit_action;
 
 import client.app.UiClientContext;
-import common.state.EntityId;
 import common.state.EntityReader;
 
 public class UnGarrisonAll extends UnitAction {

@@ -76,7 +76,7 @@
 //        if (Proximity.closeEnoughToInteract(controlling, results.getEntity(context.gameState))) {
 //            ar.setUnitActionToDeposit(controlling, results.getEntity(context.gameState), resource, Integer.MAX_VALUE);
 //        } else {
-//            ar.setUnitActionToMove(controlling, results.path);
+//            ar.setUnitActionToMove(controlling, results.points);
 //        }
 //        return AiAttemptResult.RequestedAction;
 //    }
@@ -148,7 +148,7 @@
 //            return AiAttemptResult.RequestedAction;
 //        }
 //
-//        ar.setUnitActionToMove(controlling, results.path);
+//        ar.setUnitActionToMove(controlling, results.points);
 //        return AiAttemptResult.RequestedAction;
 //    }
 //

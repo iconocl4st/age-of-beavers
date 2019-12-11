@@ -1,0 +1,19 @@
+{
+  "is-carrying": [],
+  "parent": "natural-resource",
+  "size": {
+    "width": 0,
+    "height": 0
+  },
+  "name": "iron-deposit",
+  "can-craft": {
+    "children": [],
+    "type": "branch"
+  },
+  "carry-capacity": {"maximum-amounts": []},
+  "can-create": {
+    "children": [],
+    "type": "branch"
+  },
+  "drops-on-death": []
+}

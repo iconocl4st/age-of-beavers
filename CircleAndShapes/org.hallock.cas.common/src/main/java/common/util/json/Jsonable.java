@@ -1,8 +1,7 @@
 package common.util.json;
 
 import java.io.IOException;
-import java.io.Serializable;
 
-public interface Jsonable extends Serializable {
+public interface Jsonable {
     void writeTo(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException;
 }

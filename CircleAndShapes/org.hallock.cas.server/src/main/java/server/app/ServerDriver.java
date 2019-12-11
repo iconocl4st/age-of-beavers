@@ -1,8 +1,8 @@
 
 package server.app;
 
+import common.state.edit.GameSpecManager;
 import common.state.spec.GameSpec;
-import common.state.spec.GameSpecParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
@@ -28,10 +28,12 @@ public class ServerDriver {
 
     public static ServerContext createServerContext() throws IOException, ParseException {
         ServerContext context = new ServerContext();
-        for (int i = 0; i < context.lobbies.length; i++) {
-            GameSpec spec = GameSpecParser.parseGameSpec(Paths.get("./spec"));
-            context.lobbies[i] = new Lobby(context, "Lobby " + String.format("%02d", i + 1), spec);
-        }
+        for (int i = 0; i < context.lobbies.length; i++)
+            context.lobbies[i] = new Lobby(
+                    context,
+                    "Lobby " + String.format("%02d", i + 1),
+                    GameSpecManager.createDefaultCreator()
+            );
         return context;
     }
 }

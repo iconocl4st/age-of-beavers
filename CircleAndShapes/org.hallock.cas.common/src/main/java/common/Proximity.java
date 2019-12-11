@@ -2,42 +2,38 @@ package common;
 
 import common.state.EntityReader;
 import common.state.spec.EntitySpec;
-import common.state.EntityId;
-import common.state.sst.GameState;
 import common.util.DPoint;
+
+import java.awt.*;
 
 public class Proximity {
 
     /* TODO Remove this, maybe  have integer amounts of resources. */
-    public static final double INTERACTION_DISTANCE = 1 + Math.pow(2.0, 0.5) + 0.2;
+    public static final double INTERACTION_DISTANCE = /*1 + Math.pow(2.0, 0.5) + */ 0.2;
 
 
 
     public static boolean closeEnoughToInteract(EntityReader unit, EntityReader storage) {
         if (unit == null || storage == null) return false;
-        EntitySpec type1 = unit.getType();
-        if (type1 == null) return false;
+        Dimension size1 = unit.getSize();
+        if (size1 == null) return false;
         DPoint location1 = unit.getLocation();
         if (location1 == null) return false;
-        EntitySpec type2 = storage.getType();
-        if (type2 == null) return false;
+        Dimension size2 = storage.getSize();
+        if (size2 == null) return false;
         DPoint location2 = storage.getLocation();
         if (location2 == null) return false;
 
-        // todo: only consider the boundaries?
-        for (int l1x = 0; l1x < type1.size.width; l1x++) {
-            for (int l1y = 0; l1y < type1.size.height; l1y++) {
-                for (int l2x = 0; l2x < type2.size.width; l2x++) {
-                    for (int l2y = 0; l2y < type2.size.height; l2y++) {
-                        double dx = location1.x + l1x - (location2.x + l2x);
-                        double dy = location1.y + l1y - (location2.y + l2y);
-                        if (Math.sqrt(dx*dx + dy*dy) < INTERACTION_DISTANCE) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
+        double closestUnitX = Math.min(location1.x + size1.width, Math.max(location1.x, location2.x));
+        double closestUnitY = Math.min(location1.y + size1.height, Math.max(location1.y, location2.y));
+
+        double closestStorageX = Math.min(location2.x + size2.width, Math.max(location2.x, closestUnitX));
+        double closestStorageY = Math.min(location2.y + size2.height, Math.max(location2.y, closestUnitY));
+
+        double dx = closestUnitX - closestStorageX;
+        double dy = closestUnitY - closestStorageY;
+
+        double d = Math.sqrt(dx*dx+dy*dy);
+        return d < INTERACTION_DISTANCE;
     }
 }

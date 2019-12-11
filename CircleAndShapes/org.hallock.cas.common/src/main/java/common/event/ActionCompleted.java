@@ -31,5 +31,6 @@ public class ActionCompleted extends NetworkAiEvent {
         OverCapacity,
         TooFar,
         Successful,
+        Blocked,
     }
 }

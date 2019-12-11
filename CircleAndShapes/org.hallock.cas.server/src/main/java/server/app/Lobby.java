@@ -1,12 +1,18 @@
 package server.app;
 
 
-import common.state.EntityId;
 import common.app.LobbyInfo;
 import common.msg.ConnectionWriter;
 import common.msg.Message;
+import common.state.EntityId;
 import common.state.Player;
+import common.state.edit.GameSpecManager;
+import common.state.los.AllExplored;
+import common.state.los.AllVisibleLos;
+import common.state.los.Exploration;
+import common.state.los.LineOfSight;
 import common.state.spec.GameSpec;
+import common.state.sst.GameState;
 import server.algo.MapGenerator;
 import server.state.Game;
 import server.state.ServerGameState;
@@ -23,7 +29,7 @@ public class Lobby {
 
     private ServerContext context;
     private String name;
-    public GameSpec spec;
+    public GameSpecManager.GameSpecCreator spec;
 
     public final LinkedList<PlayerConnection> connections = new LinkedList<>();
     private final ArrayList<LobbyPlayer> players = new ArrayList<>();
@@ -34,7 +40,7 @@ public class Lobby {
     private DefaultBroadCaster broadCaster;
     private Game game;
 
-    Lobby(ServerContext context, String lobbyName, GameSpec spec) {
+    Lobby(ServerContext context, String lobbyName, GameSpecManager.GameSpecCreator spec) {
         this.context = context;
         this.name = lobbyName;
         this.spec = spec;
@@ -54,7 +60,7 @@ public class Lobby {
         return null;
     }
 
-    public int getNumPlayers() {
+    private int getNumPlayers() {
         return players.size();
     }
 
@@ -135,17 +141,22 @@ public class Lobby {
         }
     }
 
-    void launch() {
+    void launch() throws IOException {
         synchronized (statusSync) {
             ensureStatus(LobbyInfo.LobbyStatus.Waiting);
             this.status = LobbyInfo.LobbyStatus.InGame;
-            spec.numPlayers = getNumPlayers();
-            game = Game.createGame(context, this);
+            int numPlayers = getNumPlayers();
+
+
+            GameSpec gameSpec = spec.getGameSpec();
+            String specString = spec.serialize();
+
+            game = Game.createGame(context, this, gameSpec, numPlayers);
 
             MapGenerator.randomlyGenerateMap(
                     game.serverState,
-                    getCurrentSpec(),
-                    getNumPlayers(),
+                    gameSpec,
+                    numPlayers,
                     random,
                     game.idGenerator,
                     createEmptyStateManipulator()
@@ -153,31 +164,40 @@ public class Lobby {
 
             broadCaster = createBroadCaster(game.serverState);
 
-            CountDownLatch latch = new CountDownLatch(connections.size());
             for (final PlayerConnection connection : connections) {
-                try {
                     Player player = getPlayer(connection);
-                    Point playerStart = null;
-                    Set<EntityId> startingUnits = null;
+                    Point playerStart;
+                    Set<EntityId> startingUnits;
+                    Exploration exploration;
+                    LineOfSight lineOfSight;
                     if (player != null) {
                         playerStart = game.serverState.playerStarts[player.number - 1];
+                        lineOfSight = game.serverState.lineOfSights[player.number - 1];
+                        exploration = game.serverState.explorations[player.number - 1];
                         startingUnits = game.serverState.startingUnits.get(player.number- 1);
+                    } else {
+                        playerStart = new Point();
+                        startingUnits = Collections.emptySet();
+                        lineOfSight = new AllVisibleLos(game.serverState.state.gameSpec);
+                        exploration = new AllExplored(game.serverState.state.gameSpec);
                     }
-                    connection.setMessageHandler(new GamePlayerMessageHandler(new ServerStateManipulator(game, player, broadCaster)));
-                    connection.getWriter().send(new Message.Launched(spec, player, playerStart, startingUnits));
-                    connection.getWriter().send(new Message.UpdateEntireGameState(game.serverState.createGameState(player)));
+                    connection.setMessageHandler(
+                            new GamePlayerMessageHandler(
+                                    connection.getWriter(), game.serverState,
+                                    new ServerStateManipulator(game, player, broadCaster)
+                            )
+                    );
+                    connection.getWriter().send(new Message.Launched(
+                            specString,
+                            numPlayers,
+                            player,
+                            playerStart,
+                            startingUnits,
+                            game.serverState.createGameState(player, lineOfSight),
+                            exploration,
+                            lineOfSight
+                    ));
                     connection.getWriter().flush();
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                } finally {
-                    latch.countDown();
-                }
-            }
-
-            try {
-                latch.await();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
 
             context.engine.schedule(game);
@@ -198,19 +218,15 @@ public class Lobby {
         return name.equals(info.name);
     }
 
-    public GameSpec getCurrentSpec() {
-        return spec;
-    }
-
     private ConnectionWriter getFilter(ServerGameState state, LobbyPlayer player) {
-        switch (spec.visibility) {
+        switch (state.state.gameSpec.visibility) {
             case FOG:
             case EXPLORED:
                 return new LineOfSightMessageFilter(state, player.connection.getWriter(), player.player);
             case ALL_VISIBLE:
                 return player.connection.getWriter();
             default:
-                throw new IllegalStateException("Unknown visibility selection: " + spec.visibility);
+                throw new IllegalStateException("Unknown visibility selection: " + state.state.gameSpec.visibility);
         }
     }
 
@@ -246,6 +262,11 @@ public class Lobby {
             @Override
             public void send(Player losPlayer, Message unitRemoved) {}
         });
+    }
+
+    public GameState getCurrentGameState() {
+        if (game == null) return null;
+        return game.serverState.state;
     }
 
     private static final class LobbyPlayer {

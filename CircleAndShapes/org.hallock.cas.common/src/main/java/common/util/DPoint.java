@@ -4,6 +4,8 @@ import common.util.json.*;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.*;
+import java.util.List;
 
 public class DPoint implements Jsonable {
     public final double x;
@@ -72,4 +74,50 @@ public class DPoint implements Jsonable {
             return new DPoint(x, y);
         }
     };
+
+
+    public static HashSet<Point> convert(Set<DPoint> original) {
+        HashSet<Point> ends = new HashSet<>();
+        for (DPoint end : original)
+            ends.add(end.toPoint());
+        return ends;
+    }
+
+    public static LinkedList<DPoint> convert(List<Point> points) {
+        LinkedList<DPoint> ends = new LinkedList<>();
+        for (Point end : points)
+            ends.add(new DPoint(end));
+        return ends;
+    }
+
+
+    public static double d(int x, int y, Collection<Point> goals) {
+        double min = Double.MAX_VALUE;
+        for (Point p2 : goals)  {
+            double d = d(x, y, p2);
+            if (d < min)
+                min = d;
+        }
+        return min;
+    }
+    public static double d(Point p, Collection<Point> o) {
+        double min = Double.MAX_VALUE;
+        for (Point p2 : o)  {
+            double d = d(p, p2);
+            if (d < min)
+                min = d;
+        }
+        return min;
+    }
+    public static double d(int x, int y, Point p2) {
+        if (p2 == null) return Double.MAX_VALUE;
+        int dx = x - p2.x;
+        int dy = y - p2.y;
+        return Math.sqrt(dx*dx + dy*dy);
+    }
+    public static double d(Point p1, Point p2) {
+        int dx = p1.x - p2.x;
+        int dy = p1.y - p2.y;
+        return Math.sqrt(dx*dx + dy*dy);
+    }
 }

@@ -5,7 +5,10 @@ import common.state.spec.attack.Weapon;
 import common.util.json.*;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
 
 /** We can remove this class again, I think **/
 public class WeaponSet implements Jsonable {

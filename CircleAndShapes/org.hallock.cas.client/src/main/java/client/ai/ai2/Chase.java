@@ -4,6 +4,8 @@ import common.AiAttemptResult;
 import common.Proximity;
 import common.action.Action;
 import common.algo.Ballistics;
+import common.event.TargetWithinRange;
+import common.msg.Message;
 import common.state.EntityReader;
 import common.state.spec.EntitySpec;
 import common.util.DPoint;
@@ -24,12 +26,13 @@ public abstract class Chase extends DefaultAiTask {
 
     protected void addExtraListeners(AiContext aiContext) {
         aiContext.clientGameState.eventManager.listenForEventsFrom(aiContext.stack, target.entityId);
-        aiContext.clientGameState.eventManager.listenForRangeEventsFrom(aiContext.stack, entity, target, distance);
+        aiContext.requester.getWriter().send(new Message.ListenForTargetInRange(new TargetWithinRange(entity.entityId, target.entityId, distance), true));
+//        aiContext.clientGameState.eventManager.listenForEventsFrom(aiContext.stack, entity);
     }
 
     protected void removeExtraListeners(AiContext aiContext) {
         aiContext.clientGameState.eventManager.stopListeningTo(aiContext.stack, target.entityId);
-        aiContext.clientGameState.eventManager.stopListeningToRangeEvents(aiContext.stack, entity);
+        aiContext.requester.getWriter().send(new Message.ListenForTargetInRange(new TargetWithinRange(entity.entityId, target.entityId, distance), false));
     }
 
     protected abstract boolean targetIsWithinRange();
@@ -51,6 +54,7 @@ public abstract class Chase extends DefaultAiTask {
         if (targetIsWithinRange()) return AiAttemptResult.Completed;
         // maybe don't need this method...
         return aiContext.requester.setUnitActionToMove(
+                aiContext.clientGameState.pathFinder,
                 entity,
                 getInterception(entity.getLocation(),
                     entity.getMovementSpeed(),
@@ -68,7 +72,7 @@ public abstract class Chase extends DefaultAiTask {
         if (sync == null) return AiAttemptResult.Unsuccessful;
         synchronized (sync) {
             if (target.noLongerExists()) return AiAttemptResult.Unsuccessful;
-            return aiContext.requester.setUnitActionToMove(entity, getInterception());
+            return aiContext.requester.setUnitActionToMove(aiContext.clientGameState.pathFinder, entity, getInterception());
         }
     }
 
@@ -81,7 +85,7 @@ public abstract class Chase extends DefaultAiTask {
                 entity.getLocation(),
                 entity.getMovementSpeed(),
                 target.getLocation(),
-                move.path.points.get(move.progress),
+                (DPoint) move.path.points.get(move.progress),
                 target.getMovementSpeed()
         );
     }

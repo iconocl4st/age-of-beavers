@@ -4,6 +4,7 @@ import client.app.UiClientContext;
 import client.gui.actions.UnitActions;
 import client.gui.game.GameScreen;
 import client.gui.selected.SelectedUnits;
+import client.ui.DemandsView;
 import common.msg.Message;
 import common.state.Player;
 import common.state.spec.GameSpec;
@@ -36,7 +37,7 @@ public class UiManager {
 
     public void displayGame(GameSpec spec, Player player) {
         lobbyFrame.setVisible(false);
-        buildingSelector.initialize(spec);
+        buildingSelector.initialize(context.clientGameState);
         selectedUnitsBrowser.initialize(spec);
         unitActions.initialize(spec);
         if (player == null) {
@@ -46,9 +47,8 @@ public class UiManager {
         }
         mainWindowFrame.setVisible(true);
         minimap.setGameSpec(spec);
-        gameScreen.initialize(spec);
-
         mainWindow.updateSplitPaneDividers();
+        gameScreen.initialize(spec);
     }
 
     public void displayLobbyBrowser() {
@@ -81,7 +81,10 @@ public class UiManager {
         manager.gameScreen = GameScreen.createGameScreen(context);
         manager.lobbyBrowser = new LobbyBrowser(context);
         manager.selectedUnitsBrowser = SelectedUnits.createSelectedUnits(context);
-        manager.buildingSelector = DemandsView.createDemandsView(context);
+        manager.buildingSelector = DemandsView.createDemandsView(reader -> {
+            context.selectionManager.select(Collections.singleton(reader));
+            context.uiManager.gameScreen.zoom.focusOn(Collections.singleton(reader));
+        }, true);
         manager.unitActions = UnitActions.createUnitActions(context);
 
         manager.mainWindow = new MainWindow(manager);
@@ -94,7 +97,7 @@ public class UiManager {
         manager.mainWindow.addBottom();
 
         // TODO: when the game is over
-        new Timer(100, actionEvent -> {
+        new Timer(17, actionEvent -> {
             manager.gameScreen.repaint();
             manager.minimap.repaint();
             manager.selectedUnitsBrowser.updateInfo();

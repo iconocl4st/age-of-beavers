@@ -1,11 +1,16 @@
 package common.msg;
 
-import common.event.AiEvent;
 import common.action.Action;
 import common.app.LobbyInfo;
 import common.event.NetworkAiEvent;
+import common.event.TargetWithinRange;
 import common.state.EntityId;
+import common.state.EntityReader;
 import common.state.Player;
+import common.state.edit.GameSpecManager;
+import common.state.los.Exploration;
+import common.state.los.LineOfSight;
+import common.state.spec.CraftingSpec;
 import common.state.spec.EntitySpec;
 import common.state.spec.GameSpec;
 import common.state.spec.ResourceType;
@@ -224,33 +229,36 @@ public abstract class Message implements Jsonable {
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static class Launched extends Message {
-        public final GameSpec spec;
+        public final String spec;
+        public final int numPlayers;
         public final Player player;
         public final Point playerStart;
         public final Set<EntityId> startingUnits;
+        public final GameState gameState;
+        public final Exploration exploration;
+        public final LineOfSight lineOfSight;
 
-        public Launched(GameSpec spec, Player player, Point playerStart, Set<EntityId> startingUnits) {
+        public Launched(String spec, int numPlayers, Player player, Point playerStart, Set<EntityId> startingUnits, GameState gameState, Exploration exploration, LineOfSight lineOfSight) {
             this.spec = spec;
+            this.numPlayers = numPlayers;
             this.player = player;
             this.playerStart = playerStart;
-            this.startingUnits = startingUnits == null ? Collections.emptySet() : startingUnits;
-        }
-
-        public static Launched finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
-            return new Launched(
-                reader.read("spec", GameSpec.Serializer, spec),
-                reader.read("player", Player.Serializer, spec),
-                reader.read("location", DataSerializer.PointSerializer, spec),
-                (Set<EntityId>) reader.read("starting-units", new HashSet<>(), EntityId.Serializer, spec)
-            );
+            this.startingUnits = startingUnits;
+            this.gameState = gameState;
+            this.exploration = exploration;
+            this.lineOfSight = lineOfSight;
         }
 
         @Override
         protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions verbose) throws IOException {
-            writer.write("spec", spec, GameSpec.Serializer, verbose);
+            writer.write("spec", spec);
+            writer.write("number-of-players", numPlayers);
             writer.write("player", player, Player.Serializer, verbose);
             writer.write("location", playerStart, DataSerializer.PointSerializer, verbose);
             writer.write("starting-units", startingUnits, EntityId.Serializer, verbose);
+            writer.writeName("exploration"); exploration.writeTo(writer, verbose);
+            writer.writeName("line-of-sight"); lineOfSight.writeTo(writer, verbose);
+            writer.writeName("state"); gameState.writeTo(writer, verbose);
         }
 
         @Override
@@ -289,25 +297,6 @@ public abstract class Message implements Jsonable {
         @Override
         public MessageType getMessageType() {
             return MessageType.ERROR;
-        }
-    }
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public static class UpdateEntireGameState extends Message {
-        public final GameState gameState;
-
-        public UpdateEntireGameState(GameState gameState) {
-            this.gameState = gameState;
-        }
-
-        @Override
-        protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions verbose) throws IOException {
-            writer.writeName("state");
-            gameState.writeTo(writer, verbose);
-        }
-
-        @Override
-        public MessageType getMessageType() {
-            return MessageType.UPDATE_ENTIRE_GAME;
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -382,6 +371,28 @@ public abstract class Message implements Jsonable {
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public static class UnitCreated extends Message {
+        public final EntityId unitId;
+
+        public UnitCreated(EntityId id) {
+            this.unitId = id;
+        }
+
+        public static UnitCreated finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
+            return new UnitCreated(reader.read("entity", EntityId.Serializer, spec));
+        }
+
+        @Override
+        protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+            writer.write("entity", unitId, EntityId.Serializer, options);
+        }
+
+        @Override
+        public MessageType getMessageType() {
+            return MessageType.UNIT_CREATED;
+        }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static class UnitUpdated extends Message {
         public EntityId unitId;
         public DPoint location;
@@ -396,10 +407,7 @@ public abstract class Message implements Jsonable {
         public EntitySpec isNowOfType;
         public Double newMovementSpeed;
         public Boolean isHidden;
-        public Player losPlayer;
-        public Double losDistance;
-        public DPoint losOldLocation;
-        public DPoint losNewLocation;
+        public String graphics;
         public Double creationTime;
         public ConstructionZone constructionZone;
         public Double constructionProgress;
@@ -414,6 +422,9 @@ public abstract class Message implements Jsonable {
         public Double collectSpeed;
         public Double depositSpeed;
         public EvolutionSpec evolutionWeights;
+        public GrowthInfo growthInfo;
+        public Double gardenSpeed;
+        public Double plantSpeed;
 
         public String debug;
 
@@ -432,10 +443,10 @@ public abstract class Message implements Jsonable {
             if ((flags & 0b0000_0000_0000_0000_0000_0001_0000_0000) != 0) unitUpdated.isNowOfType = reader.read("isNowOfType", EntitySpec.Serializer, options);
             if ((flags & 0b0000_0000_0000_0000_0000_0010_0000_0000) != 0) unitUpdated.newMovementSpeed = reader.readDouble("newMovementSpeed");
             if ((flags & 0b0000_0000_0000_0000_0000_0100_0000_0000) != 0) unitUpdated.isHidden = reader.readBoolean("isHidden");
-            if ((flags & 0b0000_0000_0000_0000_0000_1000_0000_0000) != 0) unitUpdated.losPlayer = reader.read("losPlayer", Player.Serializer, options);
-            if ((flags & 0b0000_0000_0000_0000_0001_0000_0000_0000) != 0) unitUpdated.losDistance = reader.readDouble("losDistance");
-            if ((flags & 0b0000_0000_0000_0000_0010_0000_0000_0000) != 0) unitUpdated.losOldLocation = reader.read("losOldLocation", DPoint.Serializer, options);
-            if ((flags & 0b0000_0000_0000_0000_0100_0000_0000_0000) != 0) unitUpdated.losNewLocation = reader.read("losNewLocation", DPoint.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_1000_0000_0000) != 0) unitUpdated.graphics = reader.readString("graphics");
+            if ((flags & 0b0000_0000_0000_0000_0001_0000_0000_0000) != 0) unitUpdated.growthInfo = reader.read("growth", GrowthInfo.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0010_0000_0000_0000) != 0) unitUpdated.gardenSpeed = reader.readDouble("garden-speed");
+            if ((flags & 0b0000_0000_0000_0000_0100_0000_0000_0000) != 0) unitUpdated.plantSpeed = reader.readDouble("plant-speed");
             if ((flags & 0b0000_0000_0000_0000_1000_0000_0000_0000) != 0) unitUpdated.creationTime = reader.readDouble("creationTime");
             if ((flags & 0b0000_0000_0000_0001_0000_0000_0000_0000) != 0) unitUpdated.constructionZone = reader.read("constructionZone", ConstructionZone.Serializer, options);
             if ((flags & 0b0000_0000_0000_0010_0000_0000_0000_0000) != 0) unitUpdated.constructionProgress = reader.readDouble("constructionProgress");
@@ -471,10 +482,10 @@ public abstract class Message implements Jsonable {
             if (isNowOfType != null)            flags |= 0b0000_0000_0000_0000_0000_0001_0000_0000;
             if (newMovementSpeed != null)       flags |= 0b0000_0000_0000_0000_0000_0010_0000_0000;
             if (isHidden != null)               flags |= 0b0000_0000_0000_0000_0000_0100_0000_0000;
-            if (losPlayer != null)              flags |= 0b0000_0000_0000_0000_0000_1000_0000_0000;
-            if (losDistance != null)            flags |= 0b0000_0000_0000_0000_0001_0000_0000_0000;
-            if (losOldLocation != null)         flags |= 0b0000_0000_0000_0000_0010_0000_0000_0000;
-            if (losNewLocation != null)         flags |= 0b0000_0000_0000_0000_0100_0000_0000_0000;
+            if (graphics != null)               flags |= 0b0000_0000_0000_0000_0000_1000_0000_0000;
+            if (growthInfo != null)             flags |= 0b0000_0000_0000_0000_0001_0000_0000_0000;
+            if (gardenSpeed != null)            flags |= 0b0000_0000_0000_0000_0010_0000_0000_0000;
+            if (plantSpeed != null)             flags |= 0b0000_0000_0000_0000_0100_0000_0000_0000;
             if (creationTime != null)           flags |= 0b0000_0000_0000_0000_1000_0000_0000_0000;
             if (constructionZone != null)       flags |= 0b0000_0000_0000_0001_0000_0000_0000_0000;
             if (constructionProgress != null)   flags |= 0b0000_0000_0000_0010_0000_0000_0000_0000;
@@ -505,10 +516,10 @@ public abstract class Message implements Jsonable {
             if ((flags & 0b0000_0000_0000_0000_0000_0001_0000_0000) != 0) writer.write("isNowOfType", isNowOfType, EntitySpec.Serializer, options);
             if ((flags & 0b0000_0000_0000_0000_0000_0010_0000_0000) != 0) writer.write("newMovementSpeed", newMovementSpeed);
             if ((flags & 0b0000_0000_0000_0000_0000_0100_0000_0000) != 0) writer.write("isHidden", isHidden);
-            if ((flags & 0b0000_0000_0000_0000_0000_1000_0000_0000) != 0) writer.write("losPlayer", losPlayer, Player.Serializer, options);
-            if ((flags & 0b0000_0000_0000_0000_0001_0000_0000_0000) != 0) writer.write("losDistance", losDistance);
-            if ((flags & 0b0000_0000_0000_0000_0010_0000_0000_0000) != 0) writer.write("losOldLocation", losOldLocation, DPoint.Serializer, options);
-            if ((flags & 0b0000_0000_0000_0000_0100_0000_0000_0000) != 0) writer.write("losNewLocation", losNewLocation, DPoint.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0000_1000_0000_0000) != 0) writer.write("graphics", graphics);
+            if ((flags & 0b0000_0000_0000_0000_0001_0000_0000_0000) != 0) writer.write("growth", growthInfo, GrowthInfo.Serializer, options);
+            if ((flags & 0b0000_0000_0000_0000_0010_0000_0000_0000) != 0) writer.write("garden-speed", gardenSpeed);
+            if ((flags & 0b0000_0000_0000_0000_0100_0000_0000_0000) != 0) writer.write("plant-speed", plantSpeed);
             if ((flags & 0b0000_0000_0000_0000_1000_0000_0000_0000) != 0) writer.write("creationTime", creationTime);
             if ((flags & 0b0000_0000_0000_0001_0000_0000_0000_0000) != 0) writer.write("constructionZone", constructionZone, ConstructionZone.Serializer, options);
             if ((flags & 0b0000_0000_0000_0010_0000_0000_0000_0000) != 0) writer.write("constructionProgress", constructionProgress);
@@ -530,6 +541,66 @@ public abstract class Message implements Jsonable {
         @Override
         public MessageType getMessageType() {
             return MessageType.UNIT_UPDATED;
+        }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public static class DirectedLocationChange extends Message {
+        public final EntityId entity;
+        public final DPoint beginLocation;
+        public final DPoint endLocation;
+        public final double gameTime;
+        public final double speed;
+
+        public DirectedLocationChange(EntityId entity, DPoint currentLocation, DPoint endLocation, double speed, double gameTime) {
+            this.entity = entity;
+            this.endLocation = endLocation;
+            this.beginLocation = currentLocation;
+            this.speed = speed;
+            this.gameTime = gameTime;
+        }
+
+        public DirectedLocationChange(MovableEntity newLocation) {
+            entity = newLocation.entity.entityId;
+            beginLocation = newLocation.movementBegin;
+            endLocation = newLocation.movementEnd;
+            gameTime = newLocation.movementStartTime;
+            this.speed = newLocation.movementSpeed;
+        }
+
+        public MovableEntity getDirectedLocation(GameState state) {
+            MovableEntity de = new MovableEntity();
+            de.entity = new EntityReader(state, entity);
+            de.size = de.entity.getSize();
+            de.movementBegin = beginLocation;
+            de.movementEnd = endLocation;
+            de.currentLocation = beginLocation;
+            de.movementStartTime = gameTime;
+            de.movementSpeed = speed;
+            return de;
+        }
+
+        @Override
+        protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+            writer.write("entity-id", entity, EntityId.Serializer, options);
+            writer.write("location-begin", beginLocation, DPoint.Serializer, options);
+            writer.write("location-end", endLocation, DPoint.Serializer, options);
+            writer.write("speed", speed);
+            writer.write("game-time", gameTime);
+        }
+
+        @Override
+        public MessageType getMessageType() {
+            return MessageType.DIRECTION_CHANGED;
+        }
+
+        public static DirectedLocationChange finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
+            return new DirectedLocationChange(
+                    reader.read("entity-id", EntityId.Serializer, spec),
+                    reader.read("location-begin", DPoint.Serializer, spec),
+                    reader.read("location-end", DPoint.Serializer, spec),
+                    reader.readDouble("speed"),
+                    reader.readDouble("game-time")
+            );
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -675,6 +746,30 @@ public abstract class Message implements Jsonable {
 
         public MessageType getMessageType() { return MessageType.AI_EVENT; }
     }
+    public static class ListenForTargetInRange extends Message {
+        public final TargetWithinRange targetWithinRange;
+        public final boolean listen;
+
+        public ListenForTargetInRange(TargetWithinRange event, boolean listen) {
+            this.targetWithinRange = event;
+            this.listen = listen;
+        }
+
+        public static ListenForTargetInRange finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
+            return new ListenForTargetInRange(
+                    (TargetWithinRange) reader.read("args", NetworkAiEvent.Serializer, spec),
+                    reader.readBoolean("listen")
+            );
+        }
+
+        @Override
+        protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+            writer.write("args", targetWithinRange, NetworkAiEvent.Serializer, options);
+            writer.write("listen", listen);
+        }
+
+        public MessageType getMessageType() { return MessageType.REQUEST_LISTEN_FOR_RANGE; }
+    }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static class RequestAction extends Message {
         public final EntityId performer;
@@ -703,22 +798,52 @@ public abstract class Message implements Jsonable {
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public static class Craft extends Message {
+        public final EntityId performer;
+        public final CraftingSpec spec;
+
+        public Craft(EntityId entityId, CraftingSpec spec) {
+            this.performer = entityId;
+            this.spec = spec;
+        }
+
+        public static Craft finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
+            return new Craft(
+                reader.read("crafter", EntityId.Serializer, spec),
+                reader.read("recipe", CraftingSpec.Serializer, spec)
+            );
+        }
+
+        @Override
+        protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+            writer.write("crafter", performer, EntityId.Serializer, options);
+            writer.write("recipe", spec, CraftingSpec.Serializer, options);
+        }
+
+        public MessageType getMessageType() {
+            return MessageType.REQUEST_ACTION;
+        }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static class OccupancyChanged extends Message {
         public final Point location;
         public final Dimension size;
         public final boolean occupied;
+        public final boolean construction;
 
-        public OccupancyChanged(Point remLoc, Dimension size, boolean b) {
+        public OccupancyChanged(Point remLoc, Dimension size, boolean b, boolean c) {
             this.location = remLoc;
             this.size = size;
             this.occupied = b;
+            this.construction = c;
         }
 
         public static OccupancyChanged finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
             return new OccupancyChanged(
                 reader.read("location", DataSerializer.PointSerializer, spec),
                 reader.read("size", DataSerializer.DimensionSerializer, spec),
-                reader.readBoolean("occupied")
+                reader.readBoolean("occupied"),
+                reader.readBoolean("construction")
             );
         }
 
@@ -727,6 +852,7 @@ public abstract class Message implements Jsonable {
             writer.write("location", location, DataSerializer.PointSerializer, options);
             writer.write("size", size, DataSerializer.DimensionSerializer, options);
             writer.write("occupied", occupied);
+            writer.write("construction", construction);
         }
 
         public MessageType getMessageType() {
@@ -763,19 +889,25 @@ public abstract class Message implements Jsonable {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static class TimeChange extends Message {
 
-        public final double currentTime;
+        public final long timeOfGameTime;
+        public final double currentGameTime;
 
-        public TimeChange(double currentTime) {
-            this.currentTime = currentTime;
+        public TimeChange(double currentTime, long timeOfGameTime) {
+            this.timeOfGameTime = timeOfGameTime;
+            this.currentGameTime = currentTime;
         }
 
         public static TimeChange finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
-            return new TimeChange(reader.readDouble("current-time"));
+            return new TimeChange(
+                reader.readDouble("current-time"),
+                reader.readLong("time-stamp")
+            );
         }
 
         @Override
         protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
-            writer.write("current-time", currentTime);
+            writer.write("current-time", currentGameTime);
+            writer.write("time-stamp", timeOfGameTime);
         }
 
         public MessageType getMessageType() {
@@ -941,9 +1073,9 @@ public abstract class Message implements Jsonable {
         GAME_OVER,
         LEAVE,
         LEFT,
-        UPDATE_ENTIRE_GAME,
         REQUEST_ACTION,
         UNIT_REMOVED,
+        UNIT_CREATED,
         UNIT_UPDATED,
         OCCUPANCY_UPDATED,
         PLACE_BUILDING,
@@ -963,5 +1095,7 @@ public abstract class Message implements Jsonable {
         SET_DESIRED_CAPACITY,
         SPECTATING,
         SPECTATE,
+        DIRECTION_CHANGED,
+        REQUEST_LISTEN_FOR_RANGE,
     }
 }

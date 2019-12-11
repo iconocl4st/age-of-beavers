@@ -5,6 +5,7 @@ import client.event.AiEventListener;
 import common.event.AiEvent;
 import common.event.AiEventType;
 import common.event.BuildingPlacementChanged;
+import common.event.ProductionComplete;
 import common.state.EntityReader;
 import common.state.Player;
 import common.state.sst.manager.RevPair;
@@ -36,7 +37,11 @@ public class EntityTracker implements AiEventListener {
         synchronized (currentlyTracking) {
             for (RevPair<Player> pair : clientGameState.gameState.playerManager.getByType(clientGameState.currentPlayer))
                 track(new EntityReader(clientGameState.gameState, pair.entityId));
+            int preSize = currentlyTracking.size();
             currentlyTracking.removeIf(EntityReader::noLongerExists); // TODO: what if it is only out of sight...
+            if (currentlyTracking.size() < preSize) {
+                System.out.println("why? 2737243572457");
+            }
             byClass.clear();
             for (EntityReader reader : currentlyTracking)
                 for (String clazz : reader.getType().classes)
@@ -73,13 +78,16 @@ public class EntityTracker implements AiEventListener {
 
     @Override
     public void receiveEvent(AiContext aiContext, AiEvent event) {
-        if (!event.type.equals(AiEventType.BuildingPlacementChanged))
-            return;
-        BuildingPlacementChanged changeEvent = (BuildingPlacementChanged) event;
-        if (changeEvent.newBuildingId != null)
-            track(new EntityReader(clientGameState.gameState, changeEvent.newBuildingId));
-        if (changeEvent.constructionZone != null) {
-            track(new EntityReader(clientGameState.gameState, changeEvent.constructionZone));
+        if (event.type.equals(AiEventType.BuildingPlacementChanged)) {
+            BuildingPlacementChanged changeEvent = (BuildingPlacementChanged) event;
+            if (changeEvent.newBuildingId != null)
+                track(new EntityReader(clientGameState.gameState, changeEvent.newBuildingId));
+            if (changeEvent.constructionZone != null) {
+                track(new EntityReader(clientGameState.gameState, changeEvent.constructionZone));
+            }
+        } else if (event.type.equals(AiEventType.ProductionComplete)) {
+            ProductionComplete p = (ProductionComplete) event;
+            track(new EntityReader(clientGameState.gameState, p.created));
         }
     }
 

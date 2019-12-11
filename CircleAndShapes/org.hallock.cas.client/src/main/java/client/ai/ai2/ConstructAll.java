@@ -5,6 +5,7 @@ import common.state.EntityReader;
 import common.state.spec.ResourceType;
 import common.util.MapUtils;
 
+import java.sql.ResultSet;
 import java.util.Map;
 
 public class ConstructAll extends DefaultAiTask {
@@ -15,14 +16,14 @@ public class ConstructAll extends DefaultAiTask {
         this(constructor, null);
     }
 
-    @Override
-    public String toString() {
-        return "Building";
-    }
-
     public ConstructAll(EntityReader constructor, EntityReader constructionZone) {
         super(constructor);
         this.constructionZone = constructionZone;
+    }
+
+    @Override
+    public String toString() {
+        return "Building";
     }
 
     @Override
@@ -40,7 +41,13 @@ public class ConstructAll extends DefaultAiTask {
         Map<ResourceType, Integer> missingResources = constructionZone.getMissingConstructionResources();
         if (MapUtils.isEmpty(missingResources))
             return build(aiContext, constructionZone);
-        return aiContext.stack.push(aiContext, new OneTripTransportTo(aiContext.controlling, constructionZone, missingResources));
+        for (Map.Entry<ResourceType, Integer> entry : missingResources.entrySet()) {
+            EntityReader storage = aiContext.locator.locateNearestPickupSite(aiContext.controlling, entry.getKey(), aiContext.controlling);
+            if (storage == null)
+                continue;
+            return aiContext.stack.push(aiContext, new OneTripTransportFromTo(aiContext.controlling, storage, constructionZone, missingResources));
+        }
+        return AiAttemptResult.Unsuccessful;
     }
 
     public static AiAttemptResult build(AiContext aiContext, EntityReader constructionZone) {

@@ -6,6 +6,7 @@ import common.state.sst.sub.Load;
 import common.util.json.*;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,18 +15,30 @@ public class PrioritizedCapacitySpec implements Jsonable {
     private int totalWeight = 0;
     private final HashMap<ResourceType, Prioritization> prioritizations = new HashMap<>();
 
-    public PrioritizedCapacitySpec(GameSpec spec) {
-        for (ResourceType resourceType : spec.resourceTypes) {
+    public PrioritizedCapacitySpec(Collection<ResourceType> allResourceTypes) {
+        for (ResourceType resourceType : allResourceTypes)
             prioritizations.put(resourceType, new Prioritization());
-        }
     }
-    private PrioritizedCapacitySpec() {}
+
+    public PrioritizedCapacitySpec(int maxWeight, Collection<ResourceType> allResourceTypes) {
+        this(allResourceTypes);
+        this.totalWeight = maxWeight;
+    }
 
     public PrioritizedCapacitySpec(PrioritizedCapacitySpec other) {
         this.totalWeight = other.totalWeight;
         for (Map.Entry<ResourceType, Prioritization> rt : other.prioritizations.entrySet()) {
             prioritizations.put(rt.getKey(), new Prioritization(rt.getValue()));
         }
+    }
+
+    private PrioritizedCapacitySpec() {}
+
+    public HashMap<ResourceType, Integer> getMaximumAmounts() {
+        HashMap<ResourceType, Integer> maximum = new HashMap<>();
+        for (Map.Entry<ResourceType, Prioritization> entry : prioritizations.entrySet())
+            maximum.put(entry.getKey(), entry.getValue().maximumAmount);
+        return maximum;
     }
 
     public Prioritization getPrioritization(ResourceType resourceType) {
@@ -51,7 +64,7 @@ public class PrioritizedCapacitySpec implements Jsonable {
     }
 
     public String getDisplayString() {
-        StringBuilder builder = new StringBuilder().append("Maximum weight: " + ResourceType.formatWeight(totalWeight)).append(" [");
+        StringBuilder builder = new StringBuilder().append("Maximum weight: ").append(ResourceType.formatWeight(totalWeight)).append(" [");
         for (Map.Entry<ResourceType, Prioritization> entry : prioritizations.entrySet()) {
             builder.append(entry.getKey().name).append(':').append(entry.getValue());
         }
@@ -93,16 +106,16 @@ public class PrioritizedCapacitySpec implements Jsonable {
         }
     };
 
-    public static PrioritizedCapacitySpec createIncapableCapacity(GameSpec spec) {
+    public static PrioritizedCapacitySpec createIncapableCapacity(Collection<ResourceType> allResourceTypes) {
         PrioritizedCapacitySpec prioritizedCapacitySpec = new PrioritizedCapacitySpec();
         prioritizedCapacitySpec.totalWeight = Integer.MAX_VALUE;
-        for (ResourceType resourceType : spec.resourceTypes) {
+        for (ResourceType resourceType : allResourceTypes) {
             prioritizedCapacitySpec.prioritizations.put(resourceType, Prioritization.createNotAccepted());
         }
         return prioritizedCapacitySpec;
     }
-    public static PrioritizedCapacitySpec createCapacitySpec(GameSpec spec, HashMap<ResourceType, Integer> carryLimits, boolean makeDesired) {
-        PrioritizedCapacitySpec prioritizedCapacitySpec = createIncapableCapacity(spec);
+    public static PrioritizedCapacitySpec createCapacitySpec(Collection<ResourceType> allResourceTypes, Map<ResourceType, Integer> carryLimits, boolean makeDesired) {
+        PrioritizedCapacitySpec prioritizedCapacitySpec = createIncapableCapacity(allResourceTypes);
         for (Map.Entry<ResourceType, Integer> entry : carryLimits.entrySet()) {
             Prioritization prioritization = new Prioritization();
             prioritization.desiredMaximum = prioritization.maximumAmount = entry.getValue();

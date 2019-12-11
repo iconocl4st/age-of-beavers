@@ -1,7 +1,7 @@
 package common.algo;
 
 import common.state.spec.GameSpec;
-import common.state.sst.GameState;
+import common.state.sst.OccupancyView;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -11,7 +11,7 @@ import java.util.Random;
 
 public class ConnectedSet {
 
-    public static ArrayList<Point> getConnectedSet(Point start, GameState.OccupancyView occupancy, int maxSize) {
+    public static ArrayList<Point> getConnectedSet(Point start, OccupancyView occupancy, int maxSize) {
         ArrayList<Point> ret = new ArrayList<>();
         HashSet<Point> visited = new HashSet<>();
         LinkedList<Point> horizon = new LinkedList<>();
@@ -36,7 +36,7 @@ public class ConnectedSet {
         return ret;
     }
 
-    public static Point findNearestEmptyTile(GameSpec spec, Point location, GameState.OccupancyView view) {
+    public static Point findNearestEmptyTile(GameSpec spec, Point location, OccupancyView view) {
         for (int r = 0; r < Math.max(spec.width, spec.height); r++) {
             for (int i = -r; i <= r; i++) {
                 if (!view.isOccupied(location.x + r, location.y + i))
@@ -52,7 +52,7 @@ public class ConnectedSet {
         return null;
     }
 
-    public static Point getRandomConnectedPoint(Random random, Point start, GameState.OccupancyView occupancy, int maxSize) {
+    public static Point getRandomConnectedPoint(Random random, Point start, OccupancyView occupancy, int maxSize) {
         ArrayList<Point> connectedSet = getConnectedSet(start, occupancy, maxSize);
         if (connectedSet.isEmpty()) return null;
         return connectedSet.get(random.nextInt(connectedSet.size()));

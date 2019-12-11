@@ -1,9 +1,8 @@
 package common.state.sst.manager;
 
 import common.state.EntityId;
-import common.util.json.*;
+import common.util.json.DataSerializer;
 
-import java.io.Serializable;
 import java.util.*;
 
 public class ReversableManagerImpl<T, K> extends ManagerImpl<T> {
@@ -65,7 +64,7 @@ public class ReversableManagerImpl<T, K> extends ManagerImpl<T> {
         }
     }
 
-    public interface Getter<T, K> extends Serializable {
+    public interface Getter<T, K> {
         K get(T t);
     }
 }

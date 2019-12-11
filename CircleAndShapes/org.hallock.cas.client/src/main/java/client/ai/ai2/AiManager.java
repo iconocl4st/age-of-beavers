@@ -33,6 +33,9 @@ public class AiManager {
     }
 
     public void set(EntityReader reader, AiTask task) {
+        if (reader == null) {
+            throw new NullPointerException();
+        }
         AiContext aiContext = createAiContext();
         aiContext.controlling = reader;
         AiStack stack = new AiStack(this);
@@ -42,7 +45,9 @@ public class AiManager {
         if (task == null) {
             return;
         }
-        stacks.put(reader.entityId, stack);
+        synchronized (stacksSync) {
+            stacks.put(reader.entityId, stack);
+        }
         stack.push(aiContext, task);
     }
 

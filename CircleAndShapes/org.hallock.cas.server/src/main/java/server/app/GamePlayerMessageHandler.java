@@ -1,15 +1,21 @@
 package server.app;
 
+import common.msg.ConnectionWriter;
 import common.msg.Message;
 import common.msg.NoExceptionsConnectionWriter;
+import server.state.ServerGameState;
 import server.state.ServerStateManipulator;
 
 public class GamePlayerMessageHandler implements NoExceptionsConnectionWriter {
 
+    private final ServerGameState serverGameState;
     private final ServerStateManipulator stateManipulator;
+    private final ConnectionWriter writer;
 
-    public GamePlayerMessageHandler(ServerStateManipulator manipulator) {
+    public GamePlayerMessageHandler(ConnectionWriter writer, ServerGameState serverGameState, ServerStateManipulator manipulator) {
+        this.serverGameState = serverGameState;
         this.stateManipulator = manipulator;
+        this.writer = writer;
     }
 
     // TODO: These should be handled in the game tick cycle, like ai actions...
@@ -73,6 +79,14 @@ public class GamePlayerMessageHandler implements NoExceptionsConnectionWriter {
             case SET_DESIRED_CAPACITY: {
                 Message.SetDesiredCapacity msg = (Message.SetDesiredCapacity) message;
                 stateManipulator.setDesiredCapacity(msg.entity, msg.resourceType, msg.priority, msg.desiredMinimum, msg.desiredMaximum);
+            }
+            break;
+            case REQUEST_LISTEN_FOR_RANGE: {
+                Message.ListenForTargetInRange msg = (Message.ListenForTargetInRange) message;
+                if (msg.listen)
+                    serverGameState.rangeEventManager.listenForRangeEventsFrom(writer, msg.targetWithinRange.entity, msg.targetWithinRange.target, msg.targetWithinRange.range);
+                else
+                    serverGameState.rangeEventManager.stopListeningToRangeEvents(writer, msg.targetWithinRange.entity);
             }
             break;
             default:

@@ -80,9 +80,7 @@ public class HueristicPaintMarkedTiles {
     public static void main(String[] args) {
         // todo: move to tests
         int size = 3;
-        BitArray ba = new BitArray(size, size, 1, 1);
-        BitArray.BitArrayView view = new BitArray.BitArrayView(ba, new int[]{0, 0});
-        Marked marked = Marked.createMarked(view);
+        BitArray view = new BitArray(size, size);
         RectangleReceiver painter = new RectangleReceiver() {
             @Override
             public void markedRectangle(int xb, int yb, int xe, int ye) {
@@ -100,7 +98,7 @@ public class HueristicPaintMarkedTiles {
             }
             System.out.println();
         }
-        enumerateRectangles(marked, painter);
+        enumerateRectangles(view, painter);
         System.out.println("-------------------------------");
 
         view.set(0, 0, true);
@@ -119,7 +117,7 @@ public class HueristicPaintMarkedTiles {
             }
             System.out.println();
         }
-        enumerateRectangles(marked, painter);
+        enumerateRectangles(view, painter);
         System.out.println("-------------------------------");
 
         view.set(0, 0, false);
@@ -138,7 +136,7 @@ public class HueristicPaintMarkedTiles {
             }
             System.out.println();
         }
-        enumerateRectangles(marked, painter);
+        enumerateRectangles(view, painter);
         System.out.println("-------------------------------");
 
         view.set(0, 0, true);
@@ -157,7 +155,7 @@ public class HueristicPaintMarkedTiles {
             }
             System.out.println();
         }
-        enumerateRectangles(marked, painter);
+        enumerateRectangles(view, painter);
         System.out.println("-------------------------------");
 
         view.set(0, 0, true);
@@ -176,7 +174,7 @@ public class HueristicPaintMarkedTiles {
             }
             System.out.println();
         }
-        enumerateRectangles(marked, painter);
+        enumerateRectangles(view, painter);
         System.out.println("-------------------------------");
 
 
@@ -196,7 +194,7 @@ public class HueristicPaintMarkedTiles {
             }
             System.out.println();
         }
-        enumerateRectangles(marked, painter);
+        enumerateRectangles(view, painter);
         System.out.println("-------------------------------");
 
 
@@ -216,7 +214,7 @@ public class HueristicPaintMarkedTiles {
             }
             System.out.println();
         }
-        enumerateRectangles(marked, painter);
+        enumerateRectangles(view, painter);
         System.out.println("-------------------------------");
     }
 }

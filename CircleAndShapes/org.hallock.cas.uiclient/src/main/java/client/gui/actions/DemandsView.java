@@ -32,9 +32,9 @@ public class DemandsView extends JPanel {
         subPanel.add(backButton);
         backButton.addActionListener(e -> context.uiManager.unitActions.pop());
 
-        currentSelectors = new ThresholdSelector[gameSpec.resourceTypes.length];
+        currentSelectors = new ThresholdSelector[gameSpec.resourceTypes.size()];
         for (int i = 0; i < currentSelectors.length; i++) {
-            ResourceType resourceType = context.clientGameState.gameState.gameSpec.resourceTypes[i];
+            ResourceType resourceType = context.clientGameState.gameState.gameSpec.resourceTypes.get(i);
             currentSelectors[i] = createThresholdSelector(resourceType);
             subPanel.add(currentSelectors[i]);
         }

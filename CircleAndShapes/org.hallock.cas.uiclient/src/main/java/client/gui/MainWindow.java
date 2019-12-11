@@ -3,9 +3,6 @@ package client.gui;
 import javax.swing.*;
 import java.awt.*;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 public class MainWindow {
     private final UiManager uiManager;
 

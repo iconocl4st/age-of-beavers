@@ -2,19 +2,18 @@ package app.algo;
 
 import common.DebugGraphics;
 import common.state.EntityId;
+import common.state.spec.ResourceType;
 import common.util.DPoint;
 
-import java.awt.*;
 import java.util.*;
-import java.util.List;
 
 public class KMeans {
     // TODO: cache, maybe?
     private final HashMap<EntityId, Assignment> resources = new HashMap<>();
-    private final HashMap<EntityId, Point> storageLocations = new HashMap<>();
+    private final HashMap<EntityId, Storage> storageLocations = new HashMap<>();
 
-    private final int[] xSums;
-    private final int[] ySums;
+    private final double[] xSums;
+    private final double[] ySums;
     private final DPoint[] centers;
     private final int[] sizes;
     private final int k;
@@ -24,19 +23,19 @@ public class KMeans {
 
     public KMeans(Random random, int k) {
         this.k = k;
-        xSums = new int[k];
-        ySums = new int[k];
+        xSums = new double[k];
+        ySums = new double[k];
         centers = new DPoint[k];
         sizes = new int[k];
         this.random = random;
     }
 
-    public void setStorageLocation(EntityId entityId, Point location) {
-        storageLocations.put(entityId, location);
+    public void setStorageLocation(EntityId entityId, DPoint location, Set<ResourceType> resourcesAccepting) {
+        storageLocations.put(entityId, new Storage(location, resourcesAccepting));
     }
 
-    public void setResourceLocation(EntityId entityId, Point location) {
-        resources.put(entityId, new Assignment(location));
+    public void setResourceLocation(EntityId entityId, DPoint location, ResourceType resourceType) {
+        resources.put(entityId, new Assignment(location, resourceType));
     }
 
     private void initializeZeroSets() {
@@ -45,8 +44,7 @@ public class KMeans {
             if (sizes[i] != 0) {
                 continue;
             }
-            Point p = ouch.get(random.nextInt(ouch.size())).location;
-            centers[i] = new DPoint(p.x, p.y);
+            centers[i] = ouch.get(random.nextInt(ouch.size())).location;
         }
 
         initialized = true;
@@ -74,11 +72,10 @@ public class KMeans {
             sizes[i] = 0;
         }
         for (Assignment assignment : resources.values()) {
-            if (assignment.center < 0) {
+            if (assignment.center < 0)
                 continue;
-            }
             ++sizes[assignment.center];
-            Point p = assignment.location;
+            DPoint p = assignment.location;
             xSums[assignment.center] += p.x;
             ySums[assignment.center] += p.y;
         }
@@ -107,6 +104,7 @@ public class KMeans {
             int minIdx = -1;
             double minDist = Double.MAX_VALUE;
             for (int j = 0; j < k; j++) {
+                // what if the storage cart can't accept anymore?
                 DPoint center = centers[j];
                 double dx = center.x - assignment.location.x;
                 double dy = center.y - assignment.location.y;
@@ -117,9 +115,12 @@ public class KMeans {
                 }
             }
             EntityId nearestStorage = null;
-            for (Map.Entry<EntityId, Point> entry : storageLocations.entrySet()) {
-                double dx = entry.getValue().x - assignment.location.x;
-                double dy = entry.getValue().y - assignment.location.y;
+            for (Map.Entry<EntityId, Storage> entry : storageLocations.entrySet()) {
+                Storage storage = entry.getValue();
+                if (!storage.resources.contains(assignment.resourceType))
+                    continue;
+                double dx = storage.location.x - assignment.location.x;
+                double dy = storage.location.y - assignment.location.y;
                 double d = Math.sqrt(dx * dx + dy * dy);
                 if (d < minDist) {
                     minDist = d;
@@ -146,9 +147,9 @@ public class KMeans {
         HashMap<EntityId, Integer> indices = new HashMap<>();
         for (int i = 0; i < k; i++)
             debug.add(new DebugGraphics(centers[i]));
-        for (Map.Entry<EntityId, Point> entry : storageLocations.entrySet()) {
+        for (Map.Entry<EntityId, Storage> entry : storageLocations.entrySet()) {
             indices.put(entry.getKey(), debug.size());
-            debug.add(new DebugGraphics(new DPoint(entry.getValue())));
+            debug.add(new DebugGraphics(entry.getValue().location));
         }
         for (Assignment assignment : resources.values()) {
             debug.get(assignment.center < 0 ? indices.get(assignment.storageLocation) : assignment.center).list.add(assignment.location);
@@ -173,13 +174,25 @@ public class KMeans {
         return centers;
     }
 
+    private static class Storage {
+        DPoint location;
+        Set<ResourceType> resources;
+
+        Storage(DPoint location, Set<ResourceType> resources) {
+            this.location = location;
+            this.resources = resources;
+        }
+    }
+
     private static class Assignment {
-        Point location;
+        ResourceType resourceType;
+        DPoint location;
         int center = -1;
         EntityId storageLocation;
 
-        Assignment(Point location) {
+        Assignment(DPoint location, ResourceType resourceType) {
             this.location = location;
+            this.resourceType = resourceType;
         }
     }
 }

@@ -5,6 +5,7 @@ import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
 import common.state.spec.attack.Weapon;
 import common.state.sst.GameState;
+import common.state.sst.OccupancyView;
 import common.state.sst.manager.RevPair;
 import common.state.sst.sub.ConstructionZone;
 import common.state.sst.sub.GateInfo;
@@ -13,17 +14,17 @@ import common.state.sst.sub.WeaponSet;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
 import common.util.EvolutionSpec;
-import common.util.json.EmptyJsonable;
+import common.util.Util;
 
 import java.awt.*;
 import java.util.*;
 
-public class EntityReader implements LocatedEntitySpec {
-
+public class EntityReader {
     public final GameState state;
     public final EntityId entityId;
 
     public EntityReader(GameState state, EntityId entityId) {
+        if (state == null) throw new IllegalStateException();
         this.state = state;
         this.entityId = entityId;
     }
@@ -45,7 +46,7 @@ public class EntityReader implements LocatedEntitySpec {
     }
 
     public double getCurrentAge() {
-        return state.currentTime - zin(state.ageManager.get(entityId));
+        return state.currentTime - Util.zin(state.ageManager.get(entityId));
     }
 
     public Action getCurrentAction() {
@@ -69,6 +70,21 @@ public class EntityReader implements LocatedEntitySpec {
 //            throw new NullPointerException();
 //        }
         return player;
+    }
+
+    public Map<ResourceType, Integer> getAmountOfResourceAbleToAccept() {
+        HashMap<ResourceType, Integer> acceptedResourceTypes = new HashMap<>();
+        PrioritizedCapacitySpec capacity = getCapacity();
+        Load carrying = getCarrying();
+        if (capacity == null || carrying == null)
+            return acceptedResourceTypes;
+        for (ResourceType resourceType : state.gameSpec.resourceTypes) {
+            int amountPossibleToAccept = capacity.amountPossibleToAccept(carrying, resourceType);
+            if (amountPossibleToAccept == 0)
+                continue;
+            acceptedResourceTypes.put(resourceType, amountPossibleToAccept);
+        }
+        return acceptedResourceTypes;
     }
 
     public ConstructionZone getConstructionZone() {
@@ -120,15 +136,15 @@ public class EntityReader implements LocatedEntitySpec {
     }
 
     public boolean isHidden() {
-        return fin(state.hiddenManager.get(entityId));
+        return Util.fin(state.hiddenManager.get(entityId));
     }
 
     public double getCurrentHealth() {
-        return zin(state.healthManager.get(entityId));
+        return Util.zin(state.healthManager.get(entityId));
     }
 
     public double getBaseHealth() {
-        return zin(state.baseHealthManager.get(entityId));
+        return Util.zin(state.baseHealthManager.get(entityId));
     }
 
     public DPoint getCurrentGatherPoint() {
@@ -136,15 +152,15 @@ public class EntityReader implements LocatedEntitySpec {
     }
 
     public double getCurrentAttackSpeed() {
-        return zin(state.attackSpeedManager.get(entityId));
+        return Util.zin(state.attackSpeedManager.get(entityId));
     }
 
     public double getRotationSpeed() {
-        return zin(state.rotationSpeedManager.get(entityId));
+        return Util.zin(state.rotationSpeedManager.get(entityId));
     }
 
     public double getOrientation() {
-        return zin(state.orientationManager.get(entityId));
+        return Util.zin(state.orientationManager.get(entityId));
     }
 
     public double getMovementSpeed() {
@@ -158,7 +174,7 @@ public class EntityReader implements LocatedEntitySpec {
     }
 
     public double getBaseMovementSpeed() {
-        return zin(state.movementSpeedManager.get(entityId));
+        return Util.zin(state.movementSpeedManager.get(entityId));
     }
 
     public boolean noLongerExists() { return state.entityManager.get(entityId) == null; }
@@ -167,17 +183,9 @@ public class EntityReader implements LocatedEntitySpec {
 
     public boolean canAccept(ResourceType resource) {
         // null pointer?
-        return getCapacity().amountPossibleToAccept(getCarrying(), resource) > 0;
-    }
-
-    private static double zin(Double d) {
-        if (d == null) return 0.0;
-        return d;
-    }
-
-    private static boolean fin(Boolean b) {
-        if (b == null) return false;
-        return b;
+        PrioritizedCapacitySpec capacity = getCapacity();
+        if (capacity == null) return false;
+        return capacity.amountPossibleToAccept(getCarrying(), resource) > 0;
     }
 
     public boolean isOwnedBy(Player somePlayer) {
@@ -192,31 +200,33 @@ public class EntityReader implements LocatedEntitySpec {
 
     public Map<ResourceType, Integer> getMissingConstructionResources() {
         ConstructionZone constructionZone = getConstructionZone();
-        Load load = getCarrying();
         if (constructionZone == null)
             return Collections.emptyMap();
 
-        Map<ResourceType, Integer> requiredResources = constructionZone.constructionSpec.resultingStructure.requiredResources;
-        Map<ResourceType, Integer> ret = new HashMap<>();
-        if (load == null) {
-            ret.putAll(requiredResources);
-            return ret;
-        }
-        for (Map.Entry<ResourceType, Integer> entry : requiredResources.entrySet()) {
-            Integer amountRequired = entry.getValue();
-            if (amountRequired == null || entry.getValue() <= 0) {
-                continue;
-            }
-            Integer amountPresent = load.quantities.get(entry.getKey());
-            if (amountPresent == null) {
-                amountPresent = 0;
-            }
-            if (amountPresent >= amountRequired) {
-                continue;
-            }
-            ret.put(entry.getKey(), amountRequired - amountPresent);
-        }
-        return ret;
+        return getAmountOfResourceAbleToAccept();
+//
+//        Load load = getCarrying();
+//        Map<ResourceType, Integer> requiredResources = constructionZone.constructionSpec.resultingStructure.requiredResources;
+//        Map<ResourceType, Integer> ret = new HashMap<>();
+//        if (load == null) {
+//            ret.putAll(requiredResources);
+//            return ret;
+//        }
+//        for (Map.Entry<ResourceType, Integer> entry : requiredResources.entrySet()) {
+//            Integer amountRequired = entry.getValue();
+//            if (amountRequired == null || entry.getValue() <= 0) {
+//                continue;
+//            }
+//            Integer amountPresent = load.quantities.get(entry.getKey());
+//            if (amountPresent == null) {
+//                amountPresent = 0;
+//            }
+//            if (amountPresent >= amountRequired) {
+//                continue;
+//            }
+//            ret.put(entry.getKey(), amountRequired - amountPresent);
+//        }
+//        return ret;
     }
 
     public boolean isCarrying(ResourceType resourceType) {
@@ -231,6 +241,23 @@ public class EntityReader implements LocatedEntitySpec {
             return true;
         PrioritizedCapacitySpec capacity = getCapacity();
         return capacity.getPrioritization(resourceType).desiredAmount >= integer;
+    }
+
+    public Map<ResourceType, Integer> getExtraResources() {
+        Map<ResourceType, Integer> ret = new HashMap<>();
+        PrioritizedCapacitySpec capacity = getCapacity();
+        Load load = getCarrying();
+        if (load == null)  return Collections.emptyMap();
+        for (Map.Entry<ResourceType, Integer> entry : load.quantities.entrySet()) {
+            Integer integer = entry.getValue();
+            if (integer == null || integer == 0 || integer <= 0)
+                continue;
+            int amount = integer - capacity.getPrioritization(entry.getKey()).desiredAmount;
+            if (amount <= 0)
+                continue;
+            ret.put(entry.getKey(), amount);
+        }
+        return ret;
     }
 
     public boolean isNotCarryingAnything() {
@@ -278,18 +305,19 @@ public class EntityReader implements LocatedEntitySpec {
         return null;
     }
 
-    @Override
-    public EntityId getEntityId() {
-        return entityId;
-    }
-
     public DPoint getLocation() {
         return state.locationManager.getLocation(entityId);
     }
 
-    @Override
+    public DPoint getLocation(double currentGameTime) {
+        return state.locationManager.getLocation(entityId, currentGameTime);
+    }
+
+    // TODO: use instead of getType all over the place...
     public Dimension getSize() {
-        return getType().size;
+        EntitySpec type = getType();
+        if (type == null) return null;
+        return type.size;
     }
 
     public Double getCurrentBuildProgress() {
@@ -303,15 +331,19 @@ public class EntityReader implements LocatedEntitySpec {
     }
 
     public double getDepositSpeed() {
-        return zin(state.depositSpeedManager.get(entityId));
+        return Util.zin(state.depositSpeedManager.get(entityId));
     }
 
     public double getCollectSpeed() {
-        return zin(state.collectSpeedManager.get(entityId));
+        return Util.zin(state.collectSpeedManager.get(entityId));
     }
 
-    public double getBaseLineOfSight() {
-        return zin(state.lineOfSightManager.get(entityId));
+//    public double getBaseLineOfSight() {
+//        return zin(state.lineOfSightManager.get(entityId));
+//    }
+
+    public double getLineOfSight() {
+        return Util.zin(state.lineOfSightManager.get(entityId));
     }
 
     public EvolutionSpec getEvolutionWeights() {
@@ -320,4 +352,16 @@ public class EntityReader implements LocatedEntitySpec {
 
 
     public static final Comparator<EntityReader> COMPARATOR = Comparator.comparingInt(entity -> entity.entityId.id);
+
+    public String getGraphics() {
+        return state.graphicsManager.get(entityId);
+    }
+
+    public double getGardenSpeed() {
+        return Util.zin(state.gardenSpeed.get(entityId));
+    }
+
+    public double getPlantSpeed() {
+        return Util.zin(state.burySpeed.get(entityId));
+    }
 }

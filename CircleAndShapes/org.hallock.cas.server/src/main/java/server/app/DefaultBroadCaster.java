@@ -4,7 +4,6 @@ import common.msg.ConnectionWriter;
 import common.msg.Message;
 import common.state.Player;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 public class DefaultBroadCaster implements BroadCaster {

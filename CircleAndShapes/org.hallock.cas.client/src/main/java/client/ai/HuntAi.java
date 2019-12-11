@@ -159,7 +159,7 @@
 //            }
 //
 //            setCurrentPrey(results.getEntity(context.gameState));
-//            ar.setUnitActionToMove(controlling, results.path);
+//            ar.setUnitActionToMove(controlling, results.points);
 //            return AiAttemptResult.RequestedAction;
 //        }
 //    }

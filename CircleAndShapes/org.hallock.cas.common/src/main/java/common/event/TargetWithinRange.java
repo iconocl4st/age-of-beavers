@@ -1,17 +1,33 @@
 package common.event;
 
 import common.state.EntityId;
-import common.state.EntityReader;
+import common.util.json.*;
 
-public class TargetWithinRange extends AiEvent {
-    public final EntityReader listener;
-    public final EntityReader target;
+import java.io.IOException;
+
+public class TargetWithinRange extends NetworkAiEvent {
+    public final EntityId listener;
+    public final EntityId target;
     public final double range;
 
-    public TargetWithinRange(EntityReader listener, EntityReader target, double range) {
-        super(listener.entityId, AiEventType.TargetWithinRange);
+    public TargetWithinRange(EntityId listener, EntityId target, double range) {
+        super(listener, AiEventType.TargetWithinRange);
         this.listener = listener;
         this.target = target;
         this.range = range;
+    }
+
+    public static TargetWithinRange finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec, EntityId entityId) throws IOException {
+        return new TargetWithinRange(
+            entityId,
+            reader.read("target", EntityId.Serializer, spec),
+            reader.readDouble("range")
+        );
+    }
+
+    @Override
+    void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+        writer.write("target", target, EntityId.Serializer, options);
+        writer.write("range", range);
     }
 }

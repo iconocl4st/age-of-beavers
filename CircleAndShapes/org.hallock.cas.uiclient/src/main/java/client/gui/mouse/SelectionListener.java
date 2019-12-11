@@ -96,16 +96,11 @@ public class SelectionListener implements MouseListener, MouseMotionListener {
                 zoom.mapScreenToGameX(mouseEvent.getX()),
                 zoom.mapScreenToGameY(mouseEvent.getY())
         );
-        Set<EntityId> displayables = context.clientGameState.gameState.locationManager.getEntities(
+        Set<EntityReader> entities = context.clientGameState.gameState.locationManager.getEntities(
                 destination,
-                entity -> !context.clientGameState.gameState.hiddenManager.get(entity)
+                entity -> !entity.isHidden()
         );
-        Set<EntityReader> entities = new HashSet<>();
-        for (EntityId entityId : displayables) {
-            entities.add(new EntityReader(context.clientGameState.gameState, entityId));
-        }
-
-        if (displayables.isEmpty()) {
+        if (entities.isEmpty()) {
             context.selectionManager.select(entities);
             return;
         }
@@ -115,11 +110,11 @@ public class SelectionListener implements MouseListener, MouseMotionListener {
             return;
         }
 
-        if (displayables.size() != 1) {
+        if (entities.size() != 1) {
             return;
         }
 
-        EntitySpec type = context.clientGameState.gameState.typeManager.get(displayables.iterator().next());
+        EntitySpec type = entities.iterator().next().getType();
 
         double x1 = zoom.mapScreenToGameX(0);
         double x2 = zoom.mapScreenToGameX(panel.getWidth());

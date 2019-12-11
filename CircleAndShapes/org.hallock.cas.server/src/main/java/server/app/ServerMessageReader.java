@@ -17,7 +17,7 @@ public class ServerMessageReader {
         reader.readBeginDocument();
         Message.MessageType msgType = reader.b(Message.MessageType.values(), reader.readInt32("type"));
         ReadOptions readOptions = new ReadOptions();
-        readOptions.spec = context.getCurrentGameSpec();
+        readOptions.state = context.getCurrentGameState();
         Message msg = null;
         switch (msgType) {
             case QUIT_CONNECTION: msg = Message.Quit.finishParsing(reader, readOptions); break;
@@ -38,6 +38,7 @@ public class ServerMessageReader {
             case SET_EVOLUTION_SELECTION: msg = Message.SetEvolutionSelection.finishParsing(reader, readOptions); break;
             case SET_DESIRED_CAPACITY: msg = Message.SetDesiredCapacity.finishParsing(reader, readOptions); break;
             case SPECTATE: msg = Message.Spectate.finishParsing(reader, readOptions); break;
+            case REQUEST_LISTEN_FOR_RANGE: msg = Message.ListenForTargetInRange.finishParsing(reader, readOptions); break;
             default:
                 System.out.println("Server reader: Ignoring unknown message type: " + msgType);
                 reader.finishCurrentObject();

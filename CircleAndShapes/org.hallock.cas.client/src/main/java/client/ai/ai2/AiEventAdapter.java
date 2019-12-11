@@ -31,7 +31,7 @@ public abstract class AiEventAdapter {
                 return targetKilled(aiContext, new EntityReader(aiContext.gameState, killed.entity), EntityId.getReaders(aiContext.gameState, killed.droppedUnits));
             case TargetWithinRange:
                 TargetWithinRange rangeEvent = (TargetWithinRange) event;
-                return targetWithinRange(aiContext, rangeEvent.target);
+                return targetWithinRange(aiContext, new EntityReader(aiContext.clientGameState.gameState, rangeEvent.target));
             case Initialize:
                 InitializeAi initialize = (InitializeAi) event;
                 return initialize(aiContext);
@@ -40,15 +40,26 @@ public abstract class AiEventAdapter {
                 return unitChangedDirection(
                         aiContext,
                         new EntityReader(aiContext.gameState, directionChange.entity),
-                        directionChange.currentLocation,
-                        directionChange.endLocation,
-                        directionChange.speed
+                        directionChange.msg.beginLocation,
+                        directionChange.msg.endLocation,
+                        directionChange.msg.speed
                 );
+            case GrowthChanged:
+                GrowthStageChanged growthState = (GrowthStageChanged) event;
+                return growthChanged(aiContext, null);
+            case Bell:
+                AlarmEvent alarmEvent = (AlarmEvent) event;
+                return rangAlarm(aiContext, alarmEvent);
+            case ProductionComplete:
+                ProductionComplete productionComplete = (ProductionComplete) event;
+                return productionComplete(aiContext, new EntityReader(aiContext.clientGameState.gameState, productionComplete.created));
             default:
-                throw new RuntimeException("Unhandled event type");
+                throw new RuntimeException("Unhandled event type: " + event.type);
         }
     }
 
+    protected AiAttemptResult growthChanged(AiContext aiContext, EntityReader plant) { return AiAttemptResult.NothingDone; }
+    protected AiAttemptResult productionComplete(AiContext aiContext, EntityReader createdEntity) { return AiAttemptResult.NothingDone; }
     protected AiAttemptResult demandsChanged(AiContext aiContext) { return AiAttemptResult.NothingDone; }
     protected AiAttemptResult resourcesChanged(AiContext aiContext) { return AiAttemptResult.NothingDone; }
     protected AiAttemptResult garrisonsChanged(AiContext aiContext) { return AiAttemptResult.NothingDone; }
@@ -57,4 +68,5 @@ public abstract class AiEventAdapter {
     protected AiAttemptResult targetKilled(AiContext context, EntityReader target, Set<EntityReader> readers) {return AiAttemptResult.NothingDone; }
     protected AiAttemptResult targetWithinRange(AiContext context, EntityReader target) {return AiAttemptResult.NothingDone; }
     protected AiAttemptResult unitChangedDirection(AiContext aiContext, EntityReader entity, DPoint currentLocation, DPoint endLocation, double speed) { return AiAttemptResult.NothingDone; }
+    protected AiAttemptResult rangAlarm(AiContext aiContext, AlarmEvent alarmEvent) { return AiAttemptResult.NothingDone; }
 }

@@ -1,11 +1,14 @@
 package common.util;
 
-import common.state.spec.EntitySpec;
-import common.state.spec.ResourceType;
+import common.state.Occupancy;
+import common.state.sst.OccupancyView;
 
+import java.awt.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Random;
 
 public class Util {
     private static String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUIVWXYZ0123456789";
@@ -34,6 +37,31 @@ public class Util {
         return false;
     }
 
+
+    public static double projToInterval(double x, double xmin, double xmax) {
+        return Math.min(xmax, Math.max(xmin, x));
+    }
+
+    public static double minimumDistanceToSquare(double x, double y, double xmin, double xmax, double ymin, double ymax) {
+        double dx = x - projToInterval(x, xmin, xmax);
+        double dy = y - projToInterval(y, ymin, ymax);
+        return Math.sqrt(dx*dx + dy*dy);
+    }
+
+    public static Point getSpaceForBuilding(Point startingLocation, Dimension size, OccupancyView view, int maxWidth, int buffer) {
+        return getSpaceForBuilding(new SpiralIterator(startingLocation), size, view, maxWidth, buffer);
+    }
+    public static Point getSpaceForBuilding(SpiralIterator spiralIterator, Dimension size, OccupancyView view, int maxWidth, int buffer) {
+        Dimension largerSize = new Dimension(size.width + 2 * buffer, size.height + 2 * buffer);
+        while (spiralIterator.getRadius() < maxWidth) {
+            if (!Occupancy.isOccupied(view, spiralIterator.x, spiralIterator.y, largerSize)) {
+                return new Point(spiralIterator.x + buffer, spiralIterator.y + buffer);
+            }
+            spiralIterator.next();
+        }
+        return null;
+    }
+
     public static class CyclingIterator<T> implements Iterator<T> {
         T[] ts;
         int index;
@@ -60,6 +88,64 @@ public class Util {
         }
     }
 
+
+    private static final int[][] DIRECTIONS = new int[][] {
+            {1, 0},
+            {0, 1},
+            {-1, 0},
+            {0, -1}
+    };
+    public static class SpiralIterator {
+        public int x;
+        public int y;
+
+        private int cDirection;
+        private int progress = 0;
+        private int currentLength = 1;
+
+
+        public SpiralIterator(Point start) {
+            this.x = start.x;
+            this.y = start.y;
+        }
+
+        public void next() {
+            x += DIRECTIONS[cDirection][0];
+            y += DIRECTIONS[cDirection][1];
+
+            if (++progress < currentLength)
+                return;
+            progress = 0;
+            if (++cDirection >= DIRECTIONS.length)
+                cDirection = 0;
+            if (cDirection == 0 || cDirection == 2)
+                ++currentLength;
+        }
+
+        public int getRadius() {
+            return currentLength;
+        }
+    }
+
+    private static void print(boolean[][] bss) {
+        for (boolean[] bs : bss) {
+            for (boolean b : bs)
+                System.out.print(b ? "1" : "0");
+            System.out.println();
+        }
+        System.out.println("========================================");
+    }
+    public static void main(String[] args) {
+        SpiralIterator spiralIterator = new SpiralIterator(new Point(5, 5));
+
+        boolean[][] bss = new boolean[11][11];
+        print(bss);
+        while (spiralIterator.x < 11 && spiralIterator.x >= 0 && spiralIterator.y < 11 && spiralIterator.y >= 0) {
+            bss[spiralIterator.x][spiralIterator.y] = true;
+            print(bss);
+            spiralIterator.next();
+        }
+    }
 
     public static class IndexIterator implements Iterator<int[]> {
         private int[] maxs;
@@ -106,5 +192,20 @@ public class Util {
         public void remove() {
             throw new RuntimeException("Since when was this a method I had to implement?");
         }
+    }
+
+    public static double zin(Integer i) {
+        if (i == null) return 0;
+        return i;
+    }
+
+    public static double zin(Double d) {
+        if (d == null) return 0.0;
+        return d;
+    }
+
+    public static boolean fin(Boolean b) {
+        if (b == null) return false;
+        return b;
     }
 }

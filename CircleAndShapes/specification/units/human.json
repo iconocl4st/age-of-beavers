@@ -1,0 +1,27 @@
+{
+  "parent": "unit",
+  "image": "unit/human.png",
+  "health-points": 40,
+  "attack-range-inner": 3,
+  "collect-speed": 1,
+  "build-speed": 0.05,
+  "attack-speed": 1,
+  "can-craft": {
+    "children": [],
+    "type": "branch"
+  },
+  "can-create": {
+    "children": [],
+    "type": "branch"
+  },
+  "move-speed": 1,
+  "deposit-speed": 3,
+  "size": {
+    "width": 0,
+    "height": 0
+  },
+  "line-of-sight": 5,
+  "name": "human",
+  "attack-range-outer": 4,
+  "carry-capacity": {}
+}

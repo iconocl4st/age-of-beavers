@@ -1,14 +1,16 @@
 package client.gui.selected;
 
 import client.app.UiClientContext;
-import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.spec.EntitySpec;
 import common.util.Util;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
@@ -97,11 +99,12 @@ public class MultiSelect extends JPanel {
                 EntityReader d = iterator.next();
                 int[] idx = idxIterator.next();
 
-                EntitySpec type = d.getType();
-                if (type == null) continue;
+//                EntitySpec type = d.getType();
+//                if (type == null) continue;
+                String image = d.getGraphics();
 
                 DrawnUnit drawn = new DrawnUnit();
-                drawn.image = context.imageCache.get(type.image);
+                drawn.image = context.imageCache.get(image);
                 drawn.rectangle = new Rectangle(
                         idx[1] * slotWidth,
                         idx[0] * slotHeight,

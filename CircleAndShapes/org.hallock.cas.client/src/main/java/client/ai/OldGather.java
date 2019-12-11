@@ -73,12 +73,12 @@
 //                    return AiAttemptResult.RequestedAction;
 //                }
 //
-//                AStar.PathSearch results = GridLocationQuerier.findPath(context.gameState, controlling.entityId, currentTarget.entityId, context.currentPlayer);
+//                AStar.PathSearch results = GridLocationQuerier.findPathImpl(context.gameState, controlling.entityId, currentTarget.entityId, context.currentPlayer);
 //                if (results == null) {
 //                    currentTarget = null;
 //                    continue;
 //                }
-//                ar.setUnitActionToMove(controlling, results.path);
+//                ar.setUnitActionToMove(controlling, results.points);
 //                return AiAttemptResult.RequestedAction;
 //            }
 //

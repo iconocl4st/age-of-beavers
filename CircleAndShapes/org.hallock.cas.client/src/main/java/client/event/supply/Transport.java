@@ -1,6 +1,5 @@
 package client.event.supply;
 
-import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.spec.ResourceType;
 

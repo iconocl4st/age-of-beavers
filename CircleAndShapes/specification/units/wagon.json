@@ -1,0 +1,23 @@
+{
+  "parent": "unit",
+  "image": "unit/wagon.png",
+  "health-points": 40,
+  "deposit-speed": 50,
+  "size": {
+    "width": 0,
+    "height": 0
+  },
+  "line-of-sight": 3,
+  "collect-speed": 50,
+  "name": "wagon",
+  "can-craft": {
+    "children": [],
+    "type": "branch"
+  },
+  "carry-capacity": {},
+  "can-create": {
+    "children": [],
+    "type": "branch"
+  },
+  "move-speed": 0.5
+}
