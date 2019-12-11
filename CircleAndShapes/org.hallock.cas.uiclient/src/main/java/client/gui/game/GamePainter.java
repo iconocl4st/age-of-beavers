@@ -545,7 +545,7 @@ public class GamePainter {
                 location.x,
                 location.y,
                 type.size.width,
-                type.size.width,
+                type.size.height,
                 selected,
                 zoom,
                 player.equals(Player.GAIA) ? null : player

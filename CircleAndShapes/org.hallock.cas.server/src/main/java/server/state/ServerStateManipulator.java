@@ -186,7 +186,7 @@ public class ServerStateManipulator {
             return;
 
         if (spec.containsClass("constructed")) {
-            spec = spec.createConstructionSpec(EntitySpec.getCarryCapacity(game.serverState.state.gameSpec, null));
+            spec = spec.createConstructionSpec(EntitySpec.getCarryCapacity(spec.carryCapacity.getMaximumAmounts()));
         }
 
         EntityId constructionId = game.idGenerator.generateId();
@@ -534,19 +534,19 @@ public class ServerStateManipulator {
         state.locationManager.setLocation(MovableEntity.createStationary(new EntityReader(state, id), location));
         state.playerManager.set(id, spec.containsClass("owned") ? player : Player.GAIA);
         state.ageManager.set(id, state.currentTime);
-        if (eSpec.initialBaseHealth != 0.0) state.healthManager.set(id, eSpec.initialBaseHealth);
-        if (eSpec.initialBaseHealth != 0.0) state.baseHealthManager.set(id, eSpec.initialBaseHealth);
-        if (eSpec.initialMovementSpeed != 0.0) state.movementSpeedManager.set(id, eSpec.initialMovementSpeed);
-        if (eSpec.initialRotationSpeed != 0.0) state.rotationSpeedManager.set(id, eSpec.initialRotationSpeed);
+        if (eSpec.initialBaseHealth != null && eSpec.initialBaseHealth != 0.0) state.healthManager.set(id, eSpec.initialBaseHealth);
+        if (eSpec.initialBaseHealth != null && eSpec.initialBaseHealth != 0.0) state.baseHealthManager.set(id, eSpec.initialBaseHealth);
+        if (eSpec.initialMovementSpeed != null && eSpec.initialMovementSpeed != 0.0) state.movementSpeedManager.set(id, eSpec.initialMovementSpeed);
+        if (eSpec.initialRotationSpeed != null && eSpec.initialRotationSpeed != 0.0) state.rotationSpeedManager.set(id, eSpec.initialRotationSpeed);
         if (eSpec.carryCapacity != null) state.capacityManager.set(id, eSpec.carryCapacity);
         else state.capacityManager.set(id, new PrioritizedCapacitySpec(spec.carryCapacity));
-        if (eSpec.initialAttackSpeed != 0.0) state.attackSpeedManager.set(id, eSpec.initialAttackSpeed);
-        if (eSpec.initialBuildSpeed != 0.0) state.buildSpeedManager.set(id, eSpec.initialBuildSpeed);
-        if (eSpec.initialDepositSpeed != 0.0) state.depositSpeedManager.set(id, eSpec.initialDepositSpeed);
-        if (eSpec.initialCollectSpeed != 0.0) state.collectSpeedManager.set(id, eSpec.initialCollectSpeed);
-        if (eSpec.initialLineOfSight != 0.0) state.lineOfSightManager.set(id, eSpec.initialLineOfSight);
-        state.orientationManager.set(id, 0.0); // might should be passed in
-        state.graphicsManager.set(id, spec.graphicsImage);
+        if (eSpec.initialAttackSpeed != null && eSpec.initialAttackSpeed != 0.0) state.attackSpeedManager.set(id, eSpec.initialAttackSpeed);
+        if (eSpec.initialBuildSpeed != null && eSpec.initialBuildSpeed != 0.0) state.buildSpeedManager.set(id, eSpec.initialBuildSpeed);
+        if (eSpec.initialDepositSpeed != null && eSpec.initialDepositSpeed != 0.0) state.depositSpeedManager.set(id, eSpec.initialDepositSpeed);
+        if (eSpec.initialCollectSpeed != null && eSpec.initialCollectSpeed != 0.0) state.collectSpeedManager.set(id, eSpec.initialCollectSpeed);
+        if (eSpec.initialLineOfSight != null && eSpec.initialLineOfSight != 0.0) state.lineOfSightManager.set(id, eSpec.initialLineOfSight);
+        state.orientationManager.set(id, 0.0); // should be passed in
+//        state.graphicsManager.set(id, spec.graphicsImage);
 
         if (spec.name.equals("human")) {
             WeaponSet s = new WeaponSet();
@@ -556,9 +556,7 @@ public class ServerStateManipulator {
         }
 
         Load load = new Load();
-        for (CarrySpec cSpec : spec.carrying) {
-            load.setQuantity(cSpec.type, cSpec.startingQuantity);
-        }
+        load.quantities.putAll(spec.carrying);
         state.carryingManager.set(id, load);
 
         if (spec.containsClass("construction-zone")) {
@@ -575,7 +573,7 @@ public class ServerStateManipulator {
         if (spec.containsClass("player-occupies")) {
             state.gateStateManager.set(id, new GateInfo(location.toPoint(), GateInfo.GateState.UnlockedForPlayerOnly));
         }
-        game.serverState.state.actionManager.set(id, new Action.Idle());
+//        game.serverState.state.actionManager.set(id, new Action.Idle());
         broadCaster.broadCast(createCreateUnitMessage(id));
         broadCaster.broadCast(new Message.UnitCreated(id));
 

@@ -11,6 +11,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
 import java.util.*;
 import java.util.List;
 
@@ -36,11 +37,37 @@ class Editors {
             case ResourceReference: return createResourceReferenceSelector(c, (Creators.ResourceCreatorReference) creator, Collections.emptySet());
             case CraftingCreator: return createCraftingEditor(c, (Creators.CraftingCreator) creator);
             case Strings: return createNullable(allowNulls, (Interfaces.ValueCreator<?>) creator, createStringSelector(((Creators.StringsCreator<?>) creator).stringCreator));
+            case File: return createNullable(allowNulls, (Interfaces.ValueCreator<?>) creator, createPathSelector(c, (Creators.FileCreator) creator));
             case ResourceGenCreator: throw new IllegalStateException();
             case UnitGenCreator: throw new IllegalStateException();
             case WeaponSpec: return createWeaponSpecEditor(c, (Creators.WeaponSpecCreator) creator);
         }
         throw new UnsupportedOperationException(creator.getType().name());
+    }
+
+    private static JPanel createPathSelector(GameSpecEditorContext c, Creators.FileCreator creator) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(1, 0));
+        String p = creator.path == null ? "null" : creator.path.toString();
+        JLabel label = Swing.createLabel(p);
+
+        JFileChooser choose = new JFileChooser(creator.rootPath.toFile());
+        choose.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        choose.setMultiSelectionEnabled(false);
+
+        JButton button = new JButton("Change");
+        button.addActionListener(e -> {
+            if (choose.showOpenDialog(panel) == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = choose.getSelectedFile();
+                label.setText(selectedFile.toString());
+                creator.setPath(selectedFile.toPath());
+            }
+        });
+
+        panel.add(label);
+        panel.add(button);
+
+        return panel;
     }
 
     private static JButton createEditButton(GameSpecEditorContext c, Interfaces.ComponentCreator cr) {
@@ -91,7 +118,7 @@ class Editors {
         c.setEnabled(!creator.isNull());
         jCheckBox.addItemListener(itemEvent -> {
             c.setEnabled(!jCheckBox.isSelected());
-            creator.setNull(!jCheckBox.isSelected());
+            creator.setNull(jCheckBox.isSelected());
         });
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(1, 0));
@@ -187,6 +214,7 @@ class Editors {
             entry.reference.set(reference.reference);
             entry.value.set(0);
             creator.entries.add(entry);
+            creator.isNull = false;
             box.setModel(createResourceCreatorModel(c, creator.getPresent()));
             box.setSelectedItem(Creators.ResourceCreator.NONE);
             addResourceMapEntry(c, creator, entry, box, table);
@@ -708,13 +736,19 @@ class Editors {
         panel.add(Editors.createEntityReferenceSelector(c, entity.parent));
         panel.add(new JPanel());
 
+        panel.add(Swing.createLabel("Image"));
+        panel.add(Editors.createEditor(c, entity.image, true));
+        panel.add(new JPanel());
+
         boolean hasParent = entity.parent.reference != null;
 
         for (Interfaces.ValueCreator<?> e : entity.fields) {
             panel.add(Swing.createLabel(e.getFieldName()));
             panel.add(Editors.createEditor(c, e, true));
             if (hasParent)
-                panel.add(Swing.createLabel(Interfaces.InheritedValue.toString(entity.parent.reference.locateInheretedValue(c, e, new LinkedList<>()))));
+                panel.add(Swing.createLabel(Interfaces.InheritedValue.toString(
+                        entity.parent.reference.locateInheretedValue_JavaIsntSmartEnough(new Interfaces.CreationContext(c.spec), e, new LinkedList<>())
+                )));
             else
                 panel.add(new JPanel());
         }

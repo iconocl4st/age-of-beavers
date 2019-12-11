@@ -4,7 +4,6 @@ import common.AiAttemptResult;
 import common.event.GrowthStageChanged;
 import common.factory.SearchDestination;
 import common.state.EntityReader;
-import common.state.spec.CarrySpec;
 import common.state.spec.ResourceType;
 import common.util.DPoint;
 
@@ -22,7 +21,7 @@ public class FarmAi extends DefaultAiTask {
     });
 
     private final ResourceType seed;
-    private final Set<ResourceType> collecting = new HashSet<>(); // Could be passed in...
+    private final Set<ResourceType> collecting; // Could be passed in...
     private FarmingState currentState;
 
     protected FarmAi(EntityReader entity, Collection<Point> where, ResourceType seed) {
@@ -31,8 +30,7 @@ public class FarmAi extends DefaultAiTask {
             throw new IllegalStateException("Cannot farm " + seed.name);
         this.seed = seed;
         this.toPlant.addAll(where);
-        for (CarrySpec s : seed.growsInto.carrying)
-            collecting.add(s.type);
+        collecting = new HashSet<>(seed.growsInto.carrying.keySet());
     }
 
     protected AiAttemptResult growthChanged(AiContext aiContext, EntityReader plant, int x, int y, GrowthStageChanged.GrowthStage newStage) {

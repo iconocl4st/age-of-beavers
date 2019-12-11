@@ -16,8 +16,7 @@ import common.util.DPoint;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class SingleUnitSelected extends JPanel {
 
@@ -49,7 +48,7 @@ public class SingleUnitSelected extends JPanel {
     private EntityReader entity;
 
 //    private ResourceType[] resourceTypes;
-    private final Map<ResourceType, JLabel> resourceLabels = new HashMap<>();
+    private final Map<ResourceType, JLabel> cachedResourceLabels = new HashMap<>();
 
     private SingleUnitSelected(UiClientContext context) {
         this.context = context;
@@ -63,15 +62,6 @@ public class SingleUnitSelected extends JPanel {
             setLabelValues();
         }
         repaint();
-    }
-
-    public void initalize(GameSpec spec) {
-        resourcesPanel.removeAll();
-        for (ResourceType resourceType : spec.resourceTypes) {
-            JLabel label = new JLabel();
-            resourcesPanel.add(label);
-            resourceLabels.put(resourceType, label);
-        }
     }
 
     private void setLabelsToEmpty() {
@@ -99,6 +89,30 @@ public class SingleUnitSelected extends JPanel {
     }
 
 
+    private static boolean setsAreEqual(Set<ResourceType> s1, Set<ResourceType> s2) {
+        if (s1.size() != s2.size()) {
+            return false;
+        }
+        return s1.containsAll(s2);
+    }
+
+    private void clearResourceLabels() {
+        resourcesPanel.removeAll();
+        cachedResourceLabels.clear();
+    }
+
+    private void udpateCachedResourceLabels(Set<ResourceType> neededLabels) {
+        if (setsAreEqual(cachedResourceLabels.keySet(), neededLabels)) return;
+        clearResourceLabels();
+
+        for (ResourceType rt : neededLabels) {
+            JLabel jLabel = new JLabel();
+            cachedResourceLabels.put(rt, jLabel);
+            resourcesPanel.add(jLabel);
+        }
+    }
+
+
     // TODO: don't call this as often
     public void setLabelValues() {
         if (entity == null) return;
@@ -113,22 +127,28 @@ public class SingleUnitSelected extends JPanel {
             EntitySpec currentType = entity.getType();
             imagePanel.setImage(context.imageCache.get(entity.getGraphics()));
 
+
             Load load = entity.getCarrying();
-            resourcesBorder.setTitle("Total weight carried: " + ResourceType.formatWeight(load.getWeight()));
+            Map<ResourceType, Integer> requiredResources = Collections.emptyMap();
             if (currentType.containsClass("construction-zone")) {
-//                Map<ResourceType, Integer> requiredResources = currentType.resultingStructure.requiredResources;
-                for (Map.Entry<ResourceType, JLabel> entry : resourceLabels.entrySet()) {
-                    entry.getValue().setText(
-                            entry.getKey().name + ": " +
-                            load.quantities.getOrDefault(entry.getKey(), 0) + "/" +
-                                    ("unknown")
-//                            requiredResources.getOrDefault(entry.getKey(), 0)
-                    );
-                }
-            } else {
-                for (Map.Entry<ResourceType, JLabel> entry : resourceLabels.entrySet()) {
-                    entry.getValue().setText(entry.getKey().name + ": " + load.quantities.getOrDefault(entry.getKey(), 0));
-                }
+                requiredResources = currentType.carryCapacity.getMaximumAmounts();
+            }
+
+            Set<ResourceType> neededLabels = new TreeSet<>(ResourceType.COMPARATOR);
+            neededLabels.addAll(load.quantities.keySet());
+            neededLabels.addAll(requiredResources.keySet());
+            udpateCachedResourceLabels(neededLabels);
+
+            resourcesBorder.setTitle("Total weight carried: " + ResourceType.formatWeight(load.getWeight()));
+
+            for (Map.Entry<ResourceType, JLabel> entry: cachedResourceLabels.entrySet()) {
+                Integer has = load.quantities.getOrDefault(entry.getKey(), 0);
+                Integer requires = requiredResources.get(entry.getKey());
+                StringBuilder value = new StringBuilder();
+                value.append(entry.getKey().name).append(": ").append(has);
+                if (requires != null)
+                    value.append('/').append(requires);
+                entry.getValue().setText(value.toString());
             }
 
             EntityReader riding = entity.getRiding();
@@ -136,7 +156,7 @@ public class SingleUnitSelected extends JPanel {
             if (riding != null && (ridingSpec = riding.getType()) != null) {
                 isRiding.setText("Riding a " + ridingSpec.name);
             } else {
-                isRiding.setText("nothing");
+                isRiding.setText("Not riding anything");
             }
 
             Action currentAction = entity.getCurrentAction();
@@ -203,13 +223,10 @@ public class SingleUnitSelected extends JPanel {
     }
 
     private void setDead() {
-        EntitySpec currentType = entity.getType();
         imagePanel.setImage(context.imageCache.get("na.png"));
 
         resourcesBorder.setTitle("N/A");
-        for (Map.Entry<ResourceType, JLabel> entry : resourceLabels.entrySet()) {
-            entry.getValue().setText(entry.getKey().name + ": 0");
-        }
+        clearResourceLabels();
 
         isRiding.setText("unknown");
         action.setText("No action");
@@ -235,7 +252,7 @@ public class SingleUnitSelected extends JPanel {
         buildProgress.setText("Not under construction");
     }
 
-    public static SingleUnitSelected createSingleSelect(UiClientContext context) {
+    static SingleUnitSelected createSingleSelect(UiClientContext context) {
         SingleUnitSelected ret = new SingleUnitSelected(context);
         ret.setLayout(new GridLayout(1, 0));
         ret.setPreferredSize(new Dimension(1, 1));

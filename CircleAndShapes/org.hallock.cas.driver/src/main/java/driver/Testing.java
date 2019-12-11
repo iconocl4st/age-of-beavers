@@ -17,6 +17,9 @@ public class Testing {
     public static void main(String[] args) throws InterruptedException, IOException, ParseException {
         // TODO:
 
+        // TODO: Prioritized capacity spec should not store the values that it cannot accept....
+
+
         // Priority 0 (doing right now)
         //      implement farms
         //      implement bee hives

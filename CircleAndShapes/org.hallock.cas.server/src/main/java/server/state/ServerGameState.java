@@ -155,7 +155,8 @@ public class ServerGameState {
             Double burySpeed = state.burySpeed.get(entityId);
             if (burySpeed != null) nextState.burySpeed.set(entityId, burySpeed);
 
-            nextState.graphicsManager.set(entityId, state.graphicsManager.get(entityId));
+            String graphics = state.graphicsManager.get(entityId);
+            if (graphics != null) nextState.graphicsManager.set(entityId, graphics);
 
             if (type.containsClass("occupies")) nextState.staticOccupancy.set(location.toPoint(), type.size, true);
             if (type.containsClass("construction-zone")) nextState.buildingOccupancy.set(location.toPoint(), type.size, true);

@@ -27,7 +27,7 @@ public class GameState implements Jsonable {
     // todo: rename to syncs
     public LocationManager locationManager;
 
-    public ManagerImpl<Object> entityManager;
+    public EntityManager entityManager;
     public ReversableManagerImpl<EntityId, EntityId> garrisonManager;
     public ReversableManagerImpl<EntityId, EntityId> ridingManager;
     public ReversableManagerImpl<GateInfo, Point> gateStateManager;
@@ -70,7 +70,7 @@ public class GameState implements Jsonable {
         gs.numPlayers = numPlayers;
         gs.actionManager = new ReversableManagerImpl<>(action -> action.type, Action.Serializer);
         gs.carryingManager = new ManagerImpl<>(Load.Serializer);
-        gs.entityManager = new ManagerImpl<>(DataSerializer.EmptyJsonableSerializer);
+        gs.entityManager = new EntityManager();
         gs.healthManager = new ManagerImpl<>(DataSerializer.DoubleSerializer);
         gs.locationManager = new LocationManager(spec);
         gs.playerManager = new ReversableManagerImpl<>(p -> p, Player.Serializer);

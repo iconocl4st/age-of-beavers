@@ -74,12 +74,20 @@ public class Interfaces {
             return builder;
         }
 
-        static String toString(LinkedList<InheritedValue> values) {
+        // TODO:
+        static String toString(LinkedList<Object> values) {
             StringBuilder builder = new StringBuilder();
-            for (InheritedValue value : values)
-                value.appendTo(builder);
+            for (Object value : values)
+                ((InheritedValue<?>)value).appendTo(builder);
             return builder.toString();
         }
+
+//        static String toString(LinkedList<InheritedValue<?>> values) {
+//            StringBuilder builder = new StringBuilder();
+//            for (InheritedValue value : values)
+//                value.appendTo(builder);
+//            return builder.toString();
+//        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,7 +133,7 @@ public class Interfaces {
 
         ErrorCheckParams cannotBeNull() {
             ErrorCheckParams errorCheckParams = new ErrorCheckParams(this);
-            canBeNull = false;
+            errorCheckParams.canBeNull = false;
             return errorCheckParams;
         }
     }
@@ -207,7 +215,7 @@ public class Interfaces {
 
     static abstract class NullableCreator<T> implements ValueCreator<T> {
         String fieldName;
-        boolean isNull;
+        boolean isNull; // Having this field has been grief...
 
         protected NullableCreator(String fieldName) {
             this.fieldName = fieldName;

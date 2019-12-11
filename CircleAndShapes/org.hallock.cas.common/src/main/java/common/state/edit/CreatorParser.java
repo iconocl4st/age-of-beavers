@@ -63,6 +63,8 @@ class CreatorParser {
         spec.generation.parse(theWholeKitAndCadoodle.getJSONObject("generation"));
         spec.canPlace.parse(theWholeKitAndCadoodle.getJSONObject("placeable"));
 
+        spec.compile();
+
         return spec;
     }
 

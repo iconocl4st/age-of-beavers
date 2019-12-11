@@ -38,7 +38,6 @@ public class UiManager {
     public void displayGame(GameSpec spec, Player player) {
         lobbyFrame.setVisible(false);
         buildingSelector.initialize(context.clientGameState);
-        selectedUnitsBrowser.initialize(spec);
         unitActions.initialize(spec);
         if (player == null) {
             mainWindowFrame.setTitle("Spectating");

@@ -7,15 +7,15 @@ import common.util.json.*;
 import java.io.IOException;
 
 public class EvolutionSpec implements Jsonable {
-    public double initialLineOfSight;
-    public double initialBaseHealth;
     public PrioritizedCapacitySpec carryCapacity;
-    public double initialMovementSpeed;
-    public double initialCollectSpeed;
-    public double initialDepositSpeed;
-    public double initialBuildSpeed;
-    public double initialRotationSpeed;
-    public double initialAttackSpeed;
+    public Double initialLineOfSight;
+    public Double initialBaseHealth;
+    public Double initialMovementSpeed;
+    public Double initialCollectSpeed;
+    public Double initialDepositSpeed;
+    public Double initialBuildSpeed;
+    public Double initialRotationSpeed;
+    public Double initialAttackSpeed;
 //        public List<EntitySpec> dropOnDeath;
 
     public EvolutionSpec() {}

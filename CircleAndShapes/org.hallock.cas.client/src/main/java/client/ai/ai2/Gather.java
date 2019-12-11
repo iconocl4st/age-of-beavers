@@ -2,16 +2,16 @@ package client.ai.ai2;
 
 import common.AiAttemptResult;
 import common.state.EntityReader;
-import common.state.spec.CarrySpec;
 import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
 
 import java.util.HashSet;
+import java.util.Map;
 
 public class Gather extends DefaultAiTask {
 
     private final EntitySpec naturalResourceSpec;
-    private final HashSet<ResourceType> gatheringResources = new HashSet<>();
+    private final HashSet<ResourceType> gatheringResources;
     private EntityReader currentTarget;
     private GatherState currentState;
 
@@ -25,10 +25,7 @@ public class Gather extends DefaultAiTask {
         this.currentTarget = target;
         this.naturalResourceSpec = resourceType;
         this.currentState = GatherState.Delivering;
-
-        for (CarrySpec spec : naturalResourceSpec.carrying) {
-            gatheringResources.add(spec.type);
-        }
+        gatheringResources = new HashSet<>(naturalResourceSpec.carrying.keySet());
     }
 
     public EntityReader getCurrentResource() {

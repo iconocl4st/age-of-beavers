@@ -10,4 +10,5 @@ public class CommonConstants {
     public static final boolean PAINT_QUADTREE_VERBOSE = false;
     public static final boolean PAINT_LOS_RECTANGLES = true;
     public static final boolean PAINT_FPS = true;
+    public static final String IMAGE_DIRECTORY = "/home/thallock/Documents/Idea/age-of-beavers/CircleAndShapes/images";
 }

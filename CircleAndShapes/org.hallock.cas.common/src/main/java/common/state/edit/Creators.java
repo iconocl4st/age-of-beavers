@@ -1,5 +1,6 @@
 package common.state.edit;
 
+import common.CommonConstants;
 import common.state.edit.Interfaces.ValueCreator;
 import common.state.spec.*;
 import common.state.spec.attack.DamageType;
@@ -13,6 +14,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.awt.*;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 
@@ -63,7 +67,93 @@ class Creators {
         UnitGenCreator,
         ResourceGenCreator,
         WeaponSpec,
-        CraftingCreator
+        CraftingCreator,
+        File
+    }
+
+    static class FileCreator implements Interfaces.ValueCreator<String> {
+        String fieldName;
+        Path path;
+        Path rootPath;
+
+        FileCreator(String fieldName, String rootPath) {
+            this.fieldName = fieldName;
+            this.rootPath = Paths.get(rootPath);
+        }
+
+        @Override
+        public String create(Interfaces.CreationContext cntxt) {
+            if (path == null) return null;
+            try {
+                Path root = rootPath.toRealPath().toAbsolutePath();
+                Path current = path.toRealPath().toAbsolutePath();
+                return root.relativize(current).toString();
+            } catch (IOException e) {
+                throw new RuntimeException("Unable to determine relative path.");
+            }
+        }
+
+        @Override
+        public void compile(GameSpecCreator creator) {}
+
+        @Override
+        public void parse(JSONObject object) {
+            if (!object.has(fieldName)) return;
+            path = rootPath.resolve(object.getString(fieldName));
+        }
+
+        @Override
+        public void save(JSONObject obj) {
+            if (path == null) return;
+            obj.put(fieldName, create(null));
+        }
+
+        @Override
+        public void getExportErrors(GameSpecCreator creator, Interfaces.Errors errors, Interfaces.ErrorCheckParams params) {
+            if (path == null) {
+                if (!params.canBeNull) {
+                    errors.error("Cannot be null");
+                    return;
+                }
+                return;
+            }
+            try {
+                Path root = rootPath.toRealPath().toAbsolutePath();
+                Path current = rootPath.toRealPath().toAbsolutePath();
+                if (!current.startsWith(root)) {
+                    errors.error("Path is not in base path: " + current);
+                    return;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                errors.error("Unable to locate real path: " + path);
+                return;
+            }
+        }
+
+        @Override
+        public String getFieldName() {
+            return fieldName;
+        }
+
+        @Override
+        public void setNull(boolean isNull) {
+            path = null;
+        }
+
+        @Override
+        public boolean isNull() {
+            return path == null;
+        }
+
+        @Override
+        public CreatorType getType() {
+            return CreatorType.File;
+        }
+
+        public void setPath(Path s) {
+            path = s;
+        }
     }
 
     static class CraftingCreator implements Interfaces.SpecCreator<CraftingSpec> {
@@ -347,8 +437,8 @@ class Creators {
             if (maximumWeight.isNull() && mapCreator.isNull)
                 throw new IllegalStateException(fieldName);
             if (mapCreator.isNull)
-                return new PrioritizedCapacitySpec(maximumWeight.get(), cntxt.resourceTypes);
-            PrioritizedCapacitySpec spec = PrioritizedCapacitySpec.createCapacitySpec(cntxt.resourceTypes, mapCreator.create(cntxt), false);
+                return new PrioritizedCapacitySpec(maximumWeight.get());
+            PrioritizedCapacitySpec spec = PrioritizedCapacitySpec.createCapacitySpec(mapCreator.create(cntxt), false);
             if (!maximumWeight.isNull())
                 spec.setTotalWeight(maximumWeight.get());
             return spec;
@@ -361,6 +451,15 @@ class Creators {
 
         @Override
         public void getExportErrors(GameSpecCreator creator, Interfaces.Errors errors, Interfaces.ErrorCheckParams params) {
+            if (isNull()) {
+                if (params.canBeNull) return;
+                errors.error("Cannot be null");
+                return;
+            }
+            if (maximumWeight.isNull() && mapCreator.isNull) {
+                errors.error("No capacity, although it is not null");
+                return;
+            }
             mapCreator.getExportErrors(creator, errors, params);
         }
 
@@ -646,7 +745,7 @@ class Creators {
 
         List<ValueCreator<? extends Object>> fields = new LinkedList<>();
 
-        StringCreator image = new StringCreator("image"); { fields.add(image); }
+        FileCreator image = new FileCreator("image", CommonConstants.IMAGE_DIRECTORY);
         DimensionCreator size = new DimensionCreator("size"); { fields.add(size); }
         DoubleCreator healthPoints = new DoubleCreator("health-points"); { fields.add(healthPoints); }
         IntegerCreator garrisonCapacity = new IntegerCreator("garrison-capacity"); { fields.add(garrisonCapacity); }
@@ -678,12 +777,16 @@ class Creators {
             if (name == null) throw new IllegalStateException();
             try (P ignore = errors.withPath(name)) {
                 errors.nonNull(isExported);
-                for (ValueCreator<?> a : fields) a.getExportErrors(creator, errors, params);
+                for (ValueCreator<?> a : fields) {
+                    try (P p = errors.withPath(a.getFieldName())) {
+                        a.getExportErrors(creator, errors, params);
+                    }
+                }
                 try (P p = errors.withPath("can-create")) { canCreate.getExportErrors(creator, errors, params); }
                 try (P p = errors.withPath("can-craft")) { canCraft.getExportErrors(creator, errors, params); }
 
                 if (isExported.get() != null && isExported.get()) {
-                    errors.nonNull(image);
+                    errors.nonNull(image, "image path");
                 }
             }
         }
@@ -692,50 +795,59 @@ class Creators {
             return name;
         }
 
+        private <T> T getInheretedValue(Interfaces.CreationContext cntxt, ValueCreator<T> creator) {
+            LinkedList<Interfaces.InheritedValue<T>> inheritedValues = locateInheretedValue(cntxt, creator, new LinkedList<>());
+            if (inheritedValues.isEmpty()) return null;
+            return inheritedValues.getLast().value;
+        }
+
         @Override
         public EntitySpec create(Interfaces.CreationContext cntxt) {
             if (!isExported.get()) throw new RuntimeException();
 
+//            IntegerCreator garrisonCapacity = new IntegerCreator("garrison-capacity"); { fields.add(garrisonCapacity); }
+//            DoubleCreator moveSpeed = new DoubleCreator("move-speed"); { fields.add(moveSpeed); }
+//            DoubleCreator lineOfSight = new DoubleCreator("line-of-sight"); { fields.add(lineOfSight); }
+//            DoubleCreator collectSpeed = new DoubleCreator("collect-speed"); { fields.add(collectSpeed); }
+//            DoubleCreator depositSpeed = new DoubleCreator("deposit-speed"); { fields.add(depositSpeed); }
+//            DoubleCreator attackRangeOuter = new DoubleCreator("attack-range-outer"); { fields.add(attackRangeOuter); }
+//            DoubleCreator attackRangeInner = new DoubleCreator("attack-range-inner"); { fields.add(attackRangeInner); }
+//            DoubleCreator rotationSpeed = new DoubleCreator("rotation-speed"); { fields.add(rotationSpeed); }
+//            DoubleCreator attackSpeed = new DoubleCreator("attack-speed"); { fields.add(attackSpeed); }
+//            DoubleCreator buildSpeed = new DoubleCreator("build-speed"); { fields.add(buildSpeed); }
+//            DropsOnDeath dropsOnDeath = new DropsOnDeath("drops-on-death"); { fields.add(dropsOnDeath); }
+//            CapacityCreator carryCapacity = new CapacityCreator("carry-capacity"); { fields.add(carryCapacity); }
+//            ResourcesMapCreator isCarrying = new ResourcesMapCreator("is-carrying"); { fields.add(isCarrying); }
+//            StringsCreator.StringSetCreator classes = new StringsCreator.StringSetCreator("classes"); { fields.add(classes); }
 
-            IntegerCreator garrisonCapacity = new IntegerCreator("garrison-capacity"); { fields.add(garrisonCapacity); }
-            DoubleCreator moveSpeed = new DoubleCreator("move-speed"); { fields.add(moveSpeed); }
-            DoubleCreator lineOfSight = new DoubleCreator("line-of-sight"); { fields.add(lineOfSight); }
-            DoubleCreator collectSpeed = new DoubleCreator("collect-speed"); { fields.add(collectSpeed); }
-            DoubleCreator depositSpeed = new DoubleCreator("deposit-speed"); { fields.add(depositSpeed); }
-            DoubleCreator attackRangeOuter = new DoubleCreator("attack-range-outer"); { fields.add(attackRangeOuter); }
-            DoubleCreator attackRangeInner = new DoubleCreator("attack-range-inner"); { fields.add(attackRangeInner); }
-            DoubleCreator rotationSpeed = new DoubleCreator("rotation-speed"); { fields.add(rotationSpeed); }
-            DoubleCreator attackSpeed = new DoubleCreator("attack-speed"); { fields.add(attackSpeed); }
-            DoubleCreator buildSpeed = new DoubleCreator("build-speed"); { fields.add(buildSpeed); }
-            DropsOnDeath dropsOnDeath = new DropsOnDeath("drops-on-death"); { fields.add(dropsOnDeath); }
-            CapacityCreator carryCapacity = new CapacityCreator("carry-capacity"); { fields.add(carryCapacity); }
-            ResourcesMapCreator isCarrying = new ResourcesMapCreator("is-carrying"); { fields.add(isCarrying); }
-            StringsCreator.StringSetCreator classes = new StringsCreator.StringSetCreator("classes"); { fields.add(classes); }
-
+            HashSet<String> combined = new HashSet<>();
+            for (Interfaces.InheritedValue<Set<String>> v : locateInheretedValue(cntxt, classes, new LinkedList<>())) {
+                combined.addAll(v.value);
+            }
 
 
             EntitySpec entitySpec = new EntitySpec(
                     name,
                     image.create(cntxt),
-                    size.create(cntxt),
-                    healthPoints.create(cntxt),
-                    carryCapacity.create(cntxt),
-                    garrisonCapacity.create(cntxt),
-                    moveSpeed.create(cntxt),
-                    lineOfSight.create(cntxt),
-                    collectSpeed.create(cntxt),
-                    depositSpeed.create(cntxt),
-                    rotationSpeed.create(cntxt),
-                    attackSpeed.create(cntxt),
-                    buildSpeed.create(cntxt),
+                    getInheretedValue(cntxt, size),
+                    getInheretedValue(cntxt, healthPoints),
+                    getInheretedValue(cntxt, carryCapacity),
+                    getInheretedValue(cntxt, garrisonCapacity),
+                    getInheretedValue(cntxt, moveSpeed),
+                    getInheretedValue(cntxt, lineOfSight),
+                    getInheretedValue(cntxt, collectSpeed),
+                    getInheretedValue(cntxt, depositSpeed),
+                    getInheretedValue(cntxt, rotationSpeed),
+                    getInheretedValue(cntxt, attackSpeed),
+                    getInheretedValue(cntxt, buildSpeed),
                     null,
                     Immutable.ImmutableMap.emptyMap(),
-                    new Immutable.ImmutableSet<>(classes.create(cntxt)),
-                    new Immutable.ImmutableMap<>(isCarrying.create(cntxt)),
+                    new Immutable.ImmutableSet<>(combined),
+                    new Immutable.ImmutableMap<>(isCarrying.create(cntxt)), // needs to be inherited?
                     null
             );
             cntxt.setArg("entity", null);
-            return null;
+            return entitySpec;
         }
 
         @Override
@@ -747,14 +859,30 @@ class Creators {
                 vc.compile(creator);
             canCreate.compile(creator);
             canCraft.compile(creator);
+            image.compile(creator);
         }
 
-        <T> LinkedList<Interfaces.InheritedValue> locateInheretedValue(GameSpecEditorContext cntxt, ValueCreator<?> o, LinkedList<Interfaces.InheritedValue> values) {
+        LinkedList<Object> locateInheretedValue_JavaIsntSmartEnough(Interfaces.CreationContext cntxt, ValueCreator<?> o, LinkedList<Object> values) {
             for (ValueCreator<? extends Object> c : fields) {
                 if (!o.getFieldName().equals(c.getFieldName())) continue;
-                T curr = (T) c.create(new Interfaces.CreationContext(cntxt.spec));
+                Object curr = c.create(cntxt);
                 if (curr == null) break;
                 values.addFirst(new Interfaces.InheritedValue<>(curr, name));
+                break;
+            }
+            if (parent.reference != null) {
+                parent.reference.locateInheretedValue_JavaIsntSmartEnough(cntxt, o, values);
+            }
+            return values;
+        }
+
+        <T> LinkedList<Interfaces.InheritedValue<T>> locateInheretedValue(Interfaces.CreationContext cntxt, ValueCreator<T> o, LinkedList<Interfaces.InheritedValue<T>> values) {
+            for (ValueCreator<? extends Object> c : fields) {
+                if (!o.getFieldName().equals(c.getFieldName())) continue;
+                T curr = (T) c.create(cntxt);
+                if (curr == null) break;
+                values.addFirst(new Interfaces.InheritedValue<>(curr, name));
+                break;
             }
             if (parent.reference != null) {
                 parent.reference.locateInheretedValue(cntxt, o, values);
@@ -769,6 +897,7 @@ class Creators {
                 vc.parse(object);
             canCreate.parse(object);
             canCraft.parse(object);
+            image.parse(object);
         }
 
         @Override
@@ -779,6 +908,7 @@ class Creators {
             obj.put("name", name);
             canCreate.save(obj);
             canCraft.save(obj);
+            image.save(obj);
         }
 
         @Override
@@ -893,7 +1023,6 @@ class Creators {
                 try (P p = errors.withPath("generation")) {
                     generation.getExportErrors(creator, errors, params);
                 }
-
                 try (P p = errors.withPath("resources")) {
                     errors.checkAll(resources, creator, params);
                 }
@@ -924,7 +1053,8 @@ class Creators {
 
             ArrayList<EntitySpec> unitsList = new ArrayList<>(entities.size());
             for (EntityCreator entity : entities)
-                unitsList.add(entity.create(cntxt));
+                if (entity.isExported.get())
+                    unitsList.add(entity.create(cntxt));
             cntxt.unitTypes = new Immutable.ImmutableList<>(unitsList);
 
             for (ResourceCreator resource : resources)
@@ -995,7 +1125,12 @@ class Creators {
 
         @Override
         public void getExportErrors(GameSpecCreator creator, Interfaces.Errors errors, Interfaces.ErrorCheckParams params) {
-            errors.nonNull(weight);
+            try (P ignore = errors.withPath(name)) {
+                errors.nonNull(weight);
+                if (weight.value == 0) {
+                    errors.error("weight cannot be 0.");
+                }
+            }
         }
 
         @Override
@@ -1250,6 +1385,7 @@ class Creators {
 
         @Override
         public void save(JSONObject object) {
+            if (isNull) return;
             JSONObject obj = new JSONObject();
             width.save(obj);
             height.save(obj);

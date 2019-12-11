@@ -74,10 +74,6 @@ public class SelectedUnits extends JPanel implements SelectionManager.SelectionL
         repaint();
     }
 
-    public void initialize(GameSpec spec) {
-        singleSelect.initalize(spec);
-    }
-
     enum Showing {
         Single,
         Multi,

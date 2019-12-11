@@ -354,7 +354,14 @@ public class EntityReader {
     public static final Comparator<EntityReader> COMPARATOR = Comparator.comparingInt(entity -> entity.entityId.id);
 
     public String getGraphics() {
-        return state.graphicsManager.get(entityId);
+        String image = state.graphicsManager.get(entityId);
+        if (image != null)
+            return image;
+        EntitySpec type = getType();
+        if (type == null) {
+            return null;
+        }
+        return type.graphicsImage;
     }
 
     public double getGardenSpeed() {

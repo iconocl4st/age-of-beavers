@@ -3,7 +3,6 @@ package app.assign;
 import app.assignments.Verifier;
 import client.ai.ai2.*;
 import common.state.EntityReader;
-import common.state.spec.CarrySpec;
 import common.state.spec.CreationSpec;
 import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
@@ -69,10 +68,7 @@ public class Assigner {
     }
 
     public static void assignToHunt(AiCheckContext context, EntityReader entity, EntitySpec huntedType, int priority) {
-        HashSet<ResourceType> collecting = new HashSet<>();
-        for (CarrySpec spec : huntedType.carrying) {
-            collecting.add(spec.type);
-        }
+        HashSet<ResourceType> collecting = new HashSet<>(huntedType.carrying.keySet());
         context.assignments.setAssignment(new ResourceAssignment(
                 context.currentTime(),
                 entity,
@@ -87,10 +83,7 @@ public class Assigner {
     }
 
     static void assignToGather(AiCheckContext context, EntityReader entity, EntitySpec resourceType, int priority) {
-        HashSet<ResourceType> collecting = new HashSet<>();
-        for (CarrySpec spec : resourceType.carrying) {
-            collecting.add(spec.type);
-        }
+        HashSet<ResourceType> collecting = new HashSet<>(resourceType.carrying.keySet());
         context.assignments.setAssignment(new ResourceAssignment(
                 context.currentTime(),
                 entity,

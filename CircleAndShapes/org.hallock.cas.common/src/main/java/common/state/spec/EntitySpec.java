@@ -60,6 +60,9 @@ public class EntitySpec {
             Immutable.ImmutableMap<ResourceType, Integer> carrying,
             EntitySpec resultingStructure
     ) {
+        if (size == null) {
+            throw new NullPointerException();
+        }
         this.name = name;
         this.graphicsImage = graphicsImage;
         this.size = size;
@@ -112,11 +115,11 @@ public class EntitySpec {
     }
 
 
-    public static PrioritizedCapacitySpec getCarryCapacity(GameSpec gSpec, Map<ResourceType, Integer> requiredResource){
+    public static PrioritizedCapacitySpec getCarryCapacity(Map<ResourceType, Integer> requiredResource){
         HashMap<ResourceType, Integer> carryLimits = new HashMap<>();
         for (Map.Entry<ResourceType, Integer> entry : requiredResource.entrySet())
             carryLimits.put(entry.getKey(), entry.getValue());
-        return PrioritizedCapacitySpec.createCapacitySpec(gSpec.resourceTypes, carryLimits, true);
+        return PrioritizedCapacitySpec.createCapacitySpec(carryLimits, true);
     }
 
 
