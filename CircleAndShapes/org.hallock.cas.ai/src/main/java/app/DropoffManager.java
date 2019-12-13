@@ -26,8 +26,7 @@ public class DropoffManager {
         this.context = context;
     }
 
-    public void clear(Assignments assignments) {
-        int numberOfAssignments = assignments.getNumberOfAssignments(AssignmentType.DropOffDriver);
+    public void clear(int numberOfAssignments) {
         if (resourceClusters[0] == null || resourceClusters[0].getK() != numberOfAssignments) {
             resourceClusters[0] = new KMeans(context.random, numberOfAssignments);
             resourceClusters[1] = new KMeans(context.random, numberOfAssignments + 2);
@@ -64,7 +63,7 @@ public class DropoffManager {
     }
 
     public void assignDropoffs(AiCheckContext context) {
-        clear(context.assignments);
+        clear(context.assignments.getNumberOfAssignments(AssignmentType.DropOffDriver));
 
         // Maybe don't include transport wagons as locations?
         // Once the wagon is full, it needs to deliver its contents somewhere...
@@ -100,7 +99,7 @@ public class DropoffManager {
                 continue;
             }
             if (index >= centers.length)
-                throw new IllegalStateException();
+                break;
             if (assignment.args == null) {
                 assignment.args = new DropoffAssignmentArg();
             } else {

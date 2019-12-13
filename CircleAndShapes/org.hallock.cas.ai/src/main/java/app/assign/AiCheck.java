@@ -17,12 +17,6 @@ import java.util.Map;
 public interface AiCheck {
     void check(AiCheckContext context);
 
-    // TODO: Minimum number of allocations....
-
-
-
-
-
     AiCheck TRANSPORT_CHECK = context -> {
         int population = context.tickState.population;
         int numberOfTransporters = context.assignments.getNumberOfAssignments(AssignmentType.TransportDriver);

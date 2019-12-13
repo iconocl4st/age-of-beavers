@@ -20,6 +20,7 @@ import common.state.spec.EntitySpec;
 import common.state.spec.GameSpec;
 import common.state.sst.GameState;
 import common.state.sst.OccupancyView;
+import common.state.sst.manager.ManagerImpl;
 import common.state.sst.manager.RevPair;
 import common.state.sst.manager.Textures;
 import common.state.sst.sub.ProjectileLaunch;
@@ -95,7 +96,7 @@ public class GamePainter {
         g.setColor(Colors.DESERT);
         g.fill(zoom.mapGameToScreen(0, 0, gameWidth, gameHeight));
 
-        paintTextures(g, zoom);
+        paintTerrain(g, zoom, clientGameState.gameState.textures);
 
         paintGrid(g, zoom);
 
@@ -173,8 +174,8 @@ public class GamePainter {
         }
     }
 
-    private void paintTextures(Graphics2D g, Zoom zoom) {
-        for (Textures.TileTexture texture : state.textures.textures.values()) {
+    public static void paintTerrain(Graphics2D g, Zoom zoom, Textures textures) {
+        for (Textures.TileTexture texture : textures.textures.values()) {
             switch (texture.type) {
                 case Grass:
                     g.setColor(Colors.GRASS);

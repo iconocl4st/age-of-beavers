@@ -41,8 +41,31 @@ class Editors {
             case ResourceGenCreator: throw new IllegalStateException();
             case UnitGenCreator: throw new IllegalStateException();
             case WeaponSpec: return createWeaponSpecEditor(c, (Creators.WeaponSpecCreator) creator);
+            case Color: return createNullable(allowNulls, (Interfaces.ValueCreator<?>) creator, createColorEditor(c, (Creators.ColorCreator) creator));
         }
         throw new UnsupportedOperationException(creator.getType().name());
+    }
+
+    private static Component createColorEditor(GameSpecEditorContext c, Creators.ColorCreator creator) {
+        JColorChooser chooser = new JColorChooser();
+
+        JPanel colorPanel = new JPanel();
+        Color current = creator.get();
+        if (current != null) {
+            colorPanel.setBackground(current);
+            chooser.setColor(current);
+        }
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(1, 0));
+        panel.add(colorPanel);
+        panel.add(Swing.createButton("Change", () ->
+                JColorChooser.createDialog(c.stack.getParent(), creator.fieldName, false, chooser, e -> {
+                    creator.set(chooser.getColor());
+                    colorPanel.setBackground(chooser.getColor());
+                }, e -> {}).setVisible(true)
+        ));
+        return panel;
     }
 
     private static JPanel createPathSelector(GameSpecEditorContext c, Creators.FileCreator creator) {
@@ -110,15 +133,25 @@ class Editors {
         return jComboBox;
     }
 
+    private static void setComponentEnabled(Component c, boolean enabled) {
+        c.setEnabled(enabled);
+        if (!(c instanceof Container))
+            return;
+        for (Component child : ((Container) c).getComponents()) {
+            setComponentEnabled(child, enabled);
+        }
+    }
+
     private static Component createNullable(boolean allowNulls, Interfaces.ValueCreator<? extends Object> creator, Component c) {
         if (!allowNulls)
             return c;
         JCheckBox jCheckBox = new JCheckBox("Is null");
         jCheckBox.setSelected(creator.isNull());
-        c.setEnabled(!creator.isNull());
+        setComponentEnabled(c, !creator.isNull());
         jCheckBox.addItemListener(itemEvent -> {
             c.setEnabled(!jCheckBox.isSelected());
             creator.setNull(jCheckBox.isSelected());
+            setComponentEnabled(c, !creator.isNull());
         });
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(1, 0));
@@ -168,6 +201,8 @@ class Editors {
         JPanel weightPanel = new JPanel(new GridLayout(0,  2));
         weightPanel.add(Swing.createLabel("Total weight"));
         weightPanel.add(createEditor(c, creator.maximumWeight, false));
+        weightPanel.add(Swing.createLabel("Default to accept"));
+        weightPanel.add(createEditor(c, creator.defaultToAccept, false));
         panel.add(weightPanel);
         panel.add(createResourceMapSelector(c, creator.mapCreator));
         return panel;
@@ -753,6 +788,10 @@ class Editors {
                 panel.add(new JPanel());
         }
 
+        panel.add(Swing.createLabel("Minimap color"));
+        panel.add(createEditor(c, entity.color, true));
+        panel.add(new JPanel());
+
         panel.add(Swing.createLabel("Production"));
         panel.add(createEditButton(c, () -> createSpecTree(c, entity.canCreate)));
         panel.add(new JPanel());
@@ -764,6 +803,8 @@ class Editors {
         return panel;
     }
 
+
+    // TODO: This could just be a grid, it would be faster...
     private static JPanel createResourceEditor(GameSpecEditorContext c, Creators.ResourceCreator resource) {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(0, 2));
@@ -775,6 +816,9 @@ class Editors {
         panel.add(Editors.createEditor(c, resource.weight,false));
 
         panel.add(Swing.createLabel("Grows into"));
+        panel.add(Editors.createEditor(c, resource.growsInto,false));
+
+        panel.add(Swing.createLabel("Minimap color"));
         panel.add(Editors.createEditor(c, resource.growsInto,false));
 
         return panel;

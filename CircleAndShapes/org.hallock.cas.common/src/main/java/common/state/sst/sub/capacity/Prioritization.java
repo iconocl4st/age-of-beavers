@@ -12,6 +12,13 @@ public class Prioritization implements Jsonable {
 
     Prioritization() {}
 
+    Prioritization(int des, int desMax, int max) {
+        this.desiredAmount = des;
+        this.desiredMaximum = desMax;
+        this.maximumAmount = max;
+        this.priority = 0;
+    }
+
     Prioritization(Prioritization value) {
         this.desiredAmount = value.desiredAmount;
         this.desiredMaximum = value.desiredMaximum;

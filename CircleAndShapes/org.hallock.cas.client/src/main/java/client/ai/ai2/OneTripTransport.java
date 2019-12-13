@@ -159,7 +159,7 @@ public abstract class OneTripTransport extends DefaultAiTask {
 
     public enum TransportResult {
         RequestedAction,
-        ReceiveCannotAccept,
+        ReceiverCannotAccept,
         NoStorageFound,
         NoPathFound,
         NothingToTransport,

@@ -21,15 +21,7 @@ import java.util.Set;
 
 public class LocationManager /* implements ManagerSpec<DPoint>*/ {
 
-    // todo: remove
-//    GameState gameState;
-
-    // TODO Replace with r-tree
-    // Maybe this one?
-    // https://github.com/davidmoten/rtree
-
-
-    // we are synchronizing twice...
+    // TODO: we are synchronizing twice...
     private final GridLocation gridLocations;
 
     public LocationManager(GameSpec spec) {

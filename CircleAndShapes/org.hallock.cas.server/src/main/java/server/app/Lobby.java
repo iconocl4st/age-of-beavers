@@ -245,7 +245,7 @@ public class Lobby {
         }
         return new DefaultBroadCaster(filters, byPlayer, (writer, t) -> {
             t.printStackTrace();
-            System.exit(1); // TODO: just remove that player...
+            System.exit(1); // TODO: just quit the game...
         });
     }
 

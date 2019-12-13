@@ -29,6 +29,7 @@ public class EntitySpec {
     public final Immutable.ImmutableSet<String> classes;
     public final Immutable.ImmutableMap<ResourceType, Integer> carrying;
     public final EntitySpec resultingStructure;
+    public final Color minimapColor;
 
     // immutable versions?
     public final SpecTree<CreationSpec> canCreate = new SpecTree<>();
@@ -38,7 +39,6 @@ public class EntitySpec {
 
 
     // TODO:
-    public Color minimapColor;
 
     public EntitySpec(
             String name,
@@ -58,7 +58,8 @@ public class EntitySpec {
             Immutable.ImmutableMap<String, String> aiArgs,
             Immutable.ImmutableSet<String> classes,
             Immutable.ImmutableMap<ResourceType, Integer> carrying,
-            EntitySpec resultingStructure
+            EntitySpec resultingStructure,
+            Color minimapColor
     ) {
         if (size == null) {
             throw new NullPointerException();
@@ -81,6 +82,7 @@ public class EntitySpec {
         this.classes = classes;
         this.carrying = carrying;
         this.resultingStructure = resultingStructure;
+        this.minimapColor = minimapColor;
     }
 
     public boolean equals(Object other) {
@@ -115,11 +117,11 @@ public class EntitySpec {
     }
 
 
-    public static PrioritizedCapacitySpec getCarryCapacity(Map<ResourceType, Integer> requiredResource){
+    public static PrioritizedCapacitySpec getConstructionCarryCapacity(Map<ResourceType, Integer> requiredResource){
         HashMap<ResourceType, Integer> carryLimits = new HashMap<>();
         for (Map.Entry<ResourceType, Integer> entry : requiredResource.entrySet())
             carryLimits.put(entry.getKey(), entry.getValue());
-        return PrioritizedCapacitySpec.createCapacitySpec(carryLimits, true);
+        return PrioritizedCapacitySpec.createCapacitySpec(carryLimits, true, false);
     }
 
 
@@ -142,7 +144,8 @@ public class EntitySpec {
             Immutable.ImmutableMap.emptyMap(),
             Immutable.ImmutableSet.from("storage", "construction-zone", "visible-in-fog", "unit"), // blocks buildings...
             Immutable.ImmutableMap.emptyMap(),
-            this
+            this,
+            minimapColor
         );
     }
 

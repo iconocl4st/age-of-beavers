@@ -186,7 +186,7 @@ public class ServerStateManipulator {
             return;
 
         if (spec.containsClass("constructed")) {
-            spec = spec.createConstructionSpec(EntitySpec.getCarryCapacity(spec.carryCapacity.getMaximumAmounts()));
+            spec = spec.createConstructionSpec(EntitySpec.getConstructionCarryCapacity(spec.carryCapacity.getMaximumAmounts()));
         }
 
         EntityId constructionId = game.idGenerator.generateId();
@@ -539,7 +539,8 @@ public class ServerStateManipulator {
         if (eSpec.initialMovementSpeed != null && eSpec.initialMovementSpeed != 0.0) state.movementSpeedManager.set(id, eSpec.initialMovementSpeed);
         if (eSpec.initialRotationSpeed != null && eSpec.initialRotationSpeed != 0.0) state.rotationSpeedManager.set(id, eSpec.initialRotationSpeed);
         if (eSpec.carryCapacity != null) state.capacityManager.set(id, eSpec.carryCapacity);
-        else state.capacityManager.set(id, new PrioritizedCapacitySpec(spec.carryCapacity));
+        else if (spec.carryCapacity != null) state.capacityManager.set(id, new PrioritizedCapacitySpec(spec.carryCapacity, false));
+        else state.capacityManager.set(id, new PrioritizedCapacitySpec(0, false));
         if (eSpec.initialAttackSpeed != null && eSpec.initialAttackSpeed != 0.0) state.attackSpeedManager.set(id, eSpec.initialAttackSpeed);
         if (eSpec.initialBuildSpeed != null && eSpec.initialBuildSpeed != 0.0) state.buildSpeedManager.set(id, eSpec.initialBuildSpeed);
         if (eSpec.initialDepositSpeed != null && eSpec.initialDepositSpeed != 0.0) state.depositSpeedManager.set(id, eSpec.initialDepositSpeed);

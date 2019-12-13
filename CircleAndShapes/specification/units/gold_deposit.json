@@ -3,6 +3,11 @@
     "amount": 100,
     "resource": "gold"
   }],
+  "minimap-color": {
+    "red": 255,
+    "green": 153,
+    "blue": 0
+  },
   "parent": "natural-resource",
   "image": "res/gold.png",
   "name": "gold-deposit",
@@ -10,7 +15,6 @@
     "children": [],
     "type": "branch"
   },
-  "carry-capacity": {"maximum-amounts": []},
   "can-create": {
     "children": [],
     "type": "branch"

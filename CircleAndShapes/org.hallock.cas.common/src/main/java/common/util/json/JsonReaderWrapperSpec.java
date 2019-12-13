@@ -61,7 +61,6 @@ public abstract class JsonReaderWrapperSpec implements AutoCloseable {
         return read(serializer, spec);
     }
 
-    // TODO: move the spec to the last argument...
     public <T> T[] read(String expectedKey, T[] map, DataSerializer<T> serializer, ReadOptions spec) throws IOException {
         readName(expectedKey);
         if (getCurrentJacksonType().equals(JsonToken.VALUE_NULL)) {

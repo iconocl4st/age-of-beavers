@@ -68,7 +68,7 @@ class Creators {
         ResourceGenCreator,
         WeaponSpec,
         CraftingCreator,
-        File
+        Color, File
     }
 
     static class FileCreator implements Interfaces.ValueCreator<String> {
@@ -426,6 +426,7 @@ class Creators {
     static class CapacityCreator extends Interfaces.NullableCreator<PrioritizedCapacitySpec> {
         IntegerCreator maximumWeight = new IntegerCreator("maximum-weight");
         ResourcesMapCreator mapCreator = new ResourcesMapCreator("maximum-amounts");
+        BooleanCreator defaultToAccept = new BooleanCreator("default-to-accept");
 
         CapacityCreator(String name) {
             super(name);
@@ -433,12 +434,14 @@ class Creators {
 
         @Override
         public PrioritizedCapacitySpec create(Interfaces.CreationContext cntxt) {
+            if (isNull())
+                return null;
             if (cntxt.resourceTypes == null) return null;
             if (maximumWeight.isNull() && mapCreator.isNull)
                 throw new IllegalStateException(fieldName);
             if (mapCreator.isNull)
-                return new PrioritizedCapacitySpec(maximumWeight.get());
-            PrioritizedCapacitySpec spec = PrioritizedCapacitySpec.createCapacitySpec(mapCreator.create(cntxt), false);
+                return new PrioritizedCapacitySpec(maximumWeight.get(), defaultToAccept.get());
+            PrioritizedCapacitySpec spec = PrioritizedCapacitySpec.createCapacitySpec(mapCreator.create(cntxt), false, defaultToAccept.get());
             if (!maximumWeight.isNull())
                 spec.setTotalWeight(maximumWeight.get());
             return spec;
@@ -456,6 +459,7 @@ class Creators {
                 errors.error("Cannot be null");
                 return;
             }
+            errors.nonNull(defaultToAccept);
             if (maximumWeight.isNull() && mapCreator.isNull) {
                 errors.error("No capacity, although it is not null");
                 return;
@@ -468,6 +472,7 @@ class Creators {
             JSONObject obj = object.getJSONObject(fieldName);
             maximumWeight.parse(obj);
             mapCreator.parse(obj);
+            defaultToAccept.parse(obj);
         }
 
         @Override
@@ -475,6 +480,7 @@ class Creators {
             JSONObject obj = new JSONObject();
             maximumWeight.save(obj);
             mapCreator.save(obj);
+            defaultToAccept.save(obj);
             object.put(fieldName, obj);
         }
 
@@ -763,6 +769,7 @@ class Creators {
         ResourcesMapCreator isCarrying = new ResourcesMapCreator("is-carrying"); { fields.add(isCarrying); }
         StringsCreator.StringSetCreator classes = new StringsCreator.StringSetCreator("classes"); { fields.add(classes); }
         BooleanCreator isExported = new BooleanCreator("is-exported-to-spec"); { fields.add(isExported); }
+        ColorCreator color = new ColorCreator("minimap-color");
 
 //        public GaiaAi ai;
 //        public Map<String, String> aiArgs;
@@ -805,26 +812,10 @@ class Creators {
         public EntitySpec create(Interfaces.CreationContext cntxt) {
             if (!isExported.get()) throw new RuntimeException();
 
-//            IntegerCreator garrisonCapacity = new IntegerCreator("garrison-capacity"); { fields.add(garrisonCapacity); }
-//            DoubleCreator moveSpeed = new DoubleCreator("move-speed"); { fields.add(moveSpeed); }
-//            DoubleCreator lineOfSight = new DoubleCreator("line-of-sight"); { fields.add(lineOfSight); }
-//            DoubleCreator collectSpeed = new DoubleCreator("collect-speed"); { fields.add(collectSpeed); }
-//            DoubleCreator depositSpeed = new DoubleCreator("deposit-speed"); { fields.add(depositSpeed); }
-//            DoubleCreator attackRangeOuter = new DoubleCreator("attack-range-outer"); { fields.add(attackRangeOuter); }
-//            DoubleCreator attackRangeInner = new DoubleCreator("attack-range-inner"); { fields.add(attackRangeInner); }
-//            DoubleCreator rotationSpeed = new DoubleCreator("rotation-speed"); { fields.add(rotationSpeed); }
-//            DoubleCreator attackSpeed = new DoubleCreator("attack-speed"); { fields.add(attackSpeed); }
-//            DoubleCreator buildSpeed = new DoubleCreator("build-speed"); { fields.add(buildSpeed); }
-//            DropsOnDeath dropsOnDeath = new DropsOnDeath("drops-on-death"); { fields.add(dropsOnDeath); }
-//            CapacityCreator carryCapacity = new CapacityCreator("carry-capacity"); { fields.add(carryCapacity); }
-//            ResourcesMapCreator isCarrying = new ResourcesMapCreator("is-carrying"); { fields.add(isCarrying); }
-//            StringsCreator.StringSetCreator classes = new StringsCreator.StringSetCreator("classes"); { fields.add(classes); }
-
             HashSet<String> combined = new HashSet<>();
             for (Interfaces.InheritedValue<Set<String>> v : locateInheretedValue(cntxt, classes, new LinkedList<>())) {
                 combined.addAll(v.value);
             }
-
 
             EntitySpec entitySpec = new EntitySpec(
                     name,
@@ -844,7 +835,8 @@ class Creators {
                     Immutable.ImmutableMap.emptyMap(),
                     new Immutable.ImmutableSet<>(combined),
                     new Immutable.ImmutableMap<>(isCarrying.create(cntxt)), // needs to be inherited?
-                    null
+                    null,
+                    color.get()
             );
             cntxt.setArg("entity", null);
             return entitySpec;
@@ -898,6 +890,7 @@ class Creators {
             canCreate.parse(object);
             canCraft.parse(object);
             image.parse(object);
+            color.parse(object);
         }
 
         @Override
@@ -909,6 +902,7 @@ class Creators {
             canCreate.save(obj);
             canCraft.save(obj);
             image.save(obj);
+            color.save(obj);
         }
 
         @Override
@@ -1413,6 +1407,40 @@ class Creators {
         }
     }
 
+    static class ColorCreator extends Interfaces.ValuedCreator<Color> {
+        ColorCreator(String name) {
+            super(name, CreatorType.Color);
+        }
+
+        @Override
+        public void getExportErrors(GameSpecCreator creator, Interfaces.Errors errors, Interfaces.ErrorCheckParams params) {
+            if (value == null && !params.canBeNull) {
+                errors.error("Color cannot be null");
+            }
+        }
+
+        void saveNonNull(JSONObject obj) {
+            JSONObject o = new JSONObject();
+            o.put("red", value.getRed());
+            o.put("green", value.getGreen());
+            o.put("blue", value.getBlue());
+            obj.put(fieldName, o);
+        }
+
+        @Override
+        Color getDefaultValue() {
+            return new Color(0, 0, 0);
+        }
+
+        @Override
+        Color parseNonNull(JSONObject object) {
+            JSONObject obj = (JSONObject) object.get(fieldName);
+            int r = Math.max(0, Math.min(255, obj.getInt("red")));
+            int g = Math.max(0, Math.min(255, obj.getInt("green")));
+            int b = Math.max(0, Math.min(255, obj.getInt("blue")));
+            return new Color(r, g, b);
+        }
+    }
 
     static class IntegerCreator extends Interfaces.ValuedCreator<Integer> {
         IntegerCreator(String name) {

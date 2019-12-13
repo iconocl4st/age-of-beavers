@@ -2,6 +2,7 @@ package common.state.spec;
 
 import common.util.json.*;
 
+import java.awt.*;
 import java.io.IOException;
 import java.util.Comparator;
 
@@ -31,27 +32,29 @@ public class ResourceType {
         return name;
     }
 
-    public static final DataSerializer<ResourceType> EntireSerializer = new DataSerializer<ResourceType>(){
-        @Override
-        public void write(ResourceType value, JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
-            writer.writeBeginDocument();
-            writer.write("name", value.name);
-            writer.write("weight", value.weight);
-            writer.writeEndDocument();
-        }
-
-        @Override
-        public ResourceType parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
-            reader.readBeginDocument();
-            ResourceType rt = new ResourceType(
-                reader.readString("name"),
-                reader.readInt32("weight")
-            );
-            reader.readEndDocument();
-            return rt;
-        }
-    };
-
+//    public static final DataSerializer<ResourceType> EntireSerializer = new DataSerializer<ResourceType>(){
+//        @Override
+//        public void write(ResourceType value, JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+//            writer.writeBeginDocument();
+//            writer.write("name", value.name);
+//            writer.write("weight", value.weight);
+//            writer.write("color", value.minimapColor, DataSerializer.ColorSerializer, options)
+//            writer.writeEndDocument();
+//        }
+//
+//        @Override
+//        public ResourceType parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
+//            reader.readBeginDocument();
+//            ResourceType rt = new ResourceType(
+//                reader.readString("name"),
+//                reader.readInt32("weight"),
+//                reader.read("color", DataSerializer.ColorSerializer, spec)
+//            );
+//            reader.readEndDocument();
+//            return rt;
+//        }
+//    };
+//
     public static final DataSerializer<ResourceType> Serializer = new DataSerializer<ResourceType>() {
         @Override
         public void write(ResourceType value, JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {

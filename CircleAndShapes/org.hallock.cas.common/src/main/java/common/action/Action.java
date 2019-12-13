@@ -39,7 +39,7 @@ public abstract class Action implements Jsonable {
         }
     }
 
-    // TODO: ignore several of the fields when coming from the client
+    // TODO: ignore several of the fields when coming from the client (otherwise the client could set them illegally)
 
     @Override
     public void writeTo(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {

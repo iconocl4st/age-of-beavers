@@ -2,15 +2,12 @@
   "parent": "unit",
   "health-points": 50,
   "image": "unit/cow.png",
-  "deposit-speed": 10,
-  "line-of-sight": 0,
   "collect-speed": 1,
   "classes": [
     "prey",
     "ridable",
     "evolves"
   ],
-  "name": "cow",
   "can-craft": {
     "children": [],
     "type": "branch"
@@ -20,5 +17,13 @@
     "type": "branch"
   },
   "is-exported-to-spec": true,
-  "move-speed": 0.5
+  "move-speed": 0.5,
+  "minimap-color": {
+    "red": 255,
+    "green": 255,
+    "blue": 255
+  },
+  "deposit-speed": 10,
+  "line-of-sight": 0,
+  "name": "cow"
 }

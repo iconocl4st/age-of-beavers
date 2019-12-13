@@ -3,6 +3,11 @@
     "amount": 100,
     "resource": "food"
   }],
+  "minimap-color": {
+    "red": 255,
+    "green": 0,
+    "blue": 51
+  },
   "parent": "natural-resource",
   "image": "res/berry.png",
   "classes": ["occupies"],

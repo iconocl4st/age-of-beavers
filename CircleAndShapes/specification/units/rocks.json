@@ -3,6 +3,11 @@
     "amount": 100,
     "resource": "stone"
   }],
+  "minimap-color": {
+    "red": 204,
+    "green": 204,
+    "blue": 204
+  },
   "parent": "natural-resource",
   "image": "res/stone.png",
   "classes": ["occupies"],
@@ -11,7 +16,6 @@
     "children": [],
     "type": "branch"
   },
-  "carry-capacity": {"maximum-amounts": []},
   "can-create": {
     "children": [],
     "type": "branch"

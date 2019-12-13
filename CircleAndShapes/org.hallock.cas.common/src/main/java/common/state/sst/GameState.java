@@ -24,9 +24,9 @@ public class GameState implements Jsonable {
     public GameSpec gameSpec;
     public int numPlayers;
 
-    // todo: rename to syncs
     public LocationManager locationManager;
 
+    // todo: rename to syncs
     public EntityManager entityManager;
     public ReversableManagerImpl<EntityId, EntityId> garrisonManager;
     public ReversableManagerImpl<EntityId, EntityId> ridingManager;

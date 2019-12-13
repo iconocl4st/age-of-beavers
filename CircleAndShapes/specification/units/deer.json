@@ -2,11 +2,8 @@
   "parent": "unit",
   "health-points": 20,
   "image": "unit/deer.png",
-  "deposit-speed": 10,
-  "line-of-sight": 0,
   "collect-speed": 1,
   "classes": ["prey"],
-  "name": "deer",
   "can-craft": {
     "children": [],
     "type": "branch"
@@ -16,5 +13,13 @@
     "type": "branch"
   },
   "is-exported-to-spec": true,
-  "move-speed": 2
+  "move-speed": 2,
+  "minimap-color": {
+    "red": 115,
+    "green": 116,
+    "blue": 82
+  },
+  "deposit-speed": 10,
+  "line-of-sight": 0,
+  "name": "deer"
 }

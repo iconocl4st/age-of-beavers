@@ -1,4 +1,9 @@
 {
+  "minimap-color": {
+    "red": 0,
+    "green": 0,
+    "blue": 0
+  },
   "parent": "unit",
   "health-points": 40,
   "image": "unit/horse.png",

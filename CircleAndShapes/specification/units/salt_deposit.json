@@ -1,5 +1,10 @@
 {
   "is-carrying": [],
+  "minimap-color": {
+    "red": 204,
+    "green": 255,
+    "blue": 255
+  },
   "parent": "natural-resource",
   "image": "res/marble.png",
   "name": "salt-deposit",
@@ -7,7 +12,6 @@
     "children": [],
     "type": "branch"
   },
-  "carry-capacity": {"maximum-amounts": []},
   "can-create": {
     "children": [],
     "type": "branch"

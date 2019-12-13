@@ -18,7 +18,10 @@
     "children": [],
     "type": "branch"
   },
-  "carry-capacity": {"maximum-weight": 100000},
+  "carry-capacity": {
+    "default-to-accept": true,
+    "maximum-weight": 100000
+  },
   "can-create": {
     "children": [],
     "type": "branch"

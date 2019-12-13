@@ -278,6 +278,10 @@ public class Interfaces {
         @Override
         public final void save(JSONObject obj) {
             if (isNull()) return;
+            saveNonNull(obj);
+        }
+
+        void saveNonNull(JSONObject obj) {
             obj.put(fieldName, get());
         }
 

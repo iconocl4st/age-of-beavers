@@ -8,7 +8,7 @@ import java.awt.*;
 
 public class Proximity {
 
-    /* TODO Remove this, maybe  have integer amounts of resources. */
+    /* TODO Remove this */
     public static final double INTERACTION_DISTANCE = /*1 + Math.pow(2.0, 0.5) + */ 0.2;
 
 

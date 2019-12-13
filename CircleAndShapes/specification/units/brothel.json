@@ -16,10 +16,13 @@
     "children": [],
     "type": "branch"
   },
-  "carry-capacity": {"maximum-amounts": [{
-    "amount": 200,
-    "resource": "food"
-  }]},
+  "carry-capacity": {
+    "default-to-accept": false,
+    "maximum-amounts": [{
+      "amount": 200,
+      "resource": "food"
+    }]
+  },
   "can-create": {
     "children": [],
     "type": "branch"

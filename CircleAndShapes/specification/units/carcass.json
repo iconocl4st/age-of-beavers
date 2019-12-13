@@ -3,6 +3,11 @@
     "amount": 100,
     "resource": "food"
   }],
+  "minimap-color": {
+    "red": 255,
+    "green": 102,
+    "blue": 102
+  },
   "parent": "natural-resource",
   "image": "res/meat.png",
   "name": "carcass",
@@ -10,7 +15,6 @@
     "children": [],
     "type": "branch"
   },
-  "carry-capacity": {"maximum-amounts": []},
   "can-create": {
     "children": [],
     "type": "branch"

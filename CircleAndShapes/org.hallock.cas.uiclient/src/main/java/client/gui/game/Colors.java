@@ -27,5 +27,4 @@ public final class Colors {
             Color.green,
             Color.pink,
     };
-    public static final Color MINIMAP_TREE = CAN_PLACE;
 }

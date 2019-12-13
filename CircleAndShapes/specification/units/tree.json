@@ -3,6 +3,11 @@
     "amount": 100,
     "resource": "wood"
   }],
+  "minimap-color": {
+    "red": 39,
+    "green": 151,
+    "blue": 22
+  },
   "parent": "natural-resource",
   "image": "res/tree.png",
   "classes": ["occupies"],
@@ -11,7 +16,6 @@
     "children": [],
     "type": "branch"
   },
-  "carry-capacity": {"maximum-amounts": []},
   "can-create": {
     "children": [],
     "type": "branch"

@@ -15,14 +15,17 @@ public class PrioritizedCapacitySpec implements Jsonable {
     // TODO: Do not store the values that it cannot accept....
 
     private int totalWeight = 0;
+    private boolean defaultToAccept;
     private final HashMap<ResourceType, Prioritization> prioritizedCapacities = new HashMap<>();
 
-    public PrioritizedCapacitySpec(int maxWeight) {
+    public PrioritizedCapacitySpec(int maxWeight, boolean defaultToAccept) {
         this.totalWeight = maxWeight;
+        this.defaultToAccept = defaultToAccept;
     }
 
-    public PrioritizedCapacitySpec(PrioritizedCapacitySpec other) {
+    public PrioritizedCapacitySpec(PrioritizedCapacitySpec other, boolean defaultToAccept) {
         this.totalWeight = other.totalWeight;
+        this.defaultToAccept = defaultToAccept;
         for (Map.Entry<ResourceType, Prioritization> rt : other.prioritizedCapacities.entrySet()) {
             prioritizedCapacities.put(rt.getKey(), new Prioritization(rt.getValue()));
         }
@@ -39,7 +42,11 @@ public class PrioritizedCapacitySpec implements Jsonable {
         Prioritization prioritization = prioritizedCapacities.get(resourceType);
         if (prioritization != null)
             return prioritization;
-        return Prioritization.createNotAccepted();
+        if (defaultToAccept) {
+            return new Prioritization(0, Integer.MAX_VALUE, Integer.MAX_VALUE);
+        } else {
+            return Prioritization.createNotAccepted();
+        }
     }
 
     public void setTotalWeight(int totalWeight) {
@@ -56,7 +63,7 @@ public class PrioritizedCapacitySpec implements Jsonable {
     public int amountPossibleToAccept(Load load, ResourceType resource) {
         return Math.min(
                 (totalWeight - load.getWeight()) / resource.weight,
-                prioritizedCapacities.getOrDefault(resource, Prioritization.MISSING).desiredMaximum - load.quantities.getOrDefault(resource, 0)
+                getPrioritization(resource).desiredMaximum - load.quantities.getOrDefault(resource, 0)
         );
     }
 
@@ -87,6 +94,7 @@ public class PrioritizedCapacitySpec implements Jsonable {
     public void writeTo(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
         writer.writeBeginDocument();
         writer.write("total-weight", totalWeight);
+        writer.write("default-to-accept", defaultToAccept);
         writer.write("by-resource", prioritizedCapacities, ResourceType.Serializer, Prioritization.Serializer, options);
         writer.writeEndDocument();
     }
@@ -94,17 +102,18 @@ public class PrioritizedCapacitySpec implements Jsonable {
     public static final DataSerializer<PrioritizedCapacitySpec> Serializer = new DataSerializer.JsonableSerializer<PrioritizedCapacitySpec>() {
         @Override
         public PrioritizedCapacitySpec parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
-            PrioritizedCapacitySpec ret = new PrioritizedCapacitySpec(Integer.MAX_VALUE);
             reader.readBeginDocument();
-            ret.totalWeight = reader.readInt32("total-weight");
+            int totalWeight = reader.readInt32("total-weight");
+            boolean defaultToAccept = reader.readBoolean("default-to-accept");
+            PrioritizedCapacitySpec ret = new PrioritizedCapacitySpec(totalWeight,  defaultToAccept);
             reader.read("by-resource", ret.prioritizedCapacities, ResourceType.Serializer, Prioritization.Serializer, spec);
             reader.readEndDocument();
             return ret;
         }
     };
 
-    public static PrioritizedCapacitySpec createCapacitySpec(Map<ResourceType, Integer> carryLimits, boolean makeDesired) {
-        PrioritizedCapacitySpec prioritizedCapacitySpec = new PrioritizedCapacitySpec(Integer.MAX_VALUE);
+    public static PrioritizedCapacitySpec createCapacitySpec(Map<ResourceType, Integer> carryLimits, boolean makeDesired, boolean defaultToAccept) {
+        PrioritizedCapacitySpec prioritizedCapacitySpec = new PrioritizedCapacitySpec(Integer.MAX_VALUE, defaultToAccept);
         for (Map.Entry<ResourceType, Integer> entry : carryLimits.entrySet()) {
             Prioritization prioritization = new Prioritization();
             prioritization.desiredMaximum = prioritization.maximumAmount = entry.getValue();

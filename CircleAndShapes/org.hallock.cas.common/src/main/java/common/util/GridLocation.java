@@ -349,12 +349,12 @@ public class GridLocation {
                 getMinDistanceFrom(startingLocation, x, y) < successfulDistance;
     }
 
-    private static class UnPathEntityQueryResults {
+    private static class UnPathedEntityQueryResults {
 
         EntityReader entity;
         DPoint location;
         double  distance;
-        public UnPathEntityQueryResults(EntityReader entity, DPoint location, double distance) {
+        UnPathedEntityQueryResults(EntityReader entity, DPoint location, double distance) {
             this.entity = entity;
             this.location = location;
             this.distance = distance;
@@ -405,7 +405,7 @@ public class GridLocation {
             if (tooFar)
                 break;
 
-            TreeSet<UnPathEntityQueryResults> ordered = new TreeSet<>(Comparator.comparingDouble(a -> a.distance));
+            TreeSet<UnPathedEntityQueryResults> ordered = new TreeSet<>(Comparator.comparingDouble(a -> a.distance));
             for (Point point : toSearch) {
                 synchronized (grid[point.x][point.y]) {
                     for (MovableEntity lc : grid[point.x][point.y]) {
@@ -422,11 +422,11 @@ public class GridLocation {
                         if (!query.filter.include(lc.entity)) {
                             continue;
                         }
-                        ordered.add(new UnPathEntityQueryResults(lc.entity, lc.currentLocation, startingLocation.distanceTo(lc.locationCenter())));
+                        ordered.add(new UnPathedEntityQueryResults(lc.entity, lc.currentLocation, startingLocation.distanceTo(lc.locationCenter())));
                     }
                 }
             }
-            for (UnPathEntityQueryResults results : ordered) {
+            for (UnPathedEntityQueryResults results : ordered) {
                 Path path = null;
                 if (query.pathFinder != null) {
                     Path pathSearch = query.findPath(results.entity);

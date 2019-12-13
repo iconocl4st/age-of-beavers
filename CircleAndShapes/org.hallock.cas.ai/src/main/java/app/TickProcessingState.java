@@ -130,8 +130,8 @@ public class TickProcessingState {
             increaseCount(constructionZone.constructionSpec.resultingStructure.name, currentlyBuilding);
 
 
-            PrioritizedCapacitySpec capacity = context.clientGameState.gameState.capacityManager.get(null);
-            Map<ResourceType, Integer> creationResources = capacity.getMaximumAmounts();
+//            PrioritizedCapacitySpec capacity = ;
+            Map<ResourceType, Integer> creationResources = entity.getCapacity().getMaximumAmounts();
 
 //            Map<ResourceType, Integer> creationResources = constructionZone.constructionSpec.gresultingStructure.requiredResources;
             checkDemands(entity, creationResources, AiConstants.CONSTRUCTION_DEMAND_PRIORITY);

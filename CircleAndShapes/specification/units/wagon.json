@@ -21,5 +21,8 @@
   "deposit-speed": 50,
   "line-of-sight": 3,
   "name": "wagon",
-  "carry-capacity": {"maximum-weight": 50000}
+  "carry-capacity": {
+    "default-to-accept": true,
+    "maximum-weight": 50000
+  }
 }

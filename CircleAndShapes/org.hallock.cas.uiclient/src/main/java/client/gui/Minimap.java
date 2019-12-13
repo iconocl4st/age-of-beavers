@@ -2,6 +2,7 @@ package client.gui;
 
 import client.app.UiClientContext;
 import client.gui.game.Colors;
+import client.gui.game.GamePainter;
 import client.gui.game.SquishZoom;
 import client.gui.game.Zoom;
 import common.state.EntityReader;
@@ -17,7 +18,6 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.geom.Rectangle2D;
 
 public class Minimap extends JPanel {
 
@@ -40,8 +40,10 @@ public class Minimap extends JPanel {
         int w = getWidth();
         int h = getHeight();
 
-        g.setColor(Colors.GRASS);
+        g.setColor(Colors.DESERT);
         g.fillRect(0, 0, w, h);
+
+        GamePainter.paintTerrain(g, zoom, context.clientGameState.gameState.textures);
 
         for (int i = 1; i < context.clientGameState.gameState.numPlayers + 1; i++) {
             for (RevPair<Player> pair : context.clientGameState.gameState.playerManager.getByType(new Player(i))) {
@@ -50,12 +52,11 @@ public class Minimap extends JPanel {
             }
         }
 
-        drawResource(g, Colors.MINIMAP_TREE, "tree");
-        drawResource(g, Color.yellow, "gold stone");
-        drawResource(g, Color.red, "berry");
-        drawUnitType(g, Color.gray, "deer");
-        drawUnitType(g, Color.black, "horse");
-
+        for (EntitySpec e : spec.unitSpecs) {
+            if (e.minimapColor == null)
+                continue;
+            drawUnitType(g, e.minimapColor, e);
+        }
         g.setColor(Color.white);
         g.draw(zoom.mapGameToScreen(
                 context.uiManager.gameScreen.zoom.getLocationX(),
@@ -65,21 +66,13 @@ public class Minimap extends JPanel {
         ));
     }
 
-    private void drawUnitType(Graphics2D g, Color color, String typeName) {
+    private void drawUnitType(Graphics2D g, Color color, EntitySpec type) {
         g.setColor(color);
-        for (RevPair<EntitySpec> pair : context.clientGameState.gameState.typeManager.getByType(spec.getUnitSpec(typeName))) {
+        for (RevPair<EntitySpec> pair : context.clientGameState.gameState.typeManager.getByType(type))
             drawUnit(g, pair);
-        }
     }
 
-    private void drawResource(Graphics2D g, Color color, String resourceName) {
-//        g.setColor(color);
-//        for (RevPair<EntitySpec> pair : context.clientGameState.gameState.typeManager.getByType(spec.getNaturalResource(resourceName))) {
-//            drawUnit(g, pair);
-//        }
-    }
-
-    private static final int UNIT_SIZE = 0;
+    private static final int UNIT_SIZE = 2;
     private void drawUnit(Graphics2D g, RevPair pair) {
         EntityReader entity = new EntityReader(context.clientGameState.gameState, pair.entityId);
         Dimension size = entity.getSize();
