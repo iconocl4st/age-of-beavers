@@ -68,7 +68,8 @@ class Creators {
         ResourceGenCreator,
         WeaponSpec,
         CraftingCreator,
-        Color, File
+        Color,
+        File
     }
 
     static class FileCreator implements Interfaces.ValueCreator<String> {

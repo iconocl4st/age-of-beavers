@@ -12,7 +12,7 @@ public class GamePlayerMessageHandler implements NoExceptionsConnectionWriter {
     private final ServerStateManipulator stateManipulator;
     private final ConnectionWriter writer;
 
-    public GamePlayerMessageHandler(ConnectionWriter writer, ServerGameState serverGameState, ServerStateManipulator manipulator) {
+    GamePlayerMessageHandler(ConnectionWriter writer, ServerGameState serverGameState, ServerStateManipulator manipulator) {
         this.serverGameState = serverGameState;
         this.stateManipulator = manipulator;
         this.writer = writer;
