@@ -20,7 +20,6 @@ import common.state.spec.EntitySpec;
 import common.state.spec.GameSpec;
 import common.state.sst.GameState;
 import common.state.sst.OccupancyView;
-import common.state.sst.manager.ManagerImpl;
 import common.state.sst.manager.RevPair;
 import common.state.sst.manager.Textures;
 import common.state.sst.sub.ProjectileLaunch;
@@ -85,23 +84,27 @@ public class GamePainter {
             Color.gray
     });
 
-    void renderGame(Graphics2D graphics, Zoom zoom) {
+
+    private static final double Z_HEALTH_BAR = 0;
+    private static final double Z_BRACKGROUND = -1;
+    private static final double Z_GROUND = 0;
+    private static final double Z_TERRAIN = 0;
+    private static final double Z_GRID = 0;
+    private static final double Z_GATHER_POINT = 0.0;
+
+    void renderGame(Graphics2D graphics, Zoom zoom, Renderer renderer) {
         Graphics2D g = graphics;
 
         double currentTime = clientGameState.gameState.getCurrentGameTime();
 
-        g.setColor(Colors.BACKGROUND);
-        g.fillRect(0, 0, panel.getWidth(), panel.getHeight());
+        renderer.fillEverything(Colors.BACKGROUND, Z_BRACKGROUND);
+        renderer.fillRectangle(Colors.DESERT, 0, 0, gameWidth, gameHeight, Z_GROUND);
+        paintTerrain(clientGameState.gameState.textures, renderer);
 
-        g.setColor(Colors.DESERT);
-        g.fill(zoom.mapGameToScreen(0, 0, gameWidth, gameHeight));
-
-        paintTerrain(g, zoom, clientGameState.gameState.textures);
-
-        paintGrid(g, zoom);
+        paintGrid(zoom, renderer);
 
         for (EntityId entityId : state.entityManager.allKeys()) {
-            paintDisplayable(g, new EntityReader(state, entityId), zoom, currentTime);
+            paintDisplayable(g, new EntityReader(state, entityId), zoom, currentTime, renderer);
         }
 
         paintQuadTree(zoom, g, clientGameState.quadTree);
@@ -174,17 +177,18 @@ public class GamePainter {
         }
     }
 
-    public static void paintTerrain(Graphics2D g, Zoom zoom, Textures textures) {
+    public static void paintTerrain(Textures textures, Renderer renderer) {
         for (Textures.TileTexture texture : textures.textures.values()) {
+            Color color = null;
             switch (texture.type) {
                 case Grass:
-                    g.setColor(Colors.GRASS);
+                    color = Colors.GRASS;
                     break;
                 case Water:
-                    g.setColor(Colors.WATER);
+                    color = Colors.WATER;
                     break;
             }
-            g.fill(zoom.mapGameToScreen(texture.x,  texture.y, 1, 1));
+            renderer.fillRectangle(color, texture.x,  texture.y, 1, 1, Z_TERRAIN);
         }
     }
 
@@ -218,7 +222,7 @@ public class GamePainter {
         }
     }
 
-    private void paintGrid(Graphics2D g, Zoom zoom) {
+    private void paintGrid(Zoom zoom, Renderer renderer) {
         double beginX = zoom.mapScreenToGameX(0);
         double endX = zoom.mapScreenToGameX(panel.getWidth());
 
@@ -226,11 +230,11 @@ public class GamePainter {
             return;
         }
 
-        g.setColor(Colors.GRID_LINES);
         for (int i = 0; i < gameWidth; i++)
-            g.draw(zoom.mapGameLineToScreen(i, 0, i, gameHeight));
+            renderer.drawLine(Colors.GRID_LINES, i, 0, i, gameHeight, Z_GRID);
+
         for (int i = 0; i < gameHeight; i++)
-            g.draw(zoom.mapGameLineToScreen(0, i, gameWidth, i));
+            renderer.drawLine(Colors.GRID_LINES, 0, i, gameWidth, i, Z_GRID);
     }
 
 
@@ -532,7 +536,7 @@ public class GamePainter {
         }
     }
 
-    private void paintDisplayable(Graphics2D g, EntityReader entity, Zoom zoom, double currentTime) {
+    private void paintDisplayable(Graphics2D g, EntityReader entity, Zoom zoom, double currentTime, Renderer renderer) {
         EntitySpec type = entity.getType();
         DPoint location = entity.getLocation(currentTime);
         String image = entity.getGraphics();
@@ -565,12 +569,13 @@ public class GamePainter {
         double currentHealth = entity.getCurrentHealth();
         if (baseHealth > 0 && baseHealth != currentHealth) {
             double ratio = currentHealth / baseHealth;
+            Color color;
             if (ratio > 0.75) {
-                g.setColor(Color.green);
+                color = Color.green;
             } else if (ratio > 0.25) {
-                g.setColor(Color.yellow);
+                color = Color.yellow;
             } else  {
-                g.setColor(Color.red);
+                color = Color.red;
             }
 
             double x1 = location.x;
@@ -578,17 +583,15 @@ public class GamePainter {
             double x3 = location.x + type.size.width;
             double y1 = location.y + type.size.height;
             double y2 = location.y + type.size.height + BAR_WIDTH;
-            g.fill(zoom.mapGameEndPointsToScreen(x1, y1, x2, y2));
-            g.setColor(Color.black);
-            g.fill(zoom.mapGameEndPointsToScreen(x2, y1, x3, y2));
-        }
 
+            renderer.fillRectangleEndPoints(color, x1, y1, x2, y2, Z_HEALTH_BAR);
+            renderer.fillRectangleEndPoints(Color.black, x2, y1, x3, y2, Z_HEALTH_BAR);
+        }
 
         DPoint gatherPoint = entity.getCurrentGatherPoint();
         if (gatherPoint != null && selected) {
-            g.setColor(Colors.GATHER_POINT);
-            g.fill(zoom.mapGameCircleToScreen(gatherPoint.x, gatherPoint.y, 0.1));
-            g.draw(zoom.mapGameLineToScreen(gatherPoint.x, gatherPoint.y, location.x, location.y));
+            renderer.fillCircle(Colors.GATHER_POINT, gatherPoint.x, gatherPoint.y, 0.1, Z_GATHER_POINT);
+            renderer.drawLine(Colors.GATHER_POINT, gatherPoint.x, gatherPoint.y, location.x, location.y, Z_GATHER_POINT);
         }
     }
 

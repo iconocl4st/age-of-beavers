@@ -90,15 +90,7 @@ public class GameScreen extends JPanel {
 
 
     public void paintComponent(Graphics graphics) {
-        renderer.renderGame((Graphics2D) graphics, zoom);
-
-//        BufferedImage bufferedImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-//        Graphics2D g2d = bufferedImage.createGraphics();
-//
-//        renderer.renderGame(g2d, zoom);
-//
-//        Graphics2D g2dComponent = (Graphics2D) graphics;
-//        g2dComponent.drawImage(bufferedImage, null, 0, 0);
+        renderer.renderGame((Graphics2D) graphics, zoom, new Renderer.Graphics2DRenderer((Graphics2D) graphics, zoom, this));
     }
 
 

@@ -37,13 +37,15 @@ public class Minimap extends JPanel {
 
     public void paintComponent(Graphics graphics) {
         Graphics2D g = (Graphics2D) graphics;
+
+        client.gui.game.Renderer renderer = new client.gui.game.Renderer.Graphics2DRenderer(g, zoom, this);
         int w = getWidth();
         int h = getHeight();
 
         g.setColor(Colors.DESERT);
         g.fillRect(0, 0, w, h);
 
-        GamePainter.paintTerrain(g, zoom, context.clientGameState.gameState.textures);
+        GamePainter.paintTerrain(context.clientGameState.gameState.textures, renderer);
 
         for (int i = 1; i < context.clientGameState.gameState.numPlayers + 1; i++) {
             for (RevPair<Player> pair : context.clientGameState.gameState.playerManager.getByType(new Player(i))) {
