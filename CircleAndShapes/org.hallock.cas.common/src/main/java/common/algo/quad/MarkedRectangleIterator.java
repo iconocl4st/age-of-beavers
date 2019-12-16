@@ -3,21 +3,32 @@ package common.algo.quad;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-class MarkedRectangleIterator implements Iterator<MarkedRectangle> {
-    private final QuadTree quadTree;
+class MarkedRectangleIterator<T extends Enum> implements Iterator<MarkedRectangle<T>> {
+    private final QuadTree<T> quadTree;
     private final LinkedList<Integer> stack = new LinkedList<>();
-    private final RootFinder rf;
-    private MarkedRectangle next;
+    private MarkedRectangle<T> next;
 
-    MarkedRectangleIterator(QuadTree quadTree, RootFinder rf) {
+    private int x;
+    private int y;
+    private int w;
+    private int h;
+
+    MarkedRectangleIterator(QuadTree<T> quadTree) {
+        this(quadTree, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+    }
+
+    MarkedRectangleIterator(QuadTree<T> quadTree, int x, int y, int w, int h) {
         this.quadTree = quadTree;
         stack.addLast(-1);
-        this.rf = rf;
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
         setNext();
     }
 
-    private QuadTreeNode get() {
-        QuadTreeNode node = quadTree.root;
+    private QuadTreeNode<T> get() {
+        QuadTreeNode<T> node = quadTree.root;
         for (Integer i : stack) {
             node = node.getNodeIn(Subdivision.values()[i]);
         }
@@ -36,13 +47,16 @@ class MarkedRectangleIterator implements Iterator<MarkedRectangle> {
                 stack.removeLast();
             }
             stack.addLast(stack.removeLast() + 1);
-            QuadTreeNode current = get();
+            QuadTreeNode<T> current = get();
+            if (!current.intersects(x, y, w, h)) {
+                continue;
+            }
             while (current instanceof BranchNode) {
                 stack.addLast(0);
                 current = get();
             }
             if (current instanceof LeafNode) {
-                next = ((LeafNode) current).toRectangle(rf == null ? -1 : rf.getRoot(current.x, current.y));
+                next = ((LeafNode<T>) current).toRectangle();
                 return;
             }
         }
@@ -54,8 +68,8 @@ class MarkedRectangleIterator implements Iterator<MarkedRectangle> {
     }
 
     @Override
-    public MarkedRectangle next() {
-        MarkedRectangle ret = next;
+    public MarkedRectangle<T> next() {
+        MarkedRectangle<T> ret = next;
         if (ret == null) throw new IllegalStateException();
         setNext();
         return ret;

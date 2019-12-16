@@ -2,7 +2,7 @@ package client.gui;
 
 import client.app.UiClientContext;
 import client.gui.actions.UnitActions;
-import client.gui.game.GameScreen;
+import client.gui.game.gl.GlGameScreen;
 import client.gui.selected.SelectedUnits;
 import client.ui.DemandsView;
 import common.msg.Message;
@@ -14,6 +14,8 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.Collections;
 
+import common.DebugGraphics;
+
 public class UiManager {
 
     final UiClientContext context;
@@ -22,10 +24,10 @@ public class UiManager {
     public final JFrame mainWindowFrame = new JFrame("Game Window");
 
     MainWindow mainWindow;
-    public GameScreen gameScreen;
+    public GlGameScreen gameScreen;
     public LobbyBrowser lobbyBrowser;
     public SelectedUnits selectedUnitsBrowser;
-    public DemandsView buildingSelector;
+    public DemandsView demandsView;
     public UnitActions unitActions;
     public Minimap minimap;
 
@@ -35,9 +37,9 @@ public class UiManager {
     }
 
 
-    public void displayGame(GameSpec spec, Player player) {
+    public void displayGame(GameSpec spec, Player player, Point playerLocation) {
         lobbyFrame.setVisible(false);
-        buildingSelector.initialize(context.clientGameState);
+        demandsView.initialize(context.clientGameState);
         unitActions.initialize(spec);
         if (player == null) {
             mainWindowFrame.setTitle("Spectating");
@@ -47,7 +49,7 @@ public class UiManager {
         mainWindowFrame.setVisible(true);
         minimap.setGameSpec(spec);
         mainWindow.updateSplitPaneDividers();
-        gameScreen.initialize(spec);
+        gameScreen.initialize(spec, playerLocation);
     }
 
     public void displayLobbyBrowser() {
@@ -77,12 +79,12 @@ public class UiManager {
         manager.mainWindowFrame.setFocusTraversalKeysEnabled(false);
 
         manager.minimap = Minimap.createMinimap(context);
-        manager.gameScreen = GameScreen.createGameScreen(context);
+        manager.gameScreen = GlGameScreen.createGlGameScreen(context);
         manager.lobbyBrowser = new LobbyBrowser(context);
         manager.selectedUnitsBrowser = SelectedUnits.createSelectedUnits(context);
-        manager.buildingSelector = DemandsView.createDemandsView(reader -> {
+        manager.demandsView = DemandsView.createDemandsView(reader -> {
             context.selectionManager.select(Collections.singleton(reader));
-            context.uiManager.gameScreen.zoom.focusOn(Collections.singleton(reader));
+            context.uiManager.gameScreen.focuser.focusOn(reader.getCenterLocation());
         }, true);
         manager.unitActions = UnitActions.createUnitActions(context);
 
@@ -91,15 +93,23 @@ public class UiManager {
         manager.lobbyFrame.setBounds(50, 50, 500, 500);
         manager.lobbyFrame.setContentPane(manager.lobbyBrowser.getMainPanel());
 
-        manager.mainWindowFrame.setBounds(50, 50, 5000, 1000);
+        manager.mainWindowFrame.setSize(new Dimension(800, 800));
+//        manager.mainWindowFrame.setBounds(50, 50, 5000, 1000);
+
         manager.mainWindowFrame.setContentPane(manager.mainWindow.panel1);
         manager.mainWindow.addBottom();
 
         // TODO: when the game is over
-        new Timer(17, actionEvent -> {
-            manager.gameScreen.repaint();
+        new Timer(500, actionEvent -> {
             manager.minimap.repaint();
             manager.selectedUnitsBrowser.updateInfo();
+
+            synchronized (DebugGraphics.pleaseFocusSync) {
+                if (DebugGraphics.pleaseFocus != null) {
+                    manager.gameScreen.focuser.focusOn(DebugGraphics.pleaseFocus.getCenterLocation());
+                    DebugGraphics.pleaseFocus = null;
+                }
+            }
         }).start();
 
         return manager;

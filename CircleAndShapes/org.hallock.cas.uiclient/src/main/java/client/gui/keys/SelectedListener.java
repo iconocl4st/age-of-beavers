@@ -1,6 +1,7 @@
 package client.gui.keys;
 
 import client.app.UiClientContext;
+import client.gui.game.Focuser;
 import common.state.EntityReader;
 
 import java.awt.event.KeyEvent;

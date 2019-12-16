@@ -1,6 +1,9 @@
 package common.util.json;
 
+
 public class WriteOptions {
+
+
 //    public boolean verbose = false;
 //    public boolean useReferences = false;
 

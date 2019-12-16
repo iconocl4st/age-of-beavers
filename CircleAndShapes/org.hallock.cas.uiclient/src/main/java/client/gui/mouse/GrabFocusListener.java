@@ -1,19 +1,20 @@
 package client.gui.mouse;
 
-import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class GrabFocusListener extends MouseAdapter {
 
-    private final JPanel panel;
+    private final Component panel;
 
-    public GrabFocusListener(JPanel panel) {
-        this.panel = panel;
+    public GrabFocusListener(Component component) {
+        this.panel = component;
     }
 
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
-        panel.grabFocus();
+        panel.requestFocus();
+        panel.requestFocusInWindow();
     }
 }

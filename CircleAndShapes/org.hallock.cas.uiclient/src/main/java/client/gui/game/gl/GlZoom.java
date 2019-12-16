@@ -1,13 +1,16 @@
 package client.gui.game.gl;
 
-class GlZoom {
+import client.gui.game.Focuser;
+import common.util.DPoint;
+
+public class GlZoom implements Focuser {
     final Object sync = new Object();
 
     // Assuming it is a square for now...
-    double screenLowerY;
-    double screenUpperY;
-    double screenLowerX;
-    double screenUpperX;
+    public double screenLowerY;
+    public double screenUpperY;
+    public double screenLowerX;
+    public double screenUpperX;
 
     int screenWidth;
     int screenHeight;
@@ -25,5 +28,14 @@ class GlZoom {
             "Game Screen Location: " + "[" + screenLowerX + "," + screenLowerY + ":" + screenUpperX + "," + screenUpperY + "]" + '\n'
 //            "Game Screen Center: " + screenCenterX + ", " + screenCenterY + '\n'
         );
+    }
+
+    @Override
+    public void focusOn(DPoint p) {
+        if (p == null) return;
+        synchronized (sync) {
+            locationX = p.x;
+            locationY = p.y;
+        }
     }
 }

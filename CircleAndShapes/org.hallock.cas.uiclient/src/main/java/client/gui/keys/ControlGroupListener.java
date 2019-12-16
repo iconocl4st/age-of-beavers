@@ -1,6 +1,9 @@
 package client.gui.keys;
 
-import client.app.UiClientContext;
+import client.app.ClientConstants;
+import client.gui.game.Focuser;
+import client.gui.game.Zoom;
+import client.state.SelectionManager;
 import common.state.EntityReader;
 
 import java.awt.event.KeyEvent;
@@ -8,15 +11,21 @@ import java.awt.event.KeyListener;
 import java.util.Set;
 
 public class ControlGroupListener implements KeyListener {
-
-    private static final int doublePresSpeed = 300;
     private long lastKeyPressTime;
     private int lastKeyPressedCode;
 
-    private final UiClientContext context;
+    private final SelectionManager selectionManager;
+    private final Focuser focuser;
+    private final ContextKeyManager contextKeys;
 
-    public ControlGroupListener(UiClientContext context) {
-        this.context = context;
+    public ControlGroupListener(
+            SelectionManager selections,
+            ContextKeyManager keys,
+            Focuser focuser
+    ) {
+        this.selectionManager = selections;
+        this.contextKeys = keys;
+        this.focuser = focuser;
     }
 
     @Override
@@ -36,13 +45,13 @@ public class ControlGroupListener implements KeyListener {
             case KeyEvent.VK_7:
             case KeyEvent.VK_8:
             case KeyEvent.VK_9:
-                if (context.uiManager.gameScreen.contextKeyListener.containsKey(KeyEvent.VK_CONTROL)) {
-                    context.selectionManager.registerControlGroup(keyEvent.getKeyCode() - KeyEvent.VK_0);
+                if (contextKeys.containsKey(KeyEvent.VK_CONTROL)) {
+                    selectionManager.registerControlGroup(keyEvent.getKeyCode() - KeyEvent.VK_0);
                     return;
                 } else {
-                    Set<EntityReader> entityIds = context.selectionManager.recallControlGroup(keyEvent.getKeyCode() - KeyEvent.VK_0);
-                    if (!entityIds.isEmpty() && lastKeyPressedCode == keyEvent.getKeyCode() && now - lastKeyPressTime < doublePresSpeed) {
-                        context.uiManager.gameScreen.zoom.focusOn(entityIds);
+                    Set<EntityReader> entityIds = selectionManager.recallControlGroup(keyEvent.getKeyCode() - KeyEvent.VK_0);
+                    if (!entityIds.isEmpty() && lastKeyPressedCode == keyEvent.getKeyCode() && now - lastKeyPressTime < ClientConstants.doublePresSpeed) {
+                        focuser.focusOn(Zoom.averageLocation(entityIds));
                     }
                 }
                 break;

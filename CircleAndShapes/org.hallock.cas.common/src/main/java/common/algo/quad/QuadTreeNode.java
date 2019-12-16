@@ -1,18 +1,21 @@
 package common.algo.quad;
 
-import common.algo.OneDUnionFind;
+import common.util.json.*;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-abstract class QuadTreeNode {
+abstract class QuadTreeNode<T extends Enum> implements Jsonable {
     protected int x;
     protected int y;
     protected int w;
     protected int h;
+    protected final QuadTree<T> tree;
 
-    QuadTreeNode(int x, int y, int w, int  h) {
+    QuadTreeNode(QuadTree<T> tree, int x, int y, int w, int h) {
+        this.tree = tree;
         this.x = x;
         this.y = y;
         this.w = w;
@@ -26,7 +29,7 @@ abstract class QuadTreeNode {
         if (!(other instanceof QuadTreeNode)) {
             return false;
         }
-        QuadTreeNode n = (QuadTreeNode) other;
+        QuadTreeNode<T> n = (QuadTreeNode<T>) other;
         return x == n.x && y == n.y && w == n.w && h == n.h;
     }
 
@@ -50,57 +53,72 @@ abstract class QuadTreeNode {
         return x + w > ox && x < ox + ow && y + h > oy && y < oy + oh;
     }
 
-    boolean neighbors(QuadTreeNode node) {
+    boolean neighbors(QuadTreeNode<T> node) {
         return
             ((x == node.x + node.w || x + w == node.x) && y + h > node.y && y < node.y + node.h) ||
             ((y == node.y + node.h || y + h == node.y) && x + w > node.x && x < node.x + node.w)
         ;
     }
 
-    abstract QuadTreeNode setType(Point location, Dimension size, QuadNodeType type, boolean[] typesPresent);
+    abstract QuadTreeNode<T> setType(Point location, Dimension size, T type, boolean[] typesPresent);
 
-    abstract NodeTypeCounts count(NodeTypeCounts counts);
+    abstract NodeTypeCounts<T> count(NodeTypeCounts<T> counts);
 
-    abstract Set<LeafNode> collectNeighbors(HashSet<LeafNode> emptyNodes, QuadTreeNode empty);
+    abstract Set<LeafNode<T>> collectNeighbors(HashSet<LeafNode<T>> emptyNodes, QuadTreeNode<T> empty);
 
-    abstract void assignConnectivity(OneDUnionFind unionFind, NodeIndexer indexer, QuadTreeNode upper, QuadTreeNode lower, QuadTreeNode left, QuadTreeNode right);
+    abstract QuadTreeNode<T> getNodeIn(Subdivision subdivision);
 
-    abstract QuadTreeNode getNodeIn(Subdivision subdivision);
+    abstract NodeType nodeType();
 
-    boolean isConnectable() {
-        return false;
-    }
-
-    abstract QuadTreeNode getNode(int x, int y);
+    abstract QuadTreeNode<T> getNode(int x, int y);
 
     abstract void locateNearest(NodeFilter nodeFilter, NearestTracker tracker);
+
+    abstract void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException;
 
     Point getProjection(int x, int y) {
         return new Point(Math.max(this.x, Math.min(this.x + w - 1, x)), Math.max(this.y, Math.min(this.y + h - 1, y)));
     }
 
+    public void writeTo(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+        writer.writeBeginDocument();
+        writer.write("node-type", nodeType().ordinal());
+        writer.write("x", x);
+        writer.write("y", y);
+        writer.write("w", w);
+        writer.write("h", h);
+        writeInnards(writer, options);
+        writer.writeEndDocument();
+    }
 
-//    boolean neighborsAny(Set<QuadTreeNode> nodes) {
-//        for (QuadTreeNode o : nodes) {
-//            if (neighbors(o)) return true;
-//        }
-//        return false;
-//    }
+    static <T extends Enum> DataSerializer<QuadTreeNode<T>> nodeSerializer() {
+        return new DataSerializer.JsonableSerializer<QuadTreeNode<T>>() {
+            @Override
+            public QuadTreeNode<T> parse(JsonReaderWrapperSpec reader, ReadOptions opts) throws IOException {
+                reader.readBeginDocument();
 
-//    double distanceTo(QuadTreeNode other) {
-//        int p1x = Math.min(x + w, Math.max(x, other.x));
-//        int p1y = Math.min(y + h, Math.max(y, other.y));
-//        int p2x = Math.min(other.x + other.w, Math.max(other.x, x));
-//        int p2y = Math.min(other.y + other.h, Math.max(other.y, y));
-//        int dx = p2x - p1x;
-//        int dy = p2y - p1y;
-//        return Math.sqrt(dx*dx + dy*dy);
-//    }
-//
-//    double distanceTo(Set<? extends QuadTreeNode> others) {
-//        double min = Double.MAX_VALUE;
-//        for (QuadTreeNode o : others)
-//            min = Math.min(min, distanceTo(o));
-//        return min;
-//    }
+                NodeType b = reader.b(NodeType.values(), reader.readInt32("node-type"));
+                int x = reader.readInt32("x");
+                int y = reader.readInt32("y");
+                int w = reader.readInt32("w");
+                int h = reader.readInt32("h");
+                QuadTreeNode<T> ret;
+                switch (b) {
+                    case Branch:
+                        ret = BranchNode.finishParsing(reader, opts, x, y, w, h, (QuadTree<T>) opts.tree);
+                        break;
+                    case Filler:
+                        ret = FillerNode.finishParsing(reader, opts, x, y, w, h, (QuadTree<T>) opts.tree);
+                        break;
+                    case Leaf:
+                        ret = LeafNode.finishParsing(reader, opts, x, y, w, h, (QuadTree<T>) opts.tree);
+                        break;
+                    default:
+                        throw new IllegalStateException();
+                }
+                reader.readEndDocument();
+                return ret;
+            }
+        };
+    }
 }

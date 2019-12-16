@@ -63,7 +63,7 @@ public class GameState implements Jsonable {
     // rename...
     public BitArray staticOccupancy;
     public BitArray buildingOccupancy;
-    public Textures textures;
+    public Terrains textures;
 
     public static GameState createGameState(GameSpec spec, int numPlayers) {
         GameState gs = new GameState();
@@ -97,7 +97,7 @@ public class GameState implements Jsonable {
         gs.evolutionManager = new ManagerImpl<>(EvolutionSpec.Serializer);
         gs.staticOccupancy = new BitArray(spec.width, spec.height);
         gs.buildingOccupancy = new BitArray(spec.width, spec.height);
-        gs.textures = new Textures();
+        gs.textures = new Terrains(spec.width, spec.height);
         gs.graphicsManager = new ManagerImpl<>(DataSerializer.StringSerializer);
         gs.crops = new ManagerImpl<>(GrowthInfo.Serializer);
         gs.gardenSpeed = new ManagerImpl<>(DataSerializer.DoubleSerializer);

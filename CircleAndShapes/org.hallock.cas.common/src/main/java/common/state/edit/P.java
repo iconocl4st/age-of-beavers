@@ -1,5 +1,5 @@
 package common.state.edit;
 
-interface P extends AutoCloseable {
+public interface P extends AutoCloseable {
     void close();
 }

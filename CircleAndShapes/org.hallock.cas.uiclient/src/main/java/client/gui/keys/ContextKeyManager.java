@@ -1,6 +1,6 @@
 package client.gui.keys;
 
-import client.app.UiClientContext;
+import common.util.ExecutorServiceWrapper;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -10,13 +10,13 @@ import java.util.List;
 
 public class ContextKeyManager implements KeyListener {
 
-    private HashSet<Integer> currentKeys = new HashSet<>();
+    private final ExecutorServiceWrapper executor;
+    private final HashSet<Integer> currentKeys = new HashSet<>();
 
     private final List<ContextKeyListener> listeners = new LinkedList<>();
-    private final UiClientContext context;
 
-    public ContextKeyManager(UiClientContext context) {
-        this.context = context;
+    public ContextKeyManager(ExecutorServiceWrapper executor) {
+        this.executor = executor;
     }
 
     public void addContextKeyListener(ContextKeyListener listener) {
@@ -53,7 +53,7 @@ public class ContextKeyManager implements KeyListener {
     private void notifyListeners() {
         synchronized (listeners) {
             for (ContextKeyListener listener : listeners) {
-                context.executorService.submit(() -> listener.keysChanged(this));
+                executor.submit(() -> listener.keysChanged(this));
             }
         }
     }

@@ -18,6 +18,7 @@ public class ImagePanel extends JPanel {
         if (image == null) {
             g.setColor(Color.black);
             g.fillRect(0, 0, width, height);
+            return;
         }
 
         int h = height;

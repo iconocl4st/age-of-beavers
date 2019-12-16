@@ -1,16 +1,18 @@
 package common.algo.quad;
 
-public class NodeTypeCounts {
+public class NodeTypeCounts<T extends Enum> {
     int numBranches;
     int numDontExist;
-    int[] byType = new int[QuadNodeType.values().length];
+    final int[] byType;
 
-    NodeTypeCounts() {}
+    NodeTypeCounts(int numValues) {
+        byType = new int[numValues];
+    }
 
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("Total: ").append(total()).append(": ");
-        for (QuadNodeType nt : QuadNodeType.values())
+        for (QuadTreeOccupancyState nt : QuadTreeOccupancyState.values())
             builder.append(nt.name()).append(":").append(byType[nt.ordinal()]).append(", ");
         builder.append("Branches: ").append(numBranches).append(",");
         builder.append("Empty: ").append(numDontExist);

@@ -1,107 +1,72 @@
 package common.algo.quad;
 
-import common.algo.OneDUnionFind;
-import common.factory.PathFinder;
-import common.util.ExecutorServiceWrapper;
+import common.util.json.*;
+import org.bson.json.JsonReader;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-public class QuadTree {
-    private final Object sync = new Object();
+public class QuadTree<T extends Enum> implements Jsonable {
+    QuadTreeNode<T> root;
+    final T[] values;
+    private boolean[] allTypesPresent;
+    DataSerializer<T> serializer;
+    DataSerializer<QuadTreeNode<T>> nodeSerializer = QuadTreeNode.nodeSerializer();
 
-    private final ExecutorServiceWrapper executorService;
-    private boolean[] dummy = new boolean[QuadNodeType.values().length];
-    QuadTreeNode root;
-    RootFinder rootFinder;
-    PathFinder pathFinder;
-
-
-    public QuadTree(int w, int h, ExecutorServiceWrapper executorService) {
-        root = LeafNode.create(0, 0, w, h, QuadNodeType.Empty, dummy);
-        this.executorService = executorService;
+    public QuadTree(int w, int h, T[] values, T defaultValue, DataSerializer<T> serializer) {
+        this.values = values;
+        allTypesPresent = new boolean[values.length];
+        root = LeafNode.create(this, 0, 0, w, h, defaultValue, allTypesPresent);
+        this.serializer = serializer;
     }
 
-    public void setPathFinder(PathFinder pathFinder) {
-        this.pathFinder = pathFinder;
+    public void setType(Point location, Dimension size, T type) {
+        root = root.setType(location, size, type, allTypesPresent);
     }
 
-    public void setType(Point location, Dimension size, QuadNodeType type) {
-        PathFinder pf = pathFinder;
-        if (pf == null) {
-            root = root.setType(location, size, type, dummy);
-            return;
-        }
-        executorService.submit(() -> {
-            synchronized (sync) {
-                pf.setRootFinder(null, null);
-                root.setType(location, size, type, dummy);
-                innerUpdateConnectivity();
-                pf.setRootFinder(this, rootFinder);
-            }
-        });
-    }
-
-    public Set<LeafNode> getNeighbors(QuadTreeNode empty) {
+    public Set<LeafNode<T>> getNeighbors(QuadTreeNode<T> empty) {
         return root.collectNeighbors(new HashSet<>(), empty);
     }
 
     public NodeTypeCounts size() {
-        return root.count(new NodeTypeCounts());
+        return root.count(new NodeTypeCounts<>(values.length));
     }
 
-    public Iterator<MarkedRectangle> leaves() {
-        return new MarkedRectangleIterator(this, rootFinder);
+    public Iterator<MarkedRectangle<T>> leaves() {
+        return new MarkedRectangleIterator<>(this);
+    }
+
+    public Iterator<MarkedRectangle<T>> leaves(double x1, double y1, double x2, double y2) {
+        return new MarkedRectangleIterator<>(
+                this,
+                (int) Math.floor(x1),
+                (int) Math.floor(y1),
+                (int) Math.ceil(x2 - x1),
+                (int) Math.ceil(y2 - y1)
+        );
     }
 
     QuadTreeNode getNode(int x, int y) {
         return root.getNode(x, y);
     }
 
-    private void innerUpdateConnectivity() {
-        int numEmpty = size().byType[QuadNodeType.Empty.ordinal()];
-        OneDUnionFind unionFind = new OneDUnionFind(numEmpty);
-        NodeIndexer indexer = new NodeIndexer(numEmpty);
-        long now = System.currentTimeMillis();
-        root.assignConnectivity(unionFind, indexer, NO_NODE, NO_NODE, NO_NODE, NO_NODE);
-        long dt = System.currentTimeMillis() - now;
-        System.out.println("Updating the connectivity took " + String.valueOf(dt) + "ms");
-        rootFinder = (x, y) -> {
-            Integer idx1 = indexer.getExistingIndex(getNode(x, y));
-            if (idx1 == null) return -1;
-            return unionFind.getRoot(idx1);
-        };
+    @Override
+    public void writeTo(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+        writer.writeBeginDocument();
+        writer.write("root", root, nodeSerializer, options);
+        writer.writeEndDocument();
     }
 
-    public Point nearestConnected(Point b, Point e) {
-        // right now assuming this is not null
-        int root = rootFinder.getRoot(b.x, b.y);
-        if (root < 0) return null;
-        NearestTracker nt = new NearestTracker(e.x, e.y);
-        this.root.locateNearest(node -> node.type.equals(QuadNodeType.Empty) && rootFinder.getRoot(node.x, node.y) == root, nt);
-        return nt.minimum;
+
+    public void updateAll(JsonReaderWrapperSpec reader, ReadOptions options) throws IOException {
+        reader.readBeginDocument();
+        options.tree = this;
+        root = reader.read("root", nodeSerializer, options);
+        reader.readEndDocument();
     }
 
-    public void updateConnectivitySync() {
-        synchronized (sync) {
-            PathFinder pf = pathFinder;
-            if (pf == null)
-                return;
-            pf.setRootFinder(null, null);
-            innerUpdateConnectivity();
-            pf.setRootFinder(this, rootFinder);
-        }
-    }
-
-    public void updateConnectivity() {
-        executorService.submit(() -> {
-            synchronized (sync) {
-                updateConnectivitySync();
-            }
-        });
-    }
-
-    static final QuadTreeNode NO_NODE = new FillerNode(0, 0, 0, 0);
+//    static final QuadTreeNode<T> NO_NODE = new FillerNode<>(0, 0, 0, 0);
 }

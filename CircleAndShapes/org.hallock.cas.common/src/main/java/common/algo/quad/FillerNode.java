@@ -1,16 +1,23 @@
 package common.algo.quad;
 
-import common.algo.OneDUnionFind;
+import common.util.json.JsonReaderWrapperSpec;
+import common.util.json.JsonWriterWrapperSpec;
+import common.util.json.ReadOptions;
+import common.util.json.WriteOptions;
 
 import java.awt.*;
 import java.util.HashSet;
 import java.util.Set;
 
-class FillerNode extends QuadTreeNode {
+class FillerNode<T extends Enum> extends QuadTreeNode<T> {
 
-    FillerNode(int x, int y, int w, int h) {
-        super(x, y, w, h);
+    FillerNode(QuadTree<T> tree, int x, int y, int w, int h) {
+        super(tree, x, y, w, h);
         if (w < 0 || h < 0 || (w != 0 && h != 0)) throw new IllegalStateException();
+    }
+
+    NodeType nodeType() {
+        return NodeType.Filler;
     }
 
     boolean intersects(int ox, int oy, int ow, int oh) {
@@ -24,31 +31,28 @@ class FillerNode extends QuadTreeNode {
     }
 
     @Override
-    QuadTreeNode setType(Point location, Dimension size, QuadNodeType type, boolean[] typesPresent) {
+    QuadTreeNode<T> setType(Point location, Dimension size, T type, boolean[] typesPresent) {
         return this;
     }
 
     @Override
-    public NodeTypeCounts count(NodeTypeCounts counts) {
+    public NodeTypeCounts<T> count(NodeTypeCounts<T> counts) {
         counts.numDontExist++;
         return counts;
     }
 
     @Override
-    Set<LeafNode> collectNeighbors(HashSet<LeafNode> emptyNodes, QuadTreeNode empty) {
+    Set<LeafNode<T>> collectNeighbors(HashSet<LeafNode<T>> emptyNodes, QuadTreeNode<T> empty) {
         return emptyNodes;
     }
 
     @Override
-    void assignConnectivity(OneDUnionFind unionFind, NodeIndexer indexer, QuadTreeNode upper, QuadTreeNode lower, QuadTreeNode left, QuadTreeNode right) {}
-
-    @Override
-    QuadTreeNode getNodeIn(Subdivision subdivision) {
+    QuadTreeNode<T> getNodeIn(Subdivision subdivision) {
         return this;
     }
 
     @Override
-    QuadTreeNode getNode(int x, int y) {
+    QuadTreeNode<T> getNode(int x, int y) {
         throw new IllegalStateException();
     }
 
@@ -57,5 +61,12 @@ class FillerNode extends QuadTreeNode {
 
     Point getProjection(int x, int y) {
         return null;
+    }
+
+
+    void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) {}
+
+    public static <T extends Enum> FillerNode<T> finishParsing(JsonReaderWrapperSpec reader, ReadOptions opts, int x, int y, int w, int h, QuadTree<T> tree) {
+        return new FillerNode<>(tree, x, y, w, h);
     }
 }

@@ -4,12 +4,14 @@ import common.algo.UnionFind2d;
 import common.state.EntityId;
 import common.state.Occupancy;
 import common.state.Player;
+import common.state.edit.P;
 import common.state.spec.GameSpec;
 import common.state.spec.GenerationSpec;
 import common.state.sst.OccupancyView;
-import common.state.sst.manager.Textures;
+import common.state.sst.sub.TerrainType;
 import common.util.DPoint;
 import common.util.EvolutionSpec;
+import common.util.Profiler;
 import common.util.Util;
 import server.state.ServerGameState;
 import server.state.ServerStateManipulator;
@@ -31,14 +33,16 @@ public class MapGenerator {
     private final ServerGameState gameState;
     private final ServerStateManipulator ssm;
     private final Point[] playerLocations;
+    private final Profiler profiler;
 
-    public MapGenerator(Point[] playerLocations, ServerGameState gameState, Random random, IdGenerator idGenerator,  ServerStateManipulator ssm) {
+    MapGenerator(Point[] playerLocations, ServerGameState gameState, Random random, IdGenerator idGenerator,  ServerStateManipulator ssm, Profiler profiler) {
         this.playerLocations = playerLocations;
         this.spec = gameState.state.gameSpec;
         this.random = random;
         this.idGenerator = idGenerator;
         this.gameState = gameState;
         this.ssm = ssm;
+        this.profiler = profiler;
     }
 
     private double distanceToPlayer(int i, int j) {
@@ -128,15 +132,16 @@ public class MapGenerator {
                     R = -1;
             }
             if (R > 0) {
-                gameState.state.textures.textures.put(next, new Textures.TileTexture(next.x, next.y, Textures.TileType.Grass));
+                gameState.state.textures.set(next.x, next.y, TerrainType.Grass);
                 for (int i = -R; i <= R; i++) {
                     for (int j = -R; j <= R; j++) {
                         if (next.x + i >= spec.width || next.x + i < 0 || next.y + j >= spec.height || next.y + j < 0)
                             continue;
                         if (Math.random() < 0.5 && new DPoint(next).distanceTo(new DPoint(next.x + i, next.y + j)) < R)
-                            gameState.state.textures.textures.put(
-                                    new Point(next.x + i, next.y + j),
-                                    new Textures.TileTexture(next.x + i, next.y + j, Textures.TileType.Grass)
+                            gameState.state.textures.set(
+                                    next.x + i,
+                                    next.y + j,
+                                    TerrainType.Grass
                             );
                     }
                 }
@@ -262,18 +267,7 @@ public class MapGenerator {
         }
     }
 
-    public static ServerGameState randomlyGenerateMap(ServerGameState gameState, GameSpec spec, int numPlayers, Random random, IdGenerator idGenerator, ServerStateManipulator ssm) {
-        for (int i = 0; i < numPlayers; i++) {
-            int x = spec.width / 2 + (int) (0.75 * spec.width / 2 * Math.cos(2 * Math.PI * i / (double) numPlayers));
-            int y = spec.height / 2 + (int) (0.75 * spec.height / 2 * Math.sin(2 * Math.PI * i / (double) numPlayers));
-            gameState.playerStarts[i] = new Point(x, y);
-        }
-
-        MapGenerator gen = new MapGenerator(gameState.playerStarts, gameState, random, idGenerator, ssm);
-        gen.generateResources();
-        gen.generatePlayers(numPlayers);
-        gen.generateGaia();
-
+    private static void generateRiver(ServerGameState gameState, Random random) {
         int width = 3;
         int max = gameState.state.gameSpec.width - width;
         int min = width;
@@ -282,15 +276,21 @@ public class MapGenerator {
         int pdx = 0;
         while (y < gameState.state.gameSpec.height) {
             for (int i = 0; i < 15; i++) {
-                gameState.state.textures.textures.put(new Point(x + i + width, y), new Textures.TileTexture(x + i + width, y, Textures.TileType.Grass));
-                gameState.state.textures.textures.put(new Point(x - i - width, y), new Textures.TileTexture(x - i - width, y, Textures.TileType.Grass));
+                gameState.state.textures.set(x + i + width, y, TerrainType.Grass);
+                gameState.state.textures.set(x - i - width, y, TerrainType.Grass);
             }
             for (int i = -width; i < width; i++)
-                gameState.state.textures.textures.put(new Point(x + i, y), new Textures.TileTexture(x + i, y, Textures.TileType.Water));
+                gameState.state.textures.set(x + i, y, TerrainType.Water);
             switch (pdx) {
-                case -1: pdx = random.nextInt(2) - 1; break;
-                case +0: pdx = random.nextInt(3) - 1; break;
-                case +1: pdx = random.nextInt(2); break;
+                case -1:
+                    pdx = random.nextInt(2) - 1;
+                    break;
+                case +0:
+                    pdx = random.nextInt(3) - 1;
+                    break;
+                case +1:
+                    pdx = random.nextInt(2);
+                    break;
             }
 
             x += pdx;
@@ -298,6 +298,35 @@ public class MapGenerator {
             if (x >= max) x = max - 1;
             y += 1;
         }
+    }
+
+    public static ServerGameState randomlyGenerateMap(ServerGameState gameState, GameSpec spec, int numPlayers, Random random, IdGenerator idGenerator, ServerStateManipulator ssm) {
+        Profiler profiler = new Profiler("map generation");
+        try (P ignore = profiler.time("generation")) {
+            for (int i = 0; i < numPlayers; i++) {
+                int x = spec.width / 2 + (int) (0.75 * spec.width / 2 * Math.cos(2 * Math.PI * i / (double) numPlayers));
+                int y = spec.height / 2 + (int) (0.75 * spec.height / 2 * Math.sin(2 * Math.PI * i / (double) numPlayers));
+                gameState.playerStarts[i] = new Point(x, y);
+            }
+
+            MapGenerator gen = new MapGenerator(gameState.playerStarts, gameState, random, idGenerator, ssm, profiler);
+
+            try (P p = profiler.time("resources")) {
+                gen.generateResources();
+            }
+            try (P p = profiler.time("players")) {
+                gen.generatePlayers(numPlayers);
+            }
+            try (P p = profiler.time("gaia")) {
+                gen.generateGaia();
+            }
+            try (P p = profiler.time("river")) {
+                generateRiver(gameState, random);
+            }
+        }
+
+        System.out.println(profiler.report());
         return gameState;
     }
+
 }

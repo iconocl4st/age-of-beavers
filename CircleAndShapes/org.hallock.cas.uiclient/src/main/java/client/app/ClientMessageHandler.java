@@ -99,7 +99,11 @@ class ClientMessageHandler {
                         reader,
                         spec
                 );
-                context.uiManager.displayGame(context.clientGameState.gameState.gameSpec, context.clientGameState.currentPlayer);
+                context.uiManager.displayGame(
+                        context.clientGameState.gameState.gameSpec,
+                        context.clientGameState.currentPlayer,
+                        context.clientGameState.startingLocation
+                );
             } break;
             default:
                 System.out.println("Client parser: Ignoring unknown message type: " + msgType);

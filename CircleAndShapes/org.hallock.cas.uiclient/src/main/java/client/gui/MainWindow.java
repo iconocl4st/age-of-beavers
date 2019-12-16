@@ -7,7 +7,7 @@ public class MainWindow {
     private final UiManager uiManager;
 
     public JPanel panel1;
-    private JPanel gamePanel;
+    private Component gamePanel;
     private JPanel buildingPlacer;
     private JPanel lowerPanel;
     private JToolBar toolbar;
@@ -41,7 +41,7 @@ public class MainWindow {
     }
 
     private void createUIComponents() {
-        gamePanel = uiManager.gameScreen;
-        buildingPlacer = uiManager.buildingSelector;
+        gamePanel = uiManager.gameScreen.getCanvas();
+        buildingPlacer = uiManager.demandsView;
     }
 }

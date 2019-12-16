@@ -38,14 +38,16 @@ public class Minimap extends JPanel {
     public void paintComponent(Graphics graphics) {
         Graphics2D g = (Graphics2D) graphics;
 
-        client.gui.game.Renderer renderer = new client.gui.game.Renderer.Graphics2DRenderer(g, zoom, this);
+        client.gui.game.Renderer renderer = new client.gui.game.Renderer.Graphics2DRenderer(context, g, zoom, this);
         int w = getWidth();
         int h = getHeight();
 
         g.setColor(Colors.DESERT);
         g.fillRect(0, 0, w, h);
 
-        GamePainter.paintTerrain(context.clientGameState.gameState.textures, renderer);
+        if (true) return;
+
+//        GamePainter.paintTerrain(context.clientGameState.gameState.textures, renderer);
 
         for (int i = 1; i < context.clientGameState.gameState.numPlayers + 1; i++) {
             for (RevPair<Player> pair : context.clientGameState.gameState.playerManager.getByType(new Player(i))) {
@@ -60,12 +62,12 @@ public class Minimap extends JPanel {
             drawUnitType(g, e.minimapColor, e);
         }
         g.setColor(Color.white);
-        g.draw(zoom.mapGameToScreen(
-                context.uiManager.gameScreen.zoom.getLocationX(),
-                context.uiManager.gameScreen.zoom.getLocationY(),
-                context.uiManager.gameScreen.zoom.getScreenWidth(),
-                context.uiManager.gameScreen.zoom.getScreenHeight()
-        ));
+//        g.draw(zoom.mapGameToScreen(
+//                context.uiManager.gameScreen.zoom.getLocationX(),
+//                context.uiManager.gameScreen.zoom.getLocationY(),
+//                context.uiManager.gameScreen.zoom.getScreenWidth(),
+//                context.uiManager.gameScreen.zoom.getScreenHeight()
+//        ));
     }
 
     private void drawUnitType(Graphics2D g, Color color, EntitySpec type) {
@@ -95,7 +97,7 @@ public class Minimap extends JPanel {
             public void mousePressed(MouseEvent mouseEvent) {
                 double x = minimap.zoom.mapScreenToGameX(mouseEvent.getX());
                 double y = minimap.zoom.mapScreenToGameY(mouseEvent.getY());
-                context.uiManager.gameScreen.zoom.recenter(x, y);
+//                context.uiManager.gameScreen.zoom.recenter(x, y);
             }
 
             @Override
@@ -112,7 +114,7 @@ public class Minimap extends JPanel {
             public void mouseDragged(MouseEvent mouseEvent) {
                 double x = minimap.zoom.mapScreenToGameX(mouseEvent.getX());
                 double y = minimap.zoom.mapScreenToGameY(mouseEvent.getY());
-                context.uiManager.gameScreen.zoom.recenter(x, y);
+//                context.uiManager.gameScreen.zoom.recenter(x, y);
             }
 
             @Override

@@ -3,6 +3,7 @@ package client.gui.game.gl;
 public interface GlListeners {
     interface GameMousePressListener {
         void mousePressed(double x, double y, PressInfo info);
+        void mouseReleased(double x, double y, PressInfo info);
     }
 
     interface RectangleHandler {
@@ -10,17 +11,23 @@ public interface GlListeners {
     }
 
     class PressInfo {
-        public final boolean isLeftPress;
-        public final boolean isMiddlePress;
-        public final boolean isRightPress;
+        public final boolean isLeftButton;
+        public final boolean isMiddleButton;
+        public final boolean isRightButton;
+        public final boolean isControl;
+        public final boolean isShift;
+        public final int clickCount;
 
         // is control...
         // is shift...
 
-        PressInfo(boolean isLeftPress, boolean isMiddlePress, boolean isRightPress) {
-            this.isLeftPress = isLeftPress;
-            this.isMiddlePress = isMiddlePress;
-            this.isRightPress = isRightPress;
+        PressInfo(boolean isLeftPress, boolean isMiddlePress, boolean isRightPress, boolean isControl, boolean isShift, int clickCount) {
+            this.isLeftButton = isLeftPress;
+            this.isMiddleButton = isMiddlePress;
+            this.isRightButton = isRightPress;
+            this.isControl = isControl;
+            this.isShift = isShift;
+            this.clickCount = clickCount;
         }
     }
 }

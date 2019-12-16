@@ -2,11 +2,10 @@ package client.state;
 
 import client.ai.ActionRequester;
 import client.ai.ai2.AiManager;
-import client.event.AiEventListener;
 import client.event.AiEventManager;
 import client.event.supply.SupplyAndDemandManager;
-import common.algo.quad.QuadNodeType;
-import common.algo.quad.QuadTree;
+import common.algo.quad.QuadTreeOccupancyState;
+import common.algo.quad.OccupiedQuadTree;
 import common.event.AiEventType;
 import common.factory.PathFinder;
 import common.msg.Message;
@@ -18,7 +17,6 @@ import common.state.los.Exploration;
 import common.state.los.LineOfSight;
 import common.state.spec.GameSpec;
 import common.state.sst.GameState;
-import common.util.DPoint;
 import common.util.ExecutorServiceWrapper;
 import common.util.json.DataSerializer;
 import common.util.json.JsonReaderWrapperSpec;
@@ -47,7 +45,7 @@ public class ClientGameState {
 
     // Could be in the GameState ?
     public PathFinder pathFinder;
-    public QuadTree quadTree;
+    public OccupiedQuadTree quadTree;
 
     public boolean isSpectating() {
         return currentPlayer == null;
@@ -105,11 +103,11 @@ public class ClientGameState {
             state.entityTracker.track(entity);
         }
 
-        state.quadTree = new QuadTree(state.gameState.gameSpec.width, state.gameState.gameSpec.height, state.executor);
+        state.quadTree = new OccupiedQuadTree(state.gameState.gameSpec.width, state.gameState.gameSpec.height, state.executor);
         for (EntityId entityId : state.gameState.entityManager.allKeys()) {
             EntityReader entity = new  EntityReader(state.gameState, entityId);
             if (entity.getType().containsClass("occupies")) {
-                state.quadTree.setType(entity.getLocation().toPoint(), entity.getSize(), QuadNodeType.Occupied);
+                state.quadTree.setType(entity.getLocation().toPoint(), entity.getSize(), QuadTreeOccupancyState.Occupied);
 //                state.gameState.staticOccupancy.set(entity.getLocation().toPoint(), entity.getSize(), true);
             }
 //            if (entity.getType().containsClass("construction-zone"))

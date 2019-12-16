@@ -1,23 +1,27 @@
 package common.algo.quad;
 
-import common.algo.OneDUnionFind;
 import common.util.DPoint;
+import common.util.json.JsonReaderWrapperSpec;
+import common.util.json.JsonWriterWrapperSpec;
+import common.util.json.ReadOptions;
+import common.util.json.WriteOptions;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-class BranchNode extends QuadTreeNode {
+class BranchNode<T extends Enum> extends QuadTreeNode<T> {
 
-    QuadTreeNode upperRight;
-    QuadTreeNode upperLeft;
-    QuadTreeNode lowerLeft;
-    QuadTreeNode lowerRight;
+    QuadTreeNode<T> upperRight;
+    QuadTreeNode<T> upperLeft;
+    QuadTreeNode<T> lowerLeft;
+    QuadTreeNode<T> lowerRight;
 
     final boolean[][] presentTypes;
 
-    BranchNode(int x, int y, int w, int h, QuadTreeNode upperRight, QuadTreeNode upperLeft, QuadTreeNode lowerLeft, QuadTreeNode lowerRight, boolean[][] present) {
-        super(x, y, w, h);
+    BranchNode(QuadTree<T> tree, int x, int y, int w, int h, QuadTreeNode<T> upperRight, QuadTreeNode<T> upperLeft, QuadTreeNode<T> lowerLeft, QuadTreeNode<T> lowerRight, boolean[][] present) {
+        super(tree, x, y, w, h);
         this.upperRight = upperRight;
         this.upperLeft = upperLeft;
         this.lowerLeft = lowerLeft;
@@ -26,20 +30,25 @@ class BranchNode extends QuadTreeNode {
         if (w == 0 || h == 0) throw new IllegalStateException();
     }
 
+
+    NodeType nodeType() {
+        return NodeType.Branch;
+    }
+
     @Override
-    public QuadTreeNode setType(Point location, Dimension size, QuadNodeType type, boolean[] totalPresentTypes) {
+    public QuadTreeNode<T> setType(Point location, Dimension size, T type, boolean[] totalPresentTypes) {
         if (upperRight.intersects(location, size)) upperRight = upperRight.setType(location, size, type, presentTypes[0]);
         if (upperLeft.intersects(location, size)) upperLeft = upperLeft.setType(location, size, type, presentTypes[1]);
         if (lowerLeft.intersects(location, size)) lowerLeft = lowerLeft.setType(location, size, type, presentTypes[2]);
         if (lowerRight.intersects(location, size)) lowerRight = lowerRight.setType(location, size, type, presentTypes[3]);
-        QuadNodeType nt = orTypes(totalPresentTypes);
+        T nt = orTypes(tree.values, totalPresentTypes);
         if (nt != null)
-            return LeafNode.create(x, y, w, h, nt, totalPresentTypes);
+            return LeafNode.create(tree, x, y, w, h, nt, totalPresentTypes);
         return this;
     }
 
     @Override
-    Set<LeafNode> collectNeighbors(HashSet<LeafNode> emptyNodes, QuadTreeNode node) {
+    Set<LeafNode<T>> collectNeighbors(HashSet<LeafNode<T>> emptyNodes, QuadTreeNode<T> node) {
         if (upperRight.intersects(node) || upperRight.neighbors(node)) upperRight.collectNeighbors(emptyNodes, node);
         if (upperLeft.intersects(node) || upperLeft.neighbors(node)) upperLeft.collectNeighbors(emptyNodes, node);
         if (lowerLeft.intersects(node) || lowerLeft.neighbors(node)) lowerLeft.collectNeighbors(emptyNodes, node);
@@ -48,15 +57,7 @@ class BranchNode extends QuadTreeNode {
     }
 
     @Override
-    void assignConnectivity(OneDUnionFind unionFind, NodeIndexer indexer, QuadTreeNode upper, QuadTreeNode lower, QuadTreeNode left, QuadTreeNode right) {
-        upperRight.assignConnectivity(unionFind, indexer, upper.getNodeIn(Subdivision.LowerRight), lowerRight, upperLeft, right.getNodeIn(Subdivision.UpperLeft));
-        upperLeft.assignConnectivity(unionFind, indexer, upper.getNodeIn(Subdivision.LowerLeft), lowerLeft, left.getNodeIn(Subdivision.UpperRight), upperRight);
-        lowerLeft.assignConnectivity(unionFind, indexer, upperLeft, lower.getNodeIn(Subdivision.UpperLeft), left.getNodeIn(Subdivision.LowerRight),  lowerRight);
-        lowerRight.assignConnectivity(unionFind, indexer, upperRight, lower.getNodeIn(Subdivision.UpperRight), lowerLeft, right.getNodeIn(Subdivision.LowerLeft));
-    }
-
-    @Override
-    QuadTreeNode getNodeIn(Subdivision subdivision) {
+    QuadTreeNode<T> getNodeIn(Subdivision subdivision) {
         switch (subdivision) {
             case UpperRight: return upperRight;
             case UpperLeft: return upperLeft;
@@ -67,7 +68,7 @@ class BranchNode extends QuadTreeNode {
     }
 
     @Override
-    QuadTreeNode getNode(int x, int y) {
+    QuadTreeNode<T> getNode(int x, int y) {
         if (upperRight.contains(x, y)) return upperRight.getNode(x, y);
         if (upperLeft.contains(x, y)) return upperLeft.getNode(x, y);
         if (lowerLeft.contains(x, y)) return lowerLeft.getNode(x, y);
@@ -90,7 +91,7 @@ class BranchNode extends QuadTreeNode {
     }
 
     @Override
-    public NodeTypeCounts count(NodeTypeCounts counts) {
+    public NodeTypeCounts<T> count(NodeTypeCounts<T> counts) {
         upperRight.count(counts);
         upperLeft.count(counts);
         lowerLeft.count(counts);
@@ -99,16 +100,65 @@ class BranchNode extends QuadTreeNode {
         return counts;
     }
 
-    private QuadNodeType orTypes(boolean[] totalPresentTypes) {
+    private T orTypes(T[] values, boolean[] totalPresentTypes) {
         int cnt = 0;
-        QuadNodeType t = null;
+        T t = null;
         for (int i = 0; i < totalPresentTypes.length; i++) {
             if (!(totalPresentTypes[i] = presentTypes[0][i] || presentTypes[1][i] || presentTypes[2][i] || presentTypes[3][i]))
                 continue;
             ++cnt;
-            t = QuadNodeType.values()[i];
+            t = values[i];
         }
         if (cnt != 1) return null;
         return t;
+    }
+
+
+    void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
+        writer.write("upper-right", upperRight, tree.nodeSerializer, options);
+        writer.write("upper-left", upperLeft, tree.nodeSerializer, options);
+        writer.write("lower-left", lowerLeft, tree.nodeSerializer, options);
+        writer.write("lower-right", lowerRight, tree.nodeSerializer, options);
+        writer.writeName("present-types");
+        write(writer, presentTypes);
+    }
+
+
+    public static <T extends Enum> BranchNode<T> finishParsing(
+            JsonReaderWrapperSpec reader, ReadOptions opts, int x, int y, int w, int h, QuadTree<T> tree) throws IOException {
+        QuadTreeNode<T> upperRight = reader.read("upper-right", tree.nodeSerializer, opts);
+        QuadTreeNode<T> upperLeft = reader.read("upper-left", tree.nodeSerializer, opts);
+        QuadTreeNode<T> lowerLeft = reader.read("lower-left", tree.nodeSerializer, opts);
+        QuadTreeNode<T> lowerRight = reader.read("lower-right", tree.nodeSerializer, opts);
+        reader.readName("present-types");
+        boolean[][] present = read(reader);
+        return new BranchNode<>(tree, x, y, w, h, upperRight, upperLeft, lowerLeft, lowerRight, present);
+    }
+
+
+    private static void write(JsonWriterWrapperSpec writer, boolean[][] bs) throws IOException {
+        writer.writeBeginDocument();
+        writer.write("w", bs.length);
+        writer.write("h", bs[0].length);
+        writer.writeBeginArray("values");
+        for (boolean[] b : bs)
+            for (boolean aB : b)
+                writer.write(aB);
+        writer.writeEndArray();
+        writer.writeEndDocument();
+    }
+
+    private static boolean[][] read(JsonReaderWrapperSpec reader) throws IOException {
+        reader.readBeginDocument();
+        int w = reader.readInt32("w");
+        int h = reader.readInt32("h");
+        boolean[][] ret = new boolean[w][h];
+        reader.readBeginArray("values");
+        for (int i = 0; i < ret.length; i++)
+            for (int j = 0; j < ret[i].length; j++)
+                ret[i][j] = reader.readBoolean();
+        reader.readEndArray();
+        reader.readEndDocument();
+        return ret;
     }
 }

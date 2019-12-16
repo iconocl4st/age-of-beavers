@@ -2,11 +2,10 @@ package common.factory;
 
 import common.algo.AStar;
 import common.algo.jmp_pnt.JumpPointSearch;
-import common.algo.quad.QuadTree;
+import common.algo.quad.OccupiedQuadTree;
 import common.algo.quad.RootFinder;
 import common.state.EntityReader;
 import common.state.Occupancy;
-import common.state.spec.EntitySpec;
 import common.state.spec.GameSpec;
 import common.state.sst.OccupancyView;
 import common.util.Bounds;
@@ -21,7 +20,7 @@ import java.util.Set;
 public abstract class PathFinder {
 
     private RootFinder rootFinder;
-    private QuadTree tree;
+    private OccupiedQuadTree tree;
 
     private static void checkNeighbor(OccupancyView occupancy, Set<Point> ret, Point tile, int dx, int dy) {
         if (occupancy.isOccupied(tile.x + dx, tile.y + dy)) {
@@ -180,7 +179,7 @@ public abstract class PathFinder {
         }
     }
 
-    public void setRootFinder(QuadTree tree, RootFinder rf) {
+    public void setRootFinder(OccupiedQuadTree tree, RootFinder rf) {
         this.tree = tree;
         rootFinder = rf;
     }

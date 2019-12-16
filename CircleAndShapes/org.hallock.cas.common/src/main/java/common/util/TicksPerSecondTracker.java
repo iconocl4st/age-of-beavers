@@ -7,6 +7,7 @@ public class TicksPerSecondTracker {
 
     private int ticksPerSecondIndex = 0;
     private final int[] ticksPerSecond;
+    public String lastAverage = "calculating";
 
     public TicksPerSecondTracker(int size) {
         ticksPerSecond = new int[size];
@@ -14,8 +15,8 @@ public class TicksPerSecondTracker {
 
     private double getAverageTicksPerSecond() {
         int sum = 0;
-        for (int i = 0; i < ticksPerSecond.length; i++) {
-            sum += ticksPerSecond[i];
+        for (int aTicksPerSecond : ticksPerSecond) {
+            sum += aTicksPerSecond;
         }
         return sum / (double) ticksPerSecond.length;
     }
@@ -34,10 +35,9 @@ public class TicksPerSecondTracker {
 
         String ret = null;
         if (ticksPerSecondIndex >= ticksPerSecond.length) {
-            ret = String.valueOf(getAverageTicksPerSecond());
+            ret = lastAverage = String.valueOf(getAverageTicksPerSecond());
             ticksPerSecondIndex = 0;
         }
-
         return ret;
     }
 }

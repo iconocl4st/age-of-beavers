@@ -2,6 +2,7 @@ package server.state;
 
 import client.ai.GaiaAi;
 import common.action.Action;
+import common.algo.quad.MarkedRectangle;
 import common.factory.PathFinder;
 import common.state.EntityId;
 import common.state.Player;
@@ -10,7 +11,7 @@ import common.state.los.LineOfSight;
 import common.state.spec.EntitySpec;
 import common.state.spec.GameSpec;
 import common.state.sst.GameState;
-import common.state.sst.manager.Textures;
+import common.state.sst.manager.Terrains;
 import common.state.sst.sub.*;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
@@ -22,6 +23,7 @@ import server.state.range.RangeEventManager;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 public class ServerGameState {
@@ -169,8 +171,11 @@ public class ServerGameState {
         for (EntityId entityId : state.entityManager.allKeys())
             addEntityTo(entityId, gs, los);
 
-        for (Textures.TileTexture texture : state.textures.textures.values()) {
-            gs.textures.textures.put(new Point(texture.x, texture.y), texture);
+        for (Iterator<MarkedRectangle<TerrainType>> it = state.textures.get(0, 0, state.gameSpec.width, state.gameSpec.height); it.hasNext(); ) {
+            MarkedRectangle<TerrainType> b = it.next();
+            if (b.type.equals(TerrainType.Sahara))
+                continue;
+            gs.textures.set(b.x, b.y, b.w, b.h, b.type);
         }
 
 //        gs.occupancyState.updateAll(this.state.occupancyState, los);

@@ -1,12 +1,11 @@
 package client.state;
 
-import common.algo.quad.QuadNodeType;
+import common.algo.quad.QuadTreeOccupancyState;
 import common.event.*;
 import common.msg.Message;
 import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.sst.sub.ConstructionZone;
-import common.state.sst.sub.GrowthInfo;
 import common.state.sst.sub.MovableEntity;
 
 public class ClientGameMessageHandler {
@@ -156,7 +155,7 @@ public class ClientGameMessageHandler {
                 Message.OccupancyChanged msg = (Message.OccupancyChanged) message;
                 context.gameState.staticOccupancy.set(msg.location, msg.size, msg.occupied);
                 context.gameState.buildingOccupancy.set(msg.location, msg.size, msg.construction);
-                context.quadTree.setType(msg.location, msg.size, msg.occupied ? QuadNodeType.Occupied : QuadNodeType.Empty);
+                context.quadTree.setType(msg.location, msg.size, msg.occupied ? QuadTreeOccupancyState.Occupied : QuadTreeOccupancyState.Empty);
             }
             break;
             default:

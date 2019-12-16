@@ -5,17 +5,13 @@ import client.gui.actions.unit_action.UnitToLocationAction;
 import client.gui.actions.unit_action.UnitToUnitAction;
 import client.gui.game.Command;
 import client.gui.game.Zoom;
-import common.state.EntityId;
+import client.gui.game.gl.GlListeners;
 import common.state.EntityReader;
 import common.util.DPoint;
 
-import java.awt.event.InputEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.Set;
 
-public class CommandListener implements MouseListener {
-    private final Zoom zoom;
+public class CommandListener implements GlListeners.GameMousePressListener {
     private final UiClientContext context;
 
     private final UnitToUnitAction[] toUnitActions;
@@ -23,8 +19,11 @@ public class CommandListener implements MouseListener {
 
     private Command currentCommand;
 
-    public CommandListener(Zoom zoom, UiClientContext context, UnitToUnitAction[] unitActions, UnitToLocationAction[] locationActions) {
-        this.zoom = zoom;
+    public CommandListener(
+            UiClientContext context,
+            UnitToUnitAction[] unitActions,
+            UnitToLocationAction[] locationActions
+    ) {
         this.context = context;
         this.toUnitActions = unitActions;
         this.locationActions = locationActions;
@@ -35,19 +34,8 @@ public class CommandListener implements MouseListener {
     }
 
     @Override
-    public void mouseClicked(MouseEvent mouseEvent) {
-
-    }
-
-    @Override
-    public void mousePressed(MouseEvent mouseEvent) {
-        boolean isRightClick = (mouseEvent.getModifiers() & InputEvent.BUTTON3_MASK) == InputEvent.BUTTON3_MASK;
-        boolean isLeftClick = (mouseEvent.getModifiers() & InputEvent.BUTTON1_MASK) == InputEvent.BUTTON1_MASK;
-
-        DPoint destination = new DPoint(
-                zoom.mapScreenToGameX(mouseEvent.getX()),
-                zoom.mapScreenToGameY(mouseEvent.getY())
-        );
+    public void mousePressed(double x, double y, GlListeners.PressInfo info) {
+        DPoint destination = new DPoint(x, y);
         Set<EntityReader> entities = context.clientGameState.gameState.locationManager.getEntities(
                 destination,
                 entity -> !entity.isHidden()
@@ -56,7 +44,7 @@ public class CommandListener implements MouseListener {
         if (entities.size() > 1) {
             return;
         }
-        if (isLeftClick) {
+        if (info.isLeftButton) {
             if (currentCommand == null)
                 return;
             if (entities.isEmpty())
@@ -64,21 +52,18 @@ public class CommandListener implements MouseListener {
             else
                 currentCommand.perform(entities.iterator().next());
             context.uiManager.gameScreen.clearCurrentCommand();
-            mouseEvent.consume();
             return;
         }
 
-        if (!isRightClick)
+        if (!info.isRightButton)
             return;
 
-        boolean handled = false;
         for (EntityReader entity : context.selectionManager.getSelectedUnits()) {
             if (entities.isEmpty()) {
                 for (UnitToLocationAction action : locationActions) {
                     if (!action.isEnabled(entity))
                         continue;
                     action.run(entity, destination);
-                    handled = true;
                     break;
                 }
             } else {
@@ -89,27 +74,12 @@ public class CommandListener implements MouseListener {
                     if (!action.canRunOn(entity, target))
                         continue;
                     action.run(entity, target);
-                    handled = true;
                     break;
                 }
             }
         }
-        if (handled)
-            mouseEvent.consume();
     }
 
     @Override
-    public void mouseReleased(MouseEvent mouseEvent) {
-
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent mouseEvent) {
-
-    }
-
-    @Override
-    public void mouseExited(MouseEvent mouseEvent) {
-
-    }
+    public void mouseReleased(double x, double y, GlListeners.PressInfo info) {}
 }
