@@ -66,9 +66,8 @@ public class GlRectangleListener implements MouseListener, MouseMotionListener {
 
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
-        if ((mouseEvent.getModifiers() & InputEvent.BUTTON1_MASK) != InputEvent.BUTTON1_MASK) {
+        if ((mouseEvent.getModifiers() & InputEvent.BUTTON1_MASK) != InputEvent.BUTTON1_MASK)
             return;
-        }
         synchronized (sync) {
             isSelecting = true;
             screenXBegin = mouseEvent.getX();
@@ -78,13 +77,15 @@ public class GlRectangleListener implements MouseListener, MouseMotionListener {
 
     @Override
     public void mouseReleased(MouseEvent mouseEvent) {
+        if ((mouseEvent.getModifiers() & InputEvent.BUTTON1_MASK) != InputEvent.BUTTON1_MASK)
+            return;
         if (!isSelecting || !hasDragged) return;
         synchronized (sync) {
             if (!isSelecting || !hasDragged) return;
             double xBegin = Math.min(gameXBegin, gameXCurrent);
             double yBegin = Math.min(gameYBegin, gameYCurrent);
             double xEnd = Math.max(gameXBegin, gameXCurrent);
-            double yEnd = Math.min(gameYBegin, gameYCurrent);
+            double yEnd = Math.max(gameYBegin, gameYCurrent);
             reset();
             notifyListeners(xBegin, yBegin, xEnd, yEnd);
         }
@@ -101,6 +102,8 @@ public class GlRectangleListener implements MouseListener, MouseMotionListener {
 
     @Override
     public void mouseDragged(MouseEvent mouseEvent) {
+        if ((mouseEvent.getModifiers() & InputEvent.BUTTON1_MASK) != InputEvent.BUTTON1_MASK)
+            return;
         if (!isSelecting) return;
         synchronized (sync) {
             if (!isSelecting) return;

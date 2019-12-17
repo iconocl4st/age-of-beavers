@@ -7,7 +7,7 @@ public class MainWindow {
     private final UiManager uiManager;
 
     public JPanel panel1;
-    private Component gamePanel;
+    private JPanel gamePanel;
     private JPanel buildingPlacer;
     private JPanel lowerPanel;
     private JToolBar toolbar;
@@ -15,23 +15,23 @@ public class MainWindow {
     private JSplitPane mainSplitPane;
     private JSplitPane upperSplitPane;
 
-    public MainWindow(UiManager uiManager) {
+    MainWindow(UiManager uiManager) {
         this.uiManager = uiManager;
     }
 
-    public void show(String string) {
+    void show(String string) {
         logConsole.setText(string);
     }
 
-    public void updateSplitPaneDividers() {
+    void updateSplitPaneDividers() {
         int h1 = mainSplitPane.getHeight();
         mainSplitPane.setDividerLocation(8 * h1 / 10);
 
         int h2 = upperSplitPane.getWidth();
-        upperSplitPane.setDividerLocation(8 * h2 / 10);
+        upperSplitPane.setDividerLocation(9 * h2 / 10);
     }
 
-    public void addBottom() {
+    void addBottom() {
         lowerPanel.setLayout(new GridLayout(1, 0));
         lowerPanel.add(uiManager.minimap);
         lowerPanel.add(uiManager.selectedUnitsBrowser);
@@ -41,7 +41,17 @@ public class MainWindow {
     }
 
     private void createUIComponents() {
-        gamePanel = uiManager.gameScreen.getCanvas();
+        gamePanel = new JPanel();
+        gamePanel.setLayout(new GridLayout(0, 1));
         buildingPlacer = uiManager.demandsView;
+    }
+
+    void setGamePanel(Component component) {
+        gamePanel.removeAll();
+        gamePanel.add(component);
+        gamePanel.setPreferredSize(new Dimension(1, 1));
+        gamePanel.setMinimumSize(new Dimension(1, 1));
+        gamePanel.revalidate();
+        gamePanel.repaint();
     }
 }

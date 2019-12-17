@@ -25,6 +25,9 @@ public class SelectionListener implements GlListeners.GameMousePressListener, Gl
 
     @Override
     public void mousePressed(double x, double y, GlListeners.PressInfo info) {
+        if (info.isMiddleButton || info.isRightButton)
+            return;
+
         DPoint destination = new DPoint(x, y);
         Set<EntityReader> entities = context.clientGameState.gameState.locationManager.getEntities(
                 destination,

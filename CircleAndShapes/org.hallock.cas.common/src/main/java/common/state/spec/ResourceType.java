@@ -8,7 +8,7 @@ import java.util.Comparator;
 
 public class ResourceType {
     public final String name;
-    public int weight;
+    public final int weight;
     public EntitySpec growsInto;
     public int ordinal;
 

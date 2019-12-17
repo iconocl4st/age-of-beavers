@@ -18,9 +18,6 @@ public interface GlListeners {
         public final boolean isShift;
         public final int clickCount;
 
-        // is control...
-        // is shift...
-
         PressInfo(boolean isLeftPress, boolean isMiddlePress, boolean isRightPress, boolean isControl, boolean isShift, int clickCount) {
             this.isLeftButton = isLeftPress;
             this.isMiddleButton = isMiddlePress;

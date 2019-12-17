@@ -68,12 +68,12 @@ public class SpecTree<T> {
 
         protected boolean isNotEmpty() {
             for (SpecNode n : children.values())
-                if (!n.isNotEmpty()) return true;
+                if (n.isNotEmpty()) return true;
             return false;
         }
 
         protected SpecNode<T> get(String[] path, int i) {
-            if (i == path.length - 1) return this;
+            if (i >= path.length - 1) return this;
             return children.get(path[i]).get(path, i + 1);
         }
 
@@ -190,7 +190,7 @@ public class SpecTree<T> {
             public SpecNodeReference parse(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
                 reader.readBeginDocument();
                 EntitySpec entity = reader.read("entity", EntitySpec.Serializer, spec);
-                String[] path = reader.read("index", new String[0], DataSerializer.StringSerializer, spec);
+                String[] path = reader.read("path", new String[0], DataSerializer.StringSerializer, spec);
                 reader.readEndDocument();
                 return new SpecNodeReference(entity, path);
             }

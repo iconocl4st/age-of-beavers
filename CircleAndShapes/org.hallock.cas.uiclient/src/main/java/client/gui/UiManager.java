@@ -49,7 +49,11 @@ public class UiManager {
         mainWindowFrame.setVisible(true);
         minimap.setGameSpec(spec);
         mainWindow.updateSplitPaneDividers();
-        gameScreen.initialize(spec, playerLocation);
+
+        gameScreen = GlGameScreen.createGlGameScreen(context, spec, playerLocation);
+        gameScreen.contextKeyListener.addContextKeyListener(context.actionQueuer);
+        mainWindow.setGamePanel(gameScreen.getCanvas());
+        gameScreen.startAnimating();
     }
 
     public void displayLobbyBrowser() {
@@ -79,7 +83,7 @@ public class UiManager {
         manager.mainWindowFrame.setFocusTraversalKeysEnabled(false);
 
         manager.minimap = Minimap.createMinimap(context);
-        manager.gameScreen = GlGameScreen.createGlGameScreen(context);
+        // TODO: Cannot be done until we have a spec...
         manager.lobbyBrowser = new LobbyBrowser(context);
         manager.selectedUnitsBrowser = SelectedUnits.createSelectedUnits(context);
         manager.demandsView = DemandsView.createDemandsView(reader -> {
@@ -93,8 +97,8 @@ public class UiManager {
         manager.lobbyFrame.setBounds(50, 50, 500, 500);
         manager.lobbyFrame.setContentPane(manager.lobbyBrowser.getMainPanel());
 
-        manager.mainWindowFrame.setSize(new Dimension(800, 800));
-//        manager.mainWindowFrame.setBounds(50, 50, 5000, 1000);
+//        manager.mainWindowFrame.setSize(new Dimension(800, 800));
+        manager.mainWindowFrame.setBounds(50, 50, 2000, 1000);
 
         manager.mainWindowFrame.setContentPane(manager.mainWindow.panel1);
         manager.mainWindow.addBottom();

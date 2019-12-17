@@ -75,9 +75,9 @@ public class GlPressListener implements MouseListener {
 
     private GlListeners.PressInfo getInfo(MouseEvent mouseEvent) {
         return new GlListeners.PressInfo(
-                (mouseEvent.getModifiers() & InputEvent.BUTTON1_MASK) != InputEvent.BUTTON1_MASK,
-                (mouseEvent.getModifiers() & InputEvent.BUTTON2_MASK) != InputEvent.BUTTON2_MASK,
-                (mouseEvent.getModifiers() & InputEvent.BUTTON3_MASK) != InputEvent.BUTTON3_MASK,
+                (mouseEvent.getModifiers() & InputEvent.BUTTON1_MASK) == InputEvent.BUTTON1_MASK,
+                (mouseEvent.getModifiers() & InputEvent.BUTTON2_MASK) == InputEvent.BUTTON2_MASK,
+                (mouseEvent.getModifiers() & InputEvent.BUTTON3_MASK) == InputEvent.BUTTON3_MASK,
                 contextKeys.containsKey(KeyEvent.VK_CONTROL),
                 contextKeys.containsKey(KeyEvent.VK_SHIFT),
                 mouseEvent.getClickCount()

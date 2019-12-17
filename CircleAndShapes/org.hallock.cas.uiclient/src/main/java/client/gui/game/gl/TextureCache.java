@@ -5,6 +5,8 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureIO;
 import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
+import common.state.spec.EntitySpec;
+import common.state.spec.GameSpec;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -20,26 +22,26 @@ class TextureCache {
         this.profile = profile;
     }
 
-    private Texture loadTexture(String path, GL2 gl) {
+    private void loadTexture(String path) {
         try {
-//            BufferedImage image = ImageIO.read(new File("./images/" + path));
-//            BufferedImage image = ImageIO.read(new File("/home/thallock/Documents/Idea/age-of-beavers/CircleAndShapes/images/res/gold.png"));
-//            Texture texture = AWTTextureIO.newTexture(profile, image, true);
-
-            Texture texture = TextureIO.newTexture(new File("/home/thallock/Documents/Idea/age-of-beavers/CircleAndShapes/images/res/gold.png"), true);
-            texture.enable(gl);
-            return texture;
+            Texture texture = TextureIO.newTexture(new File("images/" + path), true);
+            textures.put(path, texture);
         } catch (Exception e) {
             System.out.println("Unable to read " + path);
             // return default question mark image or something...
             e.printStackTrace();
             System.exit(-1);
-            return null;
         }
     }
 
-    Texture getTexture(String path, GL2 gl) {
-        return textures.computeIfAbsent(path, ignore -> loadTexture(path,  gl));
+    Texture getTexture(String path) {
+        return textures.get(path);
     }
 
+    void loadTextures(GameSpec spec) {
+        textures.clear();
+        for (EntitySpec entitySpec : spec.unitSpecs) {
+            loadTexture(entitySpec.graphicsImage);
+        }
+    }
 }

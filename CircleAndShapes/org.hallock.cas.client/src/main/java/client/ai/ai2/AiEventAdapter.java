@@ -53,6 +53,9 @@ public abstract class AiEventAdapter {
             case ProductionComplete:
                 ProductionComplete productionComplete = (ProductionComplete) event;
                 return productionComplete(aiContext, new EntityReader(aiContext.clientGameState.gameState, productionComplete.created));
+            case UnitCreated:
+            case UnitRemoved:
+                return AiAttemptResult.NothingDone;
             default:
                 throw new RuntimeException("Unhandled event type: " + event.type);
         }

@@ -25,6 +25,7 @@ public class ZLevels {
     public static final double Z_DEBUG_KMEANS = Z_LEVEL += Z_INC;
     public static final double Z_DEBUG_TERRAIN = Z_LEVEL += Z_INC;
     public static final double Z_VISIBILITY = Z_LEVEL += Z_INC;
+    public static final double Z_SELECTING = Z_LEVEL += Z_INC;
     public static final double Z_FPS = Z_LEVEL += Z_INC;
 
 

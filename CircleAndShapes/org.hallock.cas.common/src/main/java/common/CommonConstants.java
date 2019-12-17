@@ -11,5 +11,5 @@ public class CommonConstants {
     public static final boolean PAINT_LOS_RECTANGLES = true;
     public static final boolean PAINT_FPS = true;
     public static final String IMAGE_DIRECTORY = "/home/thallock/Documents/Idea/age-of-beavers/CircleAndShapes/images";
-    public static final boolean DEBUG_TERRAIN = true;
+    public static final boolean DEBUG_TERRAIN = false;
 }

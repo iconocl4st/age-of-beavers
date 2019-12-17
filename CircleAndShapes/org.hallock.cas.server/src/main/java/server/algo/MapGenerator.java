@@ -18,10 +18,7 @@ import server.state.ServerStateManipulator;
 import server.util.IdGenerator;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Random;
+import java.util.*;
 
 public class MapGenerator {
 
@@ -57,19 +54,19 @@ public class MapGenerator {
         return min;
     }
 
-    private UnionFind2d createUnionFind() {
+    private UnionFind2d createUnionFind(TwoDMapper mapper) {
         int w = gameState.state.gameSpec.width;
         int h = gameState.state.gameSpec.height;
         OccupancyView occupancy = Occupancy.createGenerationOccupancy(gameState.state);
-        UnionFind2d unionFind = new UnionFind2d(w, h);
-        for (int i = 0; i < w; i++) {
-            for (int j = 0; j < h; j++) {
+        UnionFind2d unionFind = new UnionFind2d(mapper.maxX() - mapper.minX(), mapper.maxY() - mapper.minY());
+        for (int i = mapper.minX(); i < mapper.maxX(); i++) {
+            for (int j = mapper.minY(); j < mapper.maxY(); j++) {
                 if (occupancy.isOccupied(i, j))
                     continue;
                 if (i + 1 < w && !occupancy.isOccupied(i+1, j))
-                    unionFind.connect(i, j, i + 1, j);
+                    unionFind.connect(mapper.mapX(i), mapper.mapY(j), mapper.mapX(i + 1), mapper.mapY(j));
                 if (j + 1 < h && !occupancy.isOccupied(i, j+1))
-                    unionFind.connect(i, j, i, j + 1);
+                    unionFind.connect(mapper.mapX(i), mapper.mapY(j), mapper.mapX(i), mapper.mapY(j + 1));
             }
         }
         return unionFind;
@@ -89,36 +86,68 @@ public class MapGenerator {
 
     void generateResources() {
         OccupancyView occupancy = Occupancy.createGenerationOccupancy(gameState.state);
+
+        TreeSet<Point> farEnoughAway = new TreeSet<>((p1, p2) -> {
+            int compare = Integer.compare(p1.x, p2.x);
+            if (compare != 0) return compare;
+            return Integer.compare(p1.y, p2.y);
+        });
+        try (P ignore = profiler.time("creating possible points")) {
+            for (int i = 0; i < spec.width; i++) {
+                for (int j = 0; j < spec.height; j++) {
+                    if (occupancy.isOccupied(i, j))
+                        continue;
+                    if (distanceToPlayer(i, j) < 1.5 * MIN_DISTANCE_TO_PLAYER)
+                        continue;
+                    farEnoughAway.add(new Point(i, j));
+                }
+            }
+        }
         for (GenerationSpec.ResourceGen rg : spec.generationSpec.resources) {
             if (rg == null) {
                 throw new RuntimeException("Unable to find resource.");
             }
-            for (int batch = 0; batch < rg.numberOfPatches; batch++) {
+            try (P ignore = profiler.time(rg.type.name)) {
+                for (int batch = 0; batch < rg.numberOfPatches; batch++) {
+                    Point startingPoint = null;
+                    while (startingPoint == null) {
+                        startingPoint = farEnoughAway.ceiling(new Point(random.nextInt(spec.width), random.nextInt(spec.height)));
+                    }
 
-                Point startingPoint;
-                do {
-                    startingPoint = getRandomLocation().toPoint();
-                } while (occupancy.isOccupied(startingPoint.x, startingPoint.y) || distanceToPlayer(startingPoint.x, startingPoint.y) < 1.5 * MIN_DISTANCE_TO_PLAYER);
+                    if (occupancy.isOccupied(startingPoint.x, startingPoint.y) || distanceToPlayer(startingPoint.x, startingPoint.y) < 1.5 * MIN_DISTANCE_TO_PLAYER) {
+                        throw new RuntimeException("Should not be able to happen");
+                    }
 
+                    farEnoughAway.remove(startingPoint);
 
-                generatePatch(occupancy, rg, startingPoint, true);
+                    try (P p = profiler.time("patch")) {
+                        generatePatch(occupancy, rg, startingPoint, true, farEnoughAway);
+                    }
+                }
             }
         }
     }
 
 
 
-    private void generatePatch(OccupancyView occupancy, GenerationSpec.ResourceGen rg, Point startingPoint, boolean avoidPlayers) {
+    private void generatePatch(OccupancyView occupancy, GenerationSpec.ResourceGen rg, Point startingPoint, boolean avoidPlayers, Set<Point> farEnoughAway) {
         HashSet<Point> horizon = new HashSet<>();
         horizon.add(startingPoint);
 
         for (int tile = 0; tile < rg.patchSize && !horizon.isEmpty(); tile++) {
-            Point next = pickRandomElement(horizon);
+            Point next;
+            try (P ignore = profiler.time("getting next");) {
+                next = pickRandomElement(horizon);
+            }
             if (next == null) // ran out of room
                 break;
 
-            ssm.createUnit(idGenerator.generateId(), rg.type, new EvolutionSpec(rg.type), new DPoint(next), Player.GAIA);
+            if (farEnoughAway != null)
+                farEnoughAway.remove(next);
 
+            try (P ignore = profiler.time("Getting random element");) {
+                ssm.createUnit(idGenerator.generateId(), rg.type, new EvolutionSpec(rg.type), new DPoint(next), Player.GAIA);
+            }
 
             int R;
             switch (rg.type.name) {
@@ -131,35 +160,39 @@ public class MapGenerator {
                 default:
                     R = -1;
             }
-            if (R > 0) {
-                gameState.state.textures.set(next.x, next.y, TerrainType.Grass);
-                for (int i = -R; i <= R; i++) {
-                    for (int j = -R; j <= R; j++) {
-                        if (next.x + i >= spec.width || next.x + i < 0 || next.y + j >= spec.height || next.y + j < 0)
-                            continue;
-                        if (Math.random() < 0.5 && new DPoint(next).distanceTo(new DPoint(next.x + i, next.y + j)) < R)
-                            gameState.state.textures.set(
-                                    next.x + i,
-                                    next.y + j,
-                                    TerrainType.Grass
-                            );
+            // Currently the most expensive...
+            try (P ignore = profiler.time("setting terrain");) {
+                if (R > 0) {
+                    gameState.state.textures.set(next.x, next.y, TerrainType.Grass);
+                    for (int i = -R; i <= R; i++) {
+                        for (int j = -R; j <= R; j++) {
+                            if (next.x + i >= spec.width || next.x + i < 0 || next.y + j >= spec.height || next.y + j < 0)
+                                continue;
+                            if (Math.random() < 0.5 && new DPoint(next).distanceTo(new DPoint(next.x + i, next.y + j)) < R)
+                                gameState.state.textures.set(
+                                        next.x + i,
+                                        next.y + j,
+                                        TerrainType.Grass
+                                );
+                        }
                     }
                 }
             }
-
-            for (int dx=-1; dx<2; dx++) {
-                for (int dy = -1; dy<2; dy++) {
-                    if (dx == 0 && dy == 0)
-                        continue;
-                    if (next.x + dx < 0 || next.y + dy < 0)
-                        continue;
-                    if (next.x + dx >= spec.width || next.y + dy >= spec.height)
-                        continue;
-                    if (occupancy.isOccupied(next.x + dx, next.y +  dy))
-                        continue;
-                    if (avoidPlayers && distanceToPlayer(next.x + dx, next.y + dy) < MIN_DISTANCE_TO_PLAYER)
-                        continue;
-                    horizon.add(new Point(next.x + dx, next.y + dy));
+            try (P ignore = profiler.time("adding to horizon");) {
+                for (int dx = -1; dx < 2; dx++) {
+                    for (int dy = -1; dy < 2; dy++) {
+                        if (dx == 0 && dy == 0)
+                            continue;
+                        if (next.x + dx < 0 || next.y + dy < 0)
+                            continue;
+                        if (next.x + dx >= spec.width || next.y + dy >= spec.height)
+                            continue;
+                        if (occupancy.isOccupied(next.x + dx, next.y + dy))
+                            continue;
+                        if (avoidPlayers && distanceToPlayer(next.x + dx, next.y + dy) < MIN_DISTANCE_TO_PLAYER)
+                            continue;
+                        horizon.add(new Point(next.x + dx, next.y + dy));
+                    }
                 }
             }
         }
@@ -176,12 +209,12 @@ public class MapGenerator {
         return next;
     }
 
-    private DPoint getFreeLocation(Util.SpiralIterator iterator, Dimension size, DPoint close, double maxDistance, UnionFind2d unionFind) {
+    private DPoint getFreeLocation(Util.SpiralIterator iterator, Dimension size, DPoint close, double maxDistance, UnionFind2d unionFind, TwoDMapper mapper) {
         Point p2 = close.toPoint();
         OccupancyView generationOccupancy = Occupancy.createGenerationOccupancy(gameState.state);
         while (iterator.getRadius() < maxDistance) {
             Point p1 = Util.getSpaceForBuilding(iterator, size, generationOccupancy, spec.width, 4);
-            if (!unionFind.areConnected(p1.x, p1.y, p2.x, p2.y))
+            if (!unionFind.areConnected(mapper.mapX(p1.x), mapper.mapY(p1.y), mapper.mapX(p2.x), mapper.mapY(p2.y)))
                 continue;
             return new DPoint(p1);
         }
@@ -214,38 +247,44 @@ public class MapGenerator {
     }
 
     private void generatePlayers(int numPlayers) {
-        OccupancyView occupancy = Occupancy.createGenerationOccupancy(gameState.state);
-        for (int p = 0; p < numPlayers; p++) {
-            DPoint playerLocation = new DPoint(playerLocations[p]);
-            for (GenerationSpec.ResourceGen rGen : spec.generationSpec.perPlayerResources) {
-                for (int i = 0; i < rGen.numberOfPatches; i++) {
-                    generatePatch(
-                            occupancy,
-                            rGen,
-                            getFreeLocation(rGen.type.size, playerLocation, 4,  MIN_DISTANCE_TO_PLAYER).toPoint(),
-                            false
-                    );
+        try (P ignore = profiler.time("player resources")) {
+            OccupancyView occupancy = Occupancy.createGenerationOccupancy(gameState.state);
+            for (int p = 0; p < numPlayers; p++) {
+                DPoint playerLocation = new DPoint(playerLocations[p]);
+                for (GenerationSpec.ResourceGen rGen : spec.generationSpec.perPlayerResources) {
+                    for (int i = 0; i < rGen.numberOfPatches; i++) {
+                        generatePatch(
+                                occupancy,
+                                rGen,
+                                getFreeLocation(rGen.type.size, playerLocation, 4, MIN_DISTANCE_TO_PLAYER).toPoint(),
+                                false,
+                                null
+                        );
+                    }
                 }
             }
         }
 
-        UnionFind2d unionFind = createUnionFind();
-        for (int p = 0; p < numPlayers; p++) {
-            DPoint playerLocation = new DPoint(playerLocations[p]);
-            Util.SpiralIterator spiralIterator = new Util.SpiralIterator(playerLocations[p]);
-            Player player = new Player(p + 1);
-            for (GenerationSpec.UnitGen uGen : spec.generationSpec.perPlayerUnits) {
-                for (int i = 0; i < uGen.number; i++) {
-                    EntityId generatedId = idGenerator.generateId();
-                    ssm.createUnit(
-                            generatedId,
-                            uGen.type,
-                            new EvolutionSpec(uGen.type),
-                            getFreeLocation(spiralIterator, uGen.type.size, playerLocation, MIN_DISTANCE_TO_PLAYER, unionFind),
-                            player
-                    );
-                    gameState.startingUnits.get(p).add(generatedId);
-                    // TODO: make it explored, at least...
+        try (P ignore = profiler.time("player units")) {
+            for (int p = 0; p < numPlayers; p++) {
+                DPoint playerLocation = new DPoint(playerLocations[p]);
+                TwoDMapper mapper = new TwoDMapper(playerLocation, MIN_DISTANCE_TO_PLAYER, spec.width, spec.height);
+                UnionFind2d unionFind = createUnionFind(mapper);
+                Util.SpiralIterator spiralIterator = new Util.SpiralIterator(playerLocations[p]);
+                Player player = new Player(p + 1);
+                for (GenerationSpec.UnitGen uGen : spec.generationSpec.perPlayerUnits) {
+                    for (int i = 0; i < uGen.number; i++) {
+                        EntityId generatedId = idGenerator.generateId();
+                        ssm.createUnit(
+                                generatedId,
+                                uGen.type,
+                                new EvolutionSpec(uGen.type),
+                                getFreeLocation(spiralIterator, uGen.type.size, playerLocation, MIN_DISTANCE_TO_PLAYER, unionFind, mapper),
+                                player
+                        );
+                        gameState.startingUnits.get(p).add(generatedId);
+                        // TODO: make it explored, at least...
+                    }
                 }
             }
         }

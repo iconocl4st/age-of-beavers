@@ -90,7 +90,5 @@ public class BuildingPlacer implements GlListeners.GameMousePressListener {
     }
 
     @Override
-    public void mouseReleased(double x, double y, GlListeners.PressInfo info) {
-
-    }
+    public void mouseReleased(double x, double y, GlListeners.PressInfo info) {}
 }

@@ -31,8 +31,8 @@ public class SelectedListener implements KeyListener {
                 break;
             case KeyEvent.VK_DELETE:
                 // delete the selected units...
+                System.out.println("TODO: Delete this unit...");
              default:
-                 System.out.println("here");
         }
     }
 

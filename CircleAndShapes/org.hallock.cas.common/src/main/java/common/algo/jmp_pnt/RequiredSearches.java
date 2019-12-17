@@ -1,6 +1,7 @@
+
 package common.algo.jmp_pnt;
 
-public class RequiredSearches {
+class RequiredSearches {
     int[] dxs = new int[8];
     int[] dys = new int[8];
     int numSearches;
@@ -56,7 +57,7 @@ public class RequiredSearches {
                 case BLOCKED:
                     break;
                 case GOAL:
-                    System.out.println("here.");
+                    System.out.println("here. q12351235123");
                 default:
                     throw new IllegalStateException(type.name());
             }

@@ -22,9 +22,20 @@ class WindowStack {
         JTabbedPane tPane = new JTabbedPane();
         tPane.addTab("Editor",  top);
 
-        tPane.addTab("Preview", new JScrollPane(preview));
+        JPanel p;
+        {
+            p = new JPanel();
+            p.setLayout(new GridLayout(0, 1));
+            p.add(new JScrollPane(preview));
+            tPane.addTab("Preview", p);
+        }
 
-        tPane.addTab("Errors", new JScrollPane(errorsView));
+        {
+            p = new JPanel();
+            p.setLayout(new GridLayout(0, 1));
+            p.add(new JScrollPane(errorsView));
+            tPane.addTab("Errors", p);
+        }
 
         parent.add(tPane);
         pLayout.setPosition(tPane, new Rectangle2D.Double(0, 0.1, 1d, 0.9));

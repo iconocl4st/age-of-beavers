@@ -42,16 +42,19 @@ public class Profiler {
         }
     }
 
-    private StringBuilder report(CallTracker node, String name, double parentsTime, int depth, StringBuilder builder) {
+    private StringBuilder report(CallTracker node, String name, double parentsTime, int numberOfTimesParentCalled, int depth, StringBuilder builder) {
         double time = node.avgTime();
         for (int i = 0; i < depth; i++)
             builder.append('\t');
         builder.append(name);
         if (!Double.isNaN(time)) {
-            builder.append(": ").append(String.format("%.4f", time));
-            if (parentsTime > 1e-5)
-                builder.append(' ').append(String.format("%.2f", 100 * time / parentsTime)).append("%");
+            builder.append(": avg=").append(String.format("%.4f", time));
             builder.append(" max: ").append(String.format("%.2f", node.maxTimeTaken * 1e-6));
+            builder.append(" count=").append(node.count);
+            double averageNumberOfTimeCalled = node.count / (double) numberOfTimesParentCalled;
+            builder.append(" avg total=").append(String.format("%.4f", averageNumberOfTimeCalled * time));
+            if (parentsTime > 1e-5)
+                builder.append(' ').append(String.format("%.2f", 100 * averageNumberOfTimeCalled * time / parentsTime)).append("%");
         }
         builder.append('\n');
 
@@ -62,13 +65,13 @@ public class Profiler {
         entries.sort(ENTRY_CMP.reversed());
 
         for (Map.Entry<String, CallTracker> childEntry : entries)
-            report(childEntry.getValue(), childEntry.getKey(), time, depth + 1, builder);
+            report(childEntry.getValue(), childEntry.getKey(), time, node.count, depth + 1, builder);
         return builder;
     }
 
     public String report() {
         synchronized (sync) {
-            return report(root, name, -1, 0, new StringBuilder()).toString();
+            return report(root, name, -1, 0, 0, new StringBuilder()).toString();
         }
     }
 

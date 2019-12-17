@@ -17,7 +17,7 @@ public class ProportionalLayout implements ComponentListener, LayoutManager {
     int w;
     int h;
 
-    public ProportionalLayout(Container parent) {
+    ProportionalLayout(Container parent) {
         parent.setLayout(null);
         parent.addComponentListener(this);
         w = parent.getWidth();
@@ -25,7 +25,7 @@ public class ProportionalLayout implements ComponentListener, LayoutManager {
         this.parent = parent;
     }
 
-    public void setPosition(Container c, Rectangle2D position) {
+    void setPosition(Container c, Rectangle2D position) {
         removeLayoutComponent(c);
         Child child = new Child();
         child.container = c;
@@ -33,7 +33,7 @@ public class ProportionalLayout implements ComponentListener, LayoutManager {
         children.add(child);
     }
 
-    public void setPositions() {
+    void setPositions() {
         for (Child child : children) {
             layoutContainer(child);
         }
@@ -96,7 +96,13 @@ public class ProportionalLayout implements ComponentListener, LayoutManager {
 
     @Override
     public void layoutContainer(Container container) {
-        layoutContainer(get(container));
+        if (container.equals(parent)) {
+            parent.setMinimumSize(new Dimension(1, 1));
+            parent.setPreferredSize(new Dimension(1, 1));
+            setPositions();
+        } else {
+            layoutContainer(get(container));
+        }
     }
 
     private void layoutContainer(Child child) {

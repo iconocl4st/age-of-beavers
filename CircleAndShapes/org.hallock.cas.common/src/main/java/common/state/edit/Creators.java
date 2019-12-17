@@ -918,6 +918,9 @@ class Creators {
         }
 
         void fill(Interfaces.CreationContext cntxt) {
+            EntitySpec unitType = cntxt.getUnitType(name);
+            unitType.canCreate = canCreate.create(cntxt);
+            unitType.canCraft = canCraft.create(cntxt);
         }
 
         static EntityCreator NoEntity = new EntityCreator("none");
@@ -1055,7 +1058,8 @@ class Creators {
             for (ResourceCreator resource : resources)
                 resource.fill(cntxt);
             for (EntityCreator entity : entities)
-                entity.fill(cntxt);
+                if (entity.isExported.get())
+                    entity.fill(cntxt);
 
             ArrayList<WeaponSpec>  weaponsList = new ArrayList<>(weapons.size());
             for (WeaponSpecCreator weapon : weapons)
@@ -1134,9 +1138,8 @@ class Creators {
         }
 
         void fill(Interfaces.CreationContext cntxt) {
-            if (growsInto.reference != null) {
-
-            }
+            ResourceType unitType = cntxt.getResourceType(name);
+            unitType.growsInto = growsInto.create(cntxt);
         }
 
         @Override

@@ -32,8 +32,8 @@ public class EntitySpec {
     public final Color minimapColor;
 
     // immutable versions?
-    public final SpecTree<CreationSpec> canCreate = new SpecTree<>();
-    public final SpecTree<CraftingSpec> canCraft = new SpecTree<>();
+    public /* final */ SpecTree<CreationSpec> canCreate = new SpecTree<>();
+    public /* final */ SpecTree<CraftingSpec> canCraft = new SpecTree<>();
 
     public final List<EntitySpec> dropOnDeath = new LinkedList<>();
 

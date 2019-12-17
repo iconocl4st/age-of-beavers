@@ -13,12 +13,14 @@ import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureCoords;
+import common.state.spec.GameSpec;
 import common.util.Profiler;
 import common.util.TicksPerSecondTracker;
 
 import java.awt.*;
 
 class GlPainter implements GLEventListener {
+    // to see the traces, use -Djogl.debug.DebugGL, -Djogl.debug.TraceGL
 
     private final GlRectangleListener recListener;
     private final GlPressListener pressListener;
@@ -26,6 +28,7 @@ class GlPainter implements GLEventListener {
     private final MapToScreenContext mapContext;
     private final Profiler profiler;
     private final BuildingPlacer placer;
+    private final GameSpec spec;
 
     private GLU glu;
     private TextRenderer textRenderer;
@@ -33,11 +36,12 @@ class GlPainter implements GLEventListener {
     private GlZoom glZoom;
     private GlRenderer renderer;
 
-    GamePainter.RenderContext renderContext;
+    private final GamePainter.RenderContext renderContext;
     private TicksPerSecondTracker tracker = new TicksPerSecondTracker(2);
 
     private int mouseX;
     private int mouseY;
+
 
     GlPainter(
             TextureCache textureCache,
@@ -46,7 +50,9 @@ class GlPainter implements GLEventListener {
             GlPressListener pressListener,
             GlZoomListener zoomListener,
             Profiler profiler,
-            BuildingPlacer placer
+            BuildingPlacer placer,
+            GameSpec spec,
+            GamePainter.RenderContext renderContext
     ) {
         this.textureCache = textureCache;
         this.glZoom = glZoom;
@@ -56,66 +62,84 @@ class GlPainter implements GLEventListener {
         this.zoomListener = zoomListener;
         this.profiler = profiler;
         this.placer = placer;
+        this.spec = spec;
+        this.renderContext = renderContext;
     }
 
     @Override
     public void init(GLAutoDrawable drawable) {
-        GL2 gl = drawable.getGL().getGL2();
-        glu = new GLU();
-        gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        gl.glClearDepth(1.0f);
-        gl.glEnable(GL.GL_DEPTH_TEST);
-        gl.glDepthFunc(GL.GL_LEQUAL);
-        gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL.GL_NICEST); // best perspective correction
-        gl.glShadeModel(GL2.GL_SMOOTH); // blends colors nicely, and smoothes out lighting
+        try {
+            GL2 gl = drawable.getGL().getGL2();
+            glu = new GLU();
+            gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            gl.glClearDepth(1.0f);
+            gl.glEnable(GL.GL_DEPTH_TEST);
+            gl.glDepthFunc(GL.GL_LEQUAL);
+            gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL.GL_NICEST); // best perspective correction
+            gl.glShadeModel(GL2.GL_SMOOTH); // blends colors nicely, and smoothes out lighting
 
-        textRenderer = new TextRenderer(new Font("SansSerif", Font.BOLD, 36));
-        textRenderer.setColor(Color.pink);
+            textRenderer = new TextRenderer(new Font("SansSerif", Font.BOLD, 36));
+            textRenderer.setColor(Color.RED);
 
-        renderer = new GlRenderer();
+            renderer = new GlRenderer();
 
-        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_LINEAR);
+            gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_LINEAR);
 
-        // ----- Your OpenGL initialization code here -----
+            if (spec != null) {
+                textureCache.loadTextures(spec);
+            }
+        } catch (Throwable t) {
+            System.out.println("==============================================================================");
+            System.out.println("Exception in init");
+            t.printStackTrace();
+            throw t;
+        }
     }
 
     @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        synchronized (glZoom.sync) {
-            GL2 gl = drawable.getGL().getGL2();  // get the OpenGL 2 graphics context
-            if (height == 0) height = 1;
+        try {
+            synchronized (glZoom.sync) {
+                GL2 gl = drawable.getGL().getGL2();  // get the OpenGL 2 graphics context
+                if (height == 0) height = 1;
 
-            glZoom.aspect = width / (double) height;
-            glZoom.screenWidth = width;
-            glZoom.screenHeight = height;
+                glZoom.aspect = width / (double) height;
+                glZoom.screenWidth = width;
+                glZoom.screenHeight = height;
 
-            gl.glViewport(0, 0, width, height);
+                gl.glViewport(0, 0, width, height);
 
-            // Setup perspective projection, with aspect ratio matches viewport
-            gl.glMatrixMode(GL2.GL_PROJECTION);  // choose projection matrix
-            gl.glLoadIdentity();             // reset projection matrix
-            glu.gluPerspective(GlConstants.FOV_Y, glZoom.aspect, 0.1, 1000.0); // fovy, aspect, zNear, zFar
+                // Setup perspective projection, with aspect ratio matches viewport
+                gl.glMatrixMode(GL2.GL_PROJECTION);  // choose projection matrix
+                gl.glLoadIdentity();             // reset projection matrix
+                glu.gluPerspective(GlConstants.FOV_Y, glZoom.aspect, 0.1, 1000.0); // fovy, aspect, zNear, zFar
 
-            // Enable the model-view transform
-            gl.glMatrixMode(GL2.GL_MODELVIEW);
-            gl.glLoadIdentity(); // reset
+                // Enable the model-view transform
+                gl.glMatrixMode(GL2.GL_MODELVIEW);
+                gl.glLoadIdentity(); // reset
+            }
+        } catch (Throwable t) {
+            System.out.println("==============================================================================");
+            System.out.println("Exception in reshape");
+            t.printStackTrace();
+            throw t;
         }
     }
 
     @Override
     public void display(GLAutoDrawable drawable) {
-        GL2 gl = drawable.getGL().getGL2();
-        renderer.gl = gl;
+        try {
+            GL2 gl = drawable.getGL().getGL2();
+            renderer.gl = gl;
 
-        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        gl.glLoadIdentity();
+            gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+            gl.glLoadIdentity();
 
-        gl.glTranslated(-glZoom.locationX, -glZoom.locationY, glZoom.locationZ);
+            gl.glTranslated(-glZoom.locationX, -glZoom.locationY, glZoom.locationZ);
 
-        mapContext.init(gl);
-        updateScreenLocation();
+            mapContext.init(gl);
+            updateScreenLocation();
 
-        if (renderer != null && renderContext != null && renderContext.getState() != null) {
             renderContext.xmin = glZoom.screenLowerX;
             renderContext.ymin = glZoom.screenLowerY;
             renderContext.xmax = glZoom.screenUpperX;
@@ -123,20 +147,23 @@ class GlPainter implements GLEventListener {
             renderContext.currentTime = renderContext.getState().getCurrentGameTime();
 
             GamePainter.s_renderGame(renderer, renderContext, profiler);
-        }
 
-        pressListener.update(mapContext, glu);
-        zoomListener.update(mapContext, glu);
-        updateSelecting(gl);
-        checkPlacing();
+            pressListener.update(mapContext, glu);
+            zoomListener.update(mapContext, glu);
+            updateSelecting(gl);
+            checkPlacing();
 
-        tracker.receiveTick();
-        if (renderer != null && renderContext != null && renderContext.getState() != null) {
-//            textRenderer.beginRendering(glZoom.screenWidth, glZoom.screenHeight);
+            tracker.receiveTick();
+            textRenderer.beginRendering(glZoom.screenWidth, glZoom.screenHeight);
 //        , ZLevels.Z_FPS
-//            textRenderer.draw(String.valueOf(renderContext.currentTime) + " fps: " + tracker.lastAverage, 0, 10);
-//            textRenderer.endRendering();
-//            textRenderer.flush();
+            textRenderer.draw(String.format("%.1f", renderContext.currentTime) + " fps: " + tracker.lastAverage, 0, 10);
+            textRenderer.endRendering();
+            textRenderer.flush();
+        } catch (Throwable t) {
+            System.out.println("==============================================================================");
+            System.out.println("Exception in display");
+            t.printStackTrace();
+            throw t;
         }
     }
 
@@ -163,7 +190,7 @@ class GlPainter implements GLEventListener {
                 return;
             if (!recListener.update(mapContext, glu))
                 return;
-            renderer.drawRectangleEndPoints(Color.red, recListener.gameXBegin, recListener.gameYBegin, recListener.gameXCurrent, recListener.gameYCurrent, 0.0);
+            renderer.drawRectangleEndPoints(Color.red, recListener.gameXBegin, recListener.gameYBegin, recListener.gameXCurrent, recListener.gameYCurrent, ZLevels.Z_SELECTING);
         }
     }
 
@@ -281,6 +308,7 @@ class GlPainter implements GLEventListener {
                 gl.glVertex3d(x1, y1, z);
                 gl.glVertex3d(x2, y2, z);
             }
+            gl.glEnd();
         }
 
         @Override
@@ -312,9 +340,9 @@ class GlPainter implements GLEventListener {
         public void paintImage(String imagePath, double x, double y, double w, double h, double z) {
             if (noNeedToDraw(x, y, x + w, y + h))
                 return;
-            if (true) return;
 
-            Texture texture = textureCache.getTexture(imagePath, gl);
+            Texture texture = textureCache.getTexture(imagePath);
+            if (texture == null) return;
 
             TextureCoords textureCoords = texture.getImageTexCoords();
             float textureTop = textureCoords.top();
@@ -322,8 +350,9 @@ class GlPainter implements GLEventListener {
             float textureLeft = textureCoords.left();
             float textureRight = textureCoords.right();
 
-//            texture.enable(gl);
+            texture.enable(gl);
             texture.bind(gl);
+
             gl.glBegin(GL2.GL_QUADS);
             setColor(gl, Color.white);
             {
@@ -338,6 +367,7 @@ class GlPainter implements GLEventListener {
             }
             gl.glEnd();
             texture.disable(gl);
+            gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
         }
     }
 
@@ -345,7 +375,7 @@ class GlPainter implements GLEventListener {
         return (
             Math.min(x1, x2) > glZoom.screenUpperX ||
             Math.max(x1, x2) < glZoom.screenLowerX ||
-            Math.min(y1, y2) > glZoom.screenUpperY || // TODO
+            Math.min(y1, y2) > glZoom.screenUpperY ||
             Math.max(y1, y2) < glZoom.screenLowerY ||
             glZoom.locationZ >= 0
         );
@@ -397,7 +427,7 @@ class GlPainter implements GLEventListener {
     }
 
     private void setColor(GL2 gl, Color color) {
-        gl.glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, 1f); // color.getAlpha());
+        gl.glColor4f(color.getRed() / 256f, color.getGreen() / 256f, color.getBlue() / 256f, 0.5f); // color.getAlpha());
     }
 
         // fill rectangle

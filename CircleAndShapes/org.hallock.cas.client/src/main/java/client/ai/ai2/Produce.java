@@ -36,7 +36,7 @@ public class Produce extends DefaultAiTask {
         if (currentAction instanceof Action.Create)
             return AiAttemptResult.RequestedAction;
 
-        if (!(currentAction instanceof Action.Idle)) {
+        if (currentAction != null && !(currentAction instanceof Action.Idle)) {
             return AiAttemptResult.Unsuccessful;
         }
         Load carrying = entity.getCarrying();

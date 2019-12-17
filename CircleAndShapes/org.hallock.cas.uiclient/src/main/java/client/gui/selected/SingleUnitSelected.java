@@ -21,6 +21,7 @@ import java.util.*;
 public class SingleUnitSelected extends JPanel {
 
     private UiClientContext context;
+    private final Object uiSync = new Object();
 
     TitledBorder resourcesBorder;
     private ImagePanel imagePanel;
@@ -47,6 +48,8 @@ public class SingleUnitSelected extends JPanel {
 
     private EntityReader entity;
 
+    private boolean isUpdating;
+
 //    private ResourceType[] resourceTypes;
     private final Map<ResourceType, JLabel> cachedResourceLabels = new HashMap<>();
 
@@ -55,11 +58,13 @@ public class SingleUnitSelected extends JPanel {
     }
 
     void setSelected(EntityReader entityId) {
-        if (entityId == null) {
-            setLabelsToEmpty();
-        } else {
-            entity = entityId;
-            setLabelValues();
+        synchronized (uiSync) {
+            if (entityId == null) {
+                setLabelsToEmpty();
+            } else {
+                entity = entityId;
+                setLabelValues();
+            }
         }
         repaint();
     }
@@ -112,113 +117,122 @@ public class SingleUnitSelected extends JPanel {
         }
     }
 
-
-    // TODO: don't call this as often
-    public void setLabelValues() {
-        if (entity == null) return;
-        Object sync = entity.getSync();
-        if (sync == null) return;
-        synchronized (sync) {
-            if (entity.noLongerExists()) {
-                setDead();
-                return;
+    void setLabelValues() {
+        context.executorService.submit(() -> {
+            synchronized (uiSync) {
+                if (isUpdating) return;
+                isUpdating = true;
+                if (entity == null) return;
+                Object sync = entity.getSync();
+                if (sync == null) return;
+                synchronized (sync) {
+                    synchronizedSetLabelValues();
+                }
+                isUpdating = false;
             }
+        });
+    }
 
-            EntitySpec currentType = entity.getType();
-            imagePanel.setImage(context.imageCache.get(entity.getGraphics()));
+    private void synchronizedSetLabelValues() {
+        if (entity.noLongerExists()) {
+            setDead();
+            return;
+        }
+
+        EntitySpec currentType = entity.getType();
+        imagePanel.setImage(context.imageCache.get(entity.getGraphics()));
 
 
-            Load load = entity.getCarrying();
-            Map<ResourceType, Integer> requiredResources = Collections.emptyMap();
-            if (currentType.containsClass("construction-zone")) {
-                requiredResources = currentType.carryCapacity.getMaximumAmounts();
-            }
+        Load load = entity.getCarrying();
+        Map<ResourceType, Integer> requiredResources = Collections.emptyMap();
+        if (currentType.containsClass("construction-zone")) {
+            requiredResources = currentType.carryCapacity.getMaximumAmounts();
+        }
 
-            Set<ResourceType> neededLabels = new TreeSet<>(ResourceType.COMPARATOR);
-            neededLabels.addAll(load.quantities.keySet());
-            neededLabels.addAll(requiredResources.keySet());
-            udpateCachedResourceLabels(neededLabels);
+        Set<ResourceType> neededLabels = new TreeSet<>(ResourceType.COMPARATOR);
+        neededLabels.addAll(load.quantities.keySet());
+        neededLabels.addAll(requiredResources.keySet());
+        udpateCachedResourceLabels(neededLabels);
 
-            resourcesBorder.setTitle("Total weight carried: " + ResourceType.formatWeight(load.getWeight()));
+        resourcesBorder.setTitle("Total weight carried: " + ResourceType.formatWeight(load.getWeight()));
 
-            for (Map.Entry<ResourceType, JLabel> entry: cachedResourceLabels.entrySet()) {
-                Integer has = load.quantities.getOrDefault(entry.getKey(), 0);
-                Integer requires = requiredResources.get(entry.getKey());
-                StringBuilder value = new StringBuilder();
-                value.append(entry.getKey().name).append(": ").append(has);
-                if (requires != null)
-                    value.append('/').append(requires);
-                entry.getValue().setText(value.toString());
-            }
+        for (Map.Entry<ResourceType, JLabel> entry : cachedResourceLabels.entrySet()) {
+            Integer has = load.quantities.getOrDefault(entry.getKey(), 0);
+            Integer requires = requiredResources.get(entry.getKey());
+            StringBuilder value = new StringBuilder();
+            value.append(entry.getKey().name).append(": ").append(has);
+            if (requires != null)
+                value.append('/').append(requires);
+            entry.getValue().setText(value.toString());
+        }
 
-            EntityReader riding = entity.getRiding();
-            EntitySpec ridingSpec;
-            if (riding != null && (ridingSpec = riding.getType()) != null) {
-                isRiding.setText("Riding a " + ridingSpec.name);
-            } else {
-                isRiding.setText("Not riding anything");
-            }
+        EntityReader riding = entity.getRiding();
+        EntitySpec ridingSpec;
+        if (riding != null && (ridingSpec = riding.getType()) != null) {
+            isRiding.setText("Riding a " + ridingSpec.name);
+        } else {
+            isRiding.setText("Not riding anything");
+        }
 
-            Action currentAction = entity.getCurrentAction();
-            if (currentAction != null) {
-                action.setText("Current action: " + currentAction.toString());
-            } else {
-                action.setText("idle");
-            }
+        Action currentAction = entity.getCurrentAction();
+        if (currentAction != null) {
+            action.setText("Current action: " + currentAction.toString());
+        } else {
+            action.setText("idle");
+        }
 
-            age.setText("Age: " + String.format("%.1f", entity.getCurrentAge()));
+        age.setText("Age: " + String.format("%.1f", entity.getCurrentAge()));
 
-            String currentAi = context.clientGameState.aiManager.getDisplayString(entity);
-            ai.setText("AiStack: " + currentAi);
+        String currentAi = context.clientGameState.aiManager.getDisplayString(entity);
+        ai.setText("AiStack: " + currentAi);
 
-            GateInfo gateState1 = entity.getGateState();
-            if (gateState1 != null) {
-                gateState.setText("Gate state: " + gateState1.state.name());
-            } else {
-                gateState.setText("not a gate");
-            }
+        GateInfo gateState1 = entity.getGateState();
+        if (gateState1 != null) {
+            gateState.setText("Gate state: " + gateState1.state.name());
+        } else {
+            gateState.setText("not a gate");
+        }
 
-            weapons.setText("Weapons: " + entity.getWeapons().getDisplayString());
+        weapons.setText("Weapons: " + entity.getWeapons().getDisplayString());
 
-            garrisoned.setText("Garrisoned " + entity.getGarrisoned().size() + " out of " + currentType.garrisonCapacity);
-            buildSpeed.setText("Build speed: " + String.valueOf(entity.getBuildSpeed()));
-            attackSpeed.setText("Attack speed: " + String.valueOf(entity.getCurrentAttackSpeed()));
-            depositSpeed.setText("Deposit speed: " + String.valueOf(entity.getDepositSpeed()));
-            collectSpeed.setText("Collect speed: " + String.valueOf(entity.getCollectSpeed()));
-            moveSpeed.setText("Move speed: " + String.valueOf(entity.getMovementSpeed()));
-            lineOfSight.setText("Line of sight: " + String.valueOf(entity.getLineOfSight()));
+        garrisoned.setText("Garrisoned " + entity.getGarrisoned().size() + " out of " + currentType.garrisonCapacity);
+        buildSpeed.setText("Build speed: " + String.valueOf(entity.getBuildSpeed()));
+        attackSpeed.setText("Attack speed: " + String.valueOf(entity.getCurrentAttackSpeed()));
+        depositSpeed.setText("Deposit speed: " + String.valueOf(entity.getDepositSpeed()));
+        collectSpeed.setText("Collect speed: " + String.valueOf(entity.getCollectSpeed()));
+        moveSpeed.setText("Move speed: " + String.valueOf(entity.getMovementSpeed()));
+        lineOfSight.setText("Line of sight: " + String.valueOf(entity.getLineOfSight()));
 
-            PrioritizedCapacitySpec currentCapacity = entity.getCapacity();
-            if (currentCapacity != null) {
-                capacity.setText("Capacity: " + currentCapacity.getDisplayString());
-            } else {
-                capacity.setText("No capacity");
-            }
+        PrioritizedCapacitySpec currentCapacity = entity.getCapacity();
+        if (currentCapacity != null) {
+            capacity.setText("Capacity: " + currentCapacity.getDisplayString());
+        } else {
+            capacity.setText("No capacity");
+        }
 
-            type.setText("Type: " + currentType.name);
+        type.setText("Type: " + currentType.name);
 
-            Player currentOwner = entity.getOwner();
-            if (currentOwner != null) {
-                owner.setText("Owner: " + currentOwner.toString());
-            } else {
-                owner.setText("Error: no owner");
-            }
+        Player currentOwner = entity.getOwner();
+        if (currentOwner != null) {
+            owner.setText("Owner: " + currentOwner.toString());
+        } else {
+            owner.setText("Error: no owner");
+        }
 
-            DPoint currentLocation = entity.getLocation();
-            if (currentLocation != null) {
-                location.setText("Location: " + currentLocation.toString());
-            } else {
-                location.setText("Nowhere");
-            }
+        DPoint currentLocation = entity.getLocation();
+        if (currentLocation != null) {
+            location.setText("Location: " + currentLocation.toString());
+        } else {
+            location.setText("Nowhere");
+        }
 
-            health.setText("Health: " + entity.getCurrentHealth() + " out of " + entity.getBaseHealth());
+        health.setText("Health: " + entity.getCurrentHealth() + " out of " + entity.getBaseHealth());
 
-            Double currentBuildProgress = entity.getCurrentBuildProgress();
-            if (currentBuildProgress != null) {
-                buildProgress.setText("Build progress: " + String.format("%.2f%%", 100 * currentBuildProgress));
-            } else {
-                buildProgress.setText("Build progress: " + "N/A");
-            }
+        Double currentBuildProgress = entity.getCurrentBuildProgress();
+        if (currentBuildProgress != null) {
+            buildProgress.setText("Build progress: " + String.format("%.2f%%", 100 * currentBuildProgress));
+        } else {
+            buildProgress.setText("Build progress: " + "N/A");
         }
     }
 

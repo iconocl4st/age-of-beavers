@@ -112,6 +112,22 @@ public class Interfaces {
             this.creator = creator;
         }
 
+        EntitySpec getUnitType(String name) {
+            for (EntitySpec spec :  unitTypes) {
+                if (spec.name.equals(name))
+                    return spec;
+            }
+            return null;
+        }
+
+        ResourceType getResourceType(String name) {
+            for (ResourceType spec :  resourceTypes) {
+                if (spec.name.equals(name))
+                    return spec;
+            }
+            return null;
+        }
+
         CreationContext setArg(String s, Object o) {
             CreationContext c = new CreationContext(creator);
             c.resourceTypes = resourceTypes;

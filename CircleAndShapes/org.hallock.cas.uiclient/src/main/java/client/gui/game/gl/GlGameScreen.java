@@ -21,8 +21,6 @@ import common.util.Profiler;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.TimerTask;
 
@@ -31,47 +29,124 @@ public class GlGameScreen {
     public GoToListener goToListener;
     public ContextKeyManager contextKeyListener;
 
-    private UiClientContext context;
-    private FPSAnimator animator;
-    private GlPainter painter;
-    private Profiler profiler;
-    private Component canvas;
-    private GlRectangleListener recListener;
-    private GlPressListener pressListener;
-    private GlZoom glZoom;
 
+    private Component canvas;
+    private FPSAnimator animator;
     private BuildingPlacer placer;
     private CommandListener commander;
-//    private SelectedListener selector;
-//    private HotkeyListener hotkeyListener;
-//    private ZoomListener zoomListener;
-//    private GrabFocusListener focusListener;
-//    private ControlGroupListener controlGroupListener;
-//    private SelectionListener selectionListener;
 
-
-    public Component getCanvas()  {
-        return new JPanel();
-//        return canvas;
+    public void queryBuildingLocation(EntitySpec spec) {
+        placer.setBuilding(spec);
+        commander.setCommand(null);
+        SwingUtilities.invokeLater(() -> {
+            canvas.requestFocus();
+            canvas.requestFocusInWindow();
+        });
     }
 
-    public void run(GameSpec gameSpec) {
+    public void setCurrentCommand(Command command) {
+        placer.setBuilding(null);
+        commander.setCommand(command);
+    }
+
+    public void clearCurrentCommand() {
+        setCurrentCommand(null);
+    }
+
+    public Component getCanvas() {
+        return canvas;
+    }
+
+    public void startAnimating() {
+        animator.start();
+    }
+
+    public void stopAnimating() {
+        if (animator.isAnimating()) animator.stop();
     }
 
 
+    public static GlGameScreen createGlGameScreen(UiClientContext context, GameSpec spec, Point playerStart) {
+        GlGameScreen glGameScreen = new GlGameScreen();
 
-    public void initialize(GameSpec spec, Point playerStart) {
-//        zoom.initialize(spec, getWidth(),  getHeight());
-//        renderer.initialize(spec);
+        GamePainter.RenderContext renderContext = new GamePainter.RenderContext();
+        renderContext.context = context;
+        renderContext.gameWidth = spec.width;
+        renderContext.gameHeight = spec.height;
+
+        GlZoom glZoom = new GlZoom();
+        glGameScreen.focuser = glZoom;
+
+        glGameScreen.contextKeyListener = new ContextKeyManager(context.executorService);
+        GlRectangleListener recListener = new GlRectangleListener(context.executorService);
+        GlPressListener pressListener = new GlPressListener(context.executorService, glGameScreen.contextKeyListener);
+        Profiler profiler = new Profiler("rendering time");
+        glGameScreen.goToListener = new GoToListener(glGameScreen.focuser);
+        glGameScreen.placer = new BuildingPlacer(context);
+        HotkeyListener hotkeyListener = new HotkeyListener(context);
+        SelectedListener selectedListener = new SelectedListener(context);
+        GlZoomListener glZoomListener = new GlZoomListener(glZoom);
+        ControlGroupListener controlGroupListener = new ControlGroupListener(context.selectionManager, glGameScreen.contextKeyListener, glZoom);
+        SelectionListener selectionListener = new SelectionListener(context, () -> new Rectangle2D.Double(
+                glZoom.screenLowerX,
+                glZoom.screenLowerY,
+                glZoom.screenUpperX - glZoom.screenLowerX,
+                glZoom.screenUpperY - glZoom.screenLowerY
+        ));
+
+        GLProfile.initSingleton();
+        GLProfile profile = GLProfile.get(GLProfile.GL2);
+        GLCapabilities capabilities = new GLCapabilities(profile);
+        GLCanvas canvas = new GLCanvas(capabilities);
+        glGameScreen.canvas = canvas;
+        TextureCache textureCache = new TextureCache(profile);
+        GlPainter painter = new GlPainter(
+                textureCache,
+                glZoom,
+                recListener,
+                pressListener,
+                glZoomListener,
+                profiler,
+                glGameScreen.placer,
+                spec,
+                renderContext
+        );
+
+        canvas.setFocusable(true);
+        canvas.setPreferredSize(new Dimension(1, 1));
+        canvas.setMinimumSize(new Dimension(1, 1));
+
+        GlMouseTracker mouseTracker = new GlMouseTracker(painter);
+        GrabFocusListener grabFocusListener = new GrabFocusListener(canvas);
+        canvas.addMouseMotionListener(mouseTracker);
+        canvas.addGLEventListener(painter);
+        canvas.addMouseWheelListener(glZoomListener);
+        canvas.addMouseMotionListener(glZoomListener);
+        canvas.addMouseListener(glZoomListener);
+        canvas.addMouseListener(recListener);
+        canvas.addMouseMotionListener(recListener);
+        canvas.addMouseListener(pressListener);
+        canvas.addKeyListener(glGameScreen.goToListener);
+        canvas.addKeyListener(glGameScreen.contextKeyListener);
+        canvas.addKeyListener(selectedListener);
+        canvas.addKeyListener(hotkeyListener);
+        canvas.addMouseListener(grabFocusListener);
+        canvas.addKeyListener(controlGroupListener);
+
+        context.selectionManager.addListener(glGameScreen.goToListener);
+
+        recListener.addRectangleListener(selectionListener);
+        pressListener.addPressListener(selectionListener);
+
 
         if (context.clientGameState.isSpectating()) {
-            commander = new CommandListener(
+            glGameScreen.commander = new CommandListener(
                     context,
                     new UnitToUnitAction[0],
                     new UnitToLocationAction[0]
             );
         } else {
-            commander = new CommandListener(
+            glGameScreen.commander = new CommandListener(
                     context,
                     new UnitToUnitAction[]{
                             new Gather(context),
@@ -86,21 +161,11 @@ public class GlGameScreen {
                     }
             );
         }
-        pressListener.addPressListener(commander);
-
-        run(spec);
-
-        GamePainter.RenderContext renderContext = new GamePainter.RenderContext();
-        renderContext.context = context;
-        renderContext.gameWidth = spec.width;
-        renderContext.gameHeight = spec.height;
-        painter.renderContext = renderContext;
+        pressListener.addPressListener(glGameScreen.commander);
 
         if (playerStart != null) {
-            focuser.focusOn(new DPoint(playerStart));
+            glGameScreen.focuser.focusOn(new DPoint(playerStart));
         }
-
-        animator.start();
 
         new java.util.Timer().scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -109,119 +174,6 @@ public class GlGameScreen {
                 profiler.reset();
             }
         }, 10000, 10000);
-    }
-
-
-    public void queryBuildingLocation(EntitySpec spec) {
-        placer.setBuilding(spec);
-        commander.setCommand(null);
-        SwingUtilities.invokeLater(() -> {
-//            canvas.requestFocus();
-//            canvas.requestFocusInWindow();
-        });
-    }
-
-    public void setCurrentCommand(Command command) {
-        placer.setBuilding(null);
-        commander.setCommand(command);
-    }
-
-    public void clearCurrentCommand() {
-        setCurrentCommand(null);
-    }
-
-
-
-    public static GlGameScreen createGlGameScreen(UiClientContext context) {
-        GlGameScreen glGameScreen = new GlGameScreen();
-        glGameScreen.context = context;
-
-        glGameScreen.glZoom = new GlZoom();
-        glGameScreen.focuser = glGameScreen.glZoom;
-
-        glGameScreen.contextKeyListener = new ContextKeyManager(context.executorService);
-        glGameScreen.recListener = new GlRectangleListener(context.executorService);
-        glGameScreen.pressListener = new GlPressListener(context.executorService, glGameScreen.contextKeyListener);
-        glGameScreen.profiler = new Profiler("rendering time");
-        glGameScreen.goToListener = new GoToListener(glGameScreen.focuser);
-        glGameScreen.placer = new BuildingPlacer(context);
-        HotkeyListener hotkeyListener = new HotkeyListener(context);
-        SelectedListener selectedListener = new SelectedListener(context);
-        GlZoomListener glZoomListener = new GlZoomListener(glGameScreen.glZoom);
-        ControlGroupListener controlGroupListener = new ControlGroupListener(context.selectionManager, glGameScreen.contextKeyListener, glGameScreen.glZoom);
-        SelectionListener selectionListener = new SelectionListener(context, () -> new Rectangle2D.Double(
-                glGameScreen.glZoom.screenLowerX,
-                glGameScreen.glZoom.screenLowerY,
-                glGameScreen.glZoom.screenUpperX - glGameScreen.glZoom.screenLowerX,
-                glGameScreen.glZoom.screenUpperY - glGameScreen.glZoom.screenLowerY
-        ));
-
-
-
-
-
-        GLProfile.initSingleton();
-        GLProfile profile = GLProfile.get(GLProfile.GL2);
-        GLCapabilities capabilities = new GLCapabilities(profile);
-        GLCanvas canvas = new GLCanvas(capabilities);
-        glGameScreen.canvas = canvas;
-        TextureCache textureCache = new TextureCache(profile);
-        glGameScreen.painter = new GlPainter(
-                textureCache,
-                glGameScreen.glZoom,
-                glGameScreen.recListener,
-                glGameScreen.pressListener,
-                glZoomListener,
-                glGameScreen.profiler,
-                glGameScreen.placer
-        );
-
-        canvas.setFocusable(true);
-
-        GlMouseTracker mouseTracker = new GlMouseTracker(glGameScreen.painter);
-        GrabFocusListener grabFocusListener = new GrabFocusListener(canvas);
-        canvas.addMouseMotionListener(mouseTracker);
-        canvas.addGLEventListener(glGameScreen.painter);
-        canvas.addMouseWheelListener(glZoomListener);
-        canvas.addMouseMotionListener(glZoomListener);
-        canvas.addMouseListener(glZoomListener);
-        canvas.addMouseListener(glGameScreen.recListener);
-        canvas.addMouseMotionListener(glGameScreen.recListener);
-        canvas.addMouseListener(glGameScreen.pressListener);
-        canvas.addKeyListener(glGameScreen.goToListener);
-        canvas.addKeyListener(glGameScreen.contextKeyListener);
-        canvas.addKeyListener(selectedListener);
-        canvas.addKeyListener(hotkeyListener);
-        canvas.addMouseListener(grabFocusListener);
-        canvas.addKeyListener(controlGroupListener);
-
-        context.selectionManager.addListener(glGameScreen.goToListener);
-
-
-        glGameScreen.recListener.addRectangleListener(selectionListener);
-        glGameScreen.pressListener.addPressListener(selectionListener);
-
-        glGameScreen.canvas.setPreferredSize(new Dimension(800, 800));
-        final JFrame frame = new JFrame();
-        frame.getContentPane().add(canvas);
-        frame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                // Use a dedicate thread to run the stop() to ensure that the
-                // animator stops before program exits.
-                new Thread() {
-                    @Override
-                    public void run() {
-                        if (glGameScreen.animator.isStarted()) glGameScreen.animator.stop();
-                        System.exit(0);
-                    }
-                }.start();
-            }
-        });
-        frame.setTitle("Testing");
-        frame.pack();
-        frame.setVisible(true);
-
 
         glGameScreen.animator = new FPSAnimator(canvas, GlConstants.FPS, true);
 

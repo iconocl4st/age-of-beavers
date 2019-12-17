@@ -19,7 +19,5 @@ public class UiClientContext {
     public final ActionQueuer actionQueuer = new ActionQueuer(this);
     public final UiManager uiManager = UiManager.createUiManager(this);
 
-    { uiManager.gameScreen.contextKeyListener.addContextKeyListener(actionQueuer); }
-
     public ClientGameState clientGameState;
 }

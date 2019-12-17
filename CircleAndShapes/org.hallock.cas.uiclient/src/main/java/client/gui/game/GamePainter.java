@@ -74,7 +74,6 @@ public class GamePainter {
             for (EntityId entityId : c.getState().entityManager.allKeys())
                 paintDisplayable(new EntityReader(c.getState(), entityId), c.currentTime, renderer, c.context);
         }
-        if (true) return;
 
         try (P p = profiler.time("quad tree")) {
             paintQuadTree(renderer, c.context.clientGameState.quadTree);
@@ -202,10 +201,10 @@ public class GamePainter {
         if (c.xmax - c.xmin > 200 || c.ymax - c.ymin  > 200)
             return;
 
-        for (int i = (int) Math.max(0, c.xmin); i < (int) Math.min(c.gameWidth, c.xmax); i++)
+        for (int i = (int) Math.max(0, c.xmin); i < (int) Math.min(c.gameWidth, c.xmax) + 1; i++)
             renderer.drawLine(Colors.GRID_LINES, i, 0, i, c.gameHeight, ZLevels.Z_GRID);
 
-        for (int i = (int) Math.max(c.ymin, 0); i < (int) Math.min(c.gameHeight, c.ymax); i++)
+        for (int i = (int) Math.max(0, c.ymin); i < (int) Math.min(c.gameHeight, c.ymax) + 1; i++)
             renderer.drawLine(Colors.GRID_LINES, 0, i, c.gameWidth, i, ZLevels.Z_GRID);
     }
 
