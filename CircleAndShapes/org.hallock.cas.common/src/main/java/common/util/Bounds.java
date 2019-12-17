@@ -1,7 +1,6 @@
 package common.util;
 
 import common.state.spec.GameSpec;
-import org.omg.PortableInterceptor.Interceptor;
 
 public class Bounds {
     public final int xmin;

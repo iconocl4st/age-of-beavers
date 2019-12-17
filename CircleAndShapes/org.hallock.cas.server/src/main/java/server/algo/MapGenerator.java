@@ -132,6 +132,7 @@ public class MapGenerator {
 
     private void generatePatch(OccupancyView occupancy, GenerationSpec.ResourceGen rg, Point startingPoint, boolean avoidPlayers, Set<Point> farEnoughAway) {
         HashSet<Point> horizon = new HashSet<>();
+        HashSet<Point> grass = new HashSet<>();
         horizon.add(startingPoint);
 
         for (int tile = 0; tile < rg.patchSize && !horizon.isEmpty(); tile++) {
@@ -161,7 +162,7 @@ public class MapGenerator {
                     R = -1;
             }
             // Currently the most expensive...
-            try (P ignore = profiler.time("setting terrain");) {
+            try (P ignore = profiler.time("adding terrain");) {
                 if (R > 0) {
                     gameState.state.textures.set(next.x, next.y, TerrainType.Grass);
                     for (int i = -R; i <= R; i++) {
@@ -169,11 +170,7 @@ public class MapGenerator {
                             if (next.x + i >= spec.width || next.x + i < 0 || next.y + j >= spec.height || next.y + j < 0)
                                 continue;
                             if (Math.random() < 0.5 && new DPoint(next).distanceTo(new DPoint(next.x + i, next.y + j)) < R)
-                                gameState.state.textures.set(
-                                        next.x + i,
-                                        next.y + j,
-                                        TerrainType.Grass
-                                );
+                                grass.add(new Point(next.x + i, next.y + j));
                         }
                     }
                 }
@@ -194,6 +191,15 @@ public class MapGenerator {
                         horizon.add(new Point(next.x + dx, next.y + dy));
                     }
                 }
+            }
+        }
+        try (P ignore = profiler.time("setting terrain");) {
+            for (Point p : grass) {
+                                gameState.state.textures.set(
+                                        p.x,
+                                        p.y,
+                                        TerrainType.Grass
+                                );
             }
         }
     }
