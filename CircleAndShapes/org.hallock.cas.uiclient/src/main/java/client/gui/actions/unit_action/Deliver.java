@@ -3,6 +3,7 @@ package client.gui.actions.unit_action;
 import client.ai.ai2.OneTripTransportTo;
 import client.app.UiClientContext;
 import common.state.EntityReader;
+import common.state.spec.EntityClasses;
 
 public class Deliver extends UnitToUnitAction {
 
@@ -12,12 +13,12 @@ public class Deliver extends UnitToUnitAction {
 
     @Override
     public boolean canRunOn(EntityReader performer, EntityReader target) {
-        return target.getType().containsClass("storage");
+        return target.getType().containsClass(EntityClasses.STORAGE);
     }
 
     @Override
     public boolean isEnabled(EntityReader entity) {
-        return entity.getType().containsClass("carrier");
+        return entity.getType().containsClass(EntityClasses.CARRIER);
     }
 
 

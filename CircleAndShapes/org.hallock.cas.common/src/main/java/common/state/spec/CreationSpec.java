@@ -84,7 +84,12 @@ public class CreationSpec implements Jsonable {
             reader.readBeginDocument();
             SpecTree.SpecNodeReference reference = reader.read("reference", SpecTree.SpecNodeReference.Serializer, spec);
             reader.readEndDocument();
-            return reference.entity.canCreate.get(reference.path).getValue();
+
+            if (reference.entity != null) {
+                return reference.entity.canCreate.get(reference.path).getValue();
+            } else {
+                return spec.state.gameSpec.canPlace.get(reference.path).getValue();
+            }
         }
     };
 }

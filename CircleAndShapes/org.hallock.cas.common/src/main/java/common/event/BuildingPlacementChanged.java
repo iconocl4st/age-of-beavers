@@ -20,8 +20,8 @@ public class BuildingPlacementChanged extends NetworkAiEvent {
 
     public static common.event.BuildingPlacementChanged finishParsing(JsonReaderWrapperSpec reader, ReadOptions opt, EntityId entityId) throws IOException {
         return new common.event.BuildingPlacementChanged(
-                reader.read("construction-zone", EntityId.Serializer, opt),
-                reader.read("building", EntityId.Serializer, opt)
+            reader.read("construction-zone", EntityId.Serializer, opt),
+            reader.read("building", EntityId.Serializer, opt)
         );
     }
 

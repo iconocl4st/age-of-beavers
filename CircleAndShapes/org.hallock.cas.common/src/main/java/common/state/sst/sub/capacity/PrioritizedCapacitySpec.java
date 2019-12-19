@@ -23,9 +23,9 @@ public class PrioritizedCapacitySpec implements Jsonable {
         this.defaultToAccept = defaultToAccept;
     }
 
-    public PrioritizedCapacitySpec(PrioritizedCapacitySpec other, boolean defaultToAccept) {
+    public PrioritizedCapacitySpec(PrioritizedCapacitySpec other) {
         this.totalWeight = other.totalWeight;
-        this.defaultToAccept = defaultToAccept;
+        this.defaultToAccept = other.defaultToAccept;
         for (Map.Entry<ResourceType, Prioritization> rt : other.prioritizedCapacities.entrySet()) {
             prioritizedCapacities.put(rt.getKey(), new Prioritization(rt.getValue()));
         }

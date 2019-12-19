@@ -3,12 +3,14 @@ package server.engine;
 import common.Proximity;
 import common.action.Action;
 import common.event.ActionCompleted;
+import common.event.GrowthStage;
 import common.factory.Path;
 import common.factory.SearchDestination;
 import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.Occupancy;
 import common.state.Player;
+import common.state.spec.EntityClasses;
 import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
 import common.state.spec.attack.Weapon;
@@ -16,15 +18,9 @@ import common.state.spec.attack.WeaponClass;
 import common.state.spec.attack.WeaponSpec;
 import common.state.sst.GameStateHelper;
 import common.state.sst.OccupancyView;
-import common.state.sst.sub.ConstructionZone;
-import common.state.sst.sub.MovableEntity;
-import common.state.sst.sub.Load;
-import common.state.sst.sub.ProjectileLaunch;
+import common.state.sst.sub.*;
 import common.state.sst.sub.capacity.Prioritization;
-import common.util.Bounds;
-import common.util.DPoint;
-import common.util.EvolutionSpec;
-import common.util.GridLocation;
+import common.util.*;
 import common.util.json.Jsonable;
 import common.util.query.NearestEntityQuery;
 import common.util.query.NearestEntityQueryResults;
@@ -41,6 +37,10 @@ import java.util.Random;
 import java.util.Set;
 
 public class Simulator {
+
+    private static final double GROW_SPEED = 0.05;
+    private static final int NUM_TIMES_TO_TEND = 4;
+    private static final double RIPE_TIME = 1000;
 
     final ServerContext context;
     final ServerGameState state;
@@ -94,8 +94,10 @@ public class Simulator {
                 break;
             case Plant:
                 plant(entity, ssm, (Action.Bury) action, info.timeDelta);
+                break;
             case Garden:
                 garden(entity, ssm, (Action.Garden) action, info.timeDelta);
+                break;
             default:
                 throw new RuntimeException("Unknown action: " + action.type);
         }
@@ -118,49 +120,84 @@ public class Simulator {
 
 
     private void garden(EntityReader entity, ServerStateManipulator ssm, Action.Garden action, double timeDelta) {
-        Object sync = entity.getSync();
-        if (sync == null) return;
-        synchronized (sync) {
-            if (entity.noLongerExists())
-                return;
-            double gardenSpeed = entity.getGardenSpeed();
-            double progress = action.progress + gardenSpeed * timeDelta;
-            if (progress < 1.0) {
-                ssm.updateActionProgress(entity, action, progress);
-                return;
+        Object[] syncs = GameStateHelper.getSynchronizationObjects(state.state.entityManager, entity.entityId, action.plant);
+        if (syncs == null) {
+            ssm.done(entity, ActionCompleted.ActionCompletedReason.Invalid);
+            return;
+        }
+        synchronized (syncs[0]) {
+            synchronized (syncs[1]) {
+                EntityReader plant = new EntityReader(state.state, action.plant);
+                if (entity.noLongerExists()) return;
+                if (plant.noLongerExists()) return;
+
+                if (!entity.getType().containsClass(EntityClasses.FARMER))
+                    return;
+                if (!plant.getType().containsClass(EntityClasses.FARM))
+                    return;
+
+                double gardenSpeed = entity.getGardenSpeed();
+                double progress = action.progress + gardenSpeed * timeDelta;
+                if (progress < 1.0) {
+                    ssm.updateActionProgress(entity, action, progress);
+                    return;
+                }
+
+                GrowthInfo growthInfo = plant.getGrowthInfo();
+
+                if (growthInfo.tendedCount >= NUM_TIMES_TO_TEND) {
+                    growthInfo.tendedCount = 0;
+                    growthInfo.progress = 0;
+                    growthInfo.currentState = GrowthStage.Ripe;
+
+                    Load load = new Load();
+                    load.quantities.putAll(plant.getType().carrying);
+                    ssm.setCarrying(plant.entityId, load);
+                } else {
+                    growthInfo.tendedCount++;
+                    growthInfo.progress = 0;
+                    growthInfo.currentState = GrowthStage.Growing;
+                }
+                ssm.updatePlantGrowth(plant, growthInfo);
+                ssm.done(entity, ActionCompleted.ActionCompletedReason.Successful);
             }
-
-            // update the the timer on the next time this will need to be tended...
-
-            ssm.done(entity, ActionCompleted.ActionCompletedReason.Successful);
         }
     }
 
     private void plant(EntityReader entity, ServerStateManipulator ssm, Action.Bury action, double timeDelta) {
-        Object sync = entity.getSync();
-        if (sync == null) return;
-        synchronized (sync) {
-            if (entity.noLongerExists())
-                return;
-            Load carrying = entity.getCarrying();
-            Integer numberOfSeeds = carrying.quantities.getOrDefault(action.seed, 0);
-            if (numberOfSeeds < 1)
-                ssm.done(entity, ActionCompleted.ActionCompletedReason.Invalid);
+        Object[] syncs = GameStateHelper.getSynchronizationObjects(state.state.entityManager, entity.entityId, action.farm);
+        if (syncs == null) {
+            ssm.done(entity, ActionCompleted.ActionCompletedReason.Invalid);
+            return;
+        }
+        synchronized (syncs[0]) {
+            synchronized (syncs[1]) {
+                EntityReader plant = new EntityReader(state.state, action.farm);
+                if (entity.noLongerExists()) return;
+                if (plant.noLongerExists()) return;
 
-            // check that there is not something already there...
-            // check that there is space for it...
+                if (!entity.getType().containsClass(EntityClasses.FARMER))
+                    return;
+                if (!plant.getType().containsClass(EntityClasses.FARM))
+                    return;
+                ResourceType requiredSeed = plant.getType().requiredSeed;
+                Load carrying = entity.getCarrying();
+                Integer numberOfSeeds = carrying.quantities.getOrDefault(requiredSeed, 0);
+                if (numberOfSeeds < 1) {
+                    ssm.done(entity, ActionCompleted.ActionCompletedReason.OverCapacity);
+                }
 
-            double plantSpeed = entity.getPlantSpeed();
-            double progress = action.progress + plantSpeed * timeDelta;
-            if (progress < 1.0) {
-                ssm.updateActionProgress(entity, action, progress);
-                return;
+                double plantSpeed = entity.getPlantSpeed();
+                double progress = action.progress + plantSpeed * timeDelta;
+                if (progress < 1.0) {
+                    ssm.updateActionProgress(entity, action, progress);
+                    return;
+                }
+
+                ssm.changeCarrying(entity.entityId, carrying, requiredSeed, numberOfSeeds - 1);
+                ssm.updatePlantGrowth(plant, new GrowthInfo(GrowthStage.Growing, 0, 0.0));
+                ssm.done(entity, ActionCompleted.ActionCompletedReason.Successful);
             }
-            // update the the timer on the next time this will need to be tended...
-
-            ssm.changePayload(entity.entityId, carrying, action.seed, numberOfSeeds - 1);
-
-            ssm.done(entity, ActionCompleted.ActionCompletedReason.Successful);
         }
     }
 
@@ -195,7 +232,7 @@ public class Simulator {
             }
 
             EvolutionSpec spec;
-            if (action.spec.createdType.containsClass("evolves")) {
+            if (action.spec.createdType.containsClass(EntityClasses.EVOLVES)) {
                 spec = evolution.createEvolvedSpec(contributingUnits);
             } else {
                 spec = new EvolutionSpec(action.spec.createdType);
@@ -406,8 +443,8 @@ public class Simulator {
         int newFrom = possibleToTake - amountToTransfer;
         int newTo = toLoad.quantities.getOrDefault(r, 0) + amountToTransfer;
 
-        ssm.changePayload(from.entityId, fromLoad, r, newFrom);
-        ssm.changePayload(to.entityId, toLoad, r, newTo);
+        ssm.changeCarrying(from.entityId, fromLoad, r, newFrom);
+        ssm.changeCarrying(to.entityId, toLoad, r, newTo);
 
         return amountToTransfer < possibleToAccept && newFrom < possibleToTake;
     }
@@ -459,7 +496,7 @@ public class Simulator {
                 }
 
                 double collectionSpeed = entity.getCollectSpeed();
-                if (!(collected.getType().containsClass("natural-resource"))) {
+                if (!collected.getType().containsClass(EntityClasses.NATURAL_RESOURCE) && !collected.getType().containsClass(EntityClasses.FARM)) {
                     collectionSpeed *= 20;
                 }
 
@@ -471,10 +508,17 @@ public class Simulator {
                     ssm.done(entity, ActionCompleted.ActionCompletedReason.OverCapacity);
 
                     double amountLeft = collected.getCarrying().getWeight();
-                    // TODO: should there be a more natural way of handling this?
-                    // die on empty?
-                    if (amountLeft <= 0 && collected.getType().containsClass("natural-resource")) {
+                    if (amountLeft > 0)
+                        return;
+
+                    if (Util.fin(collected.getType().diesOnEmpty)) {
                         ssm.killUnit(action.resourceCarrier);
+                    } else if (collected.getType().containsClass(EntityClasses.FARM)) {
+                        GrowthInfo info = collected.getGrowthInfo();
+                        info.progress = 0;
+                        info.currentState = GrowthStage.ToBePlanted;
+                        info.tendedCount = 0;
+                        ssm.updatePlantGrowth(collected, info);
                     }
                 }
             }
@@ -661,7 +705,7 @@ public class Simulator {
                     EntitySpec entitySpec = entity.getType();
                     Player player = entity.getOwner();
                     if (entitySpec == null || player == null) return false;
-                    return entitySpec.containsClass("unit") && !player.equals(launch.launchingPlayer); //  should be enemies
+                    return entitySpec.containsClass(EntityClasses.UNIT) && !player.equals(launch.launchingPlayer); //  should be enemies
                 },
                 launch.projectile.radius,
                 1
@@ -672,6 +716,39 @@ public class Simulator {
 
             if (launch.projectile.stopsOnFirst) {
                 ssm.removeProjectile(entityId);
+            }
+        }
+    }
+
+    public void updateGrowth(ServerStateManipulator ssm, EntityReader plant, GrowthInfo value, double timeDelta) {
+        Object sync = plant.getSync();
+        synchronized (sync) {
+            if (plant.noLongerExists()) {
+                return;
+            }
+            switch (value.currentState) {
+                case Growing:
+                    value.progress += GROW_SPEED * timeDelta;
+                    if (value.progress < 1.0)
+                        return;
+                    value.progress = 0.0;
+                    value.currentState = GrowthStage.NeedsTending;
+                    ssm.updatePlantGrowth(plant, value);
+                    break;
+                case Ripe:
+                    value.progress += timeDelta;
+                    if (value.progress < RIPE_TIME)
+                        return;
+                    value.currentState = GrowthStage.Expired;
+                    value.progress = 0;
+                    ssm.updatePlantGrowth(plant, value);
+                    break;
+                case ToBePlanted:
+                case Expired:
+                case NeedsTending:
+                    break;
+                default:
+                    throw new UnsupportedOperationException(value.currentState.name());
             }
         }
     }

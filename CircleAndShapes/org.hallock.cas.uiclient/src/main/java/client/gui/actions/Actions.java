@@ -6,10 +6,7 @@ import client.gui.actions.global_action.PlaceBuilding;
 import client.gui.actions.multi_unit.FilterAction;
 import client.gui.actions.unit_action.*;
 import common.state.EntityReader;
-import common.state.spec.CreationMethod;
-import common.state.spec.CreationSpec;
-import common.state.spec.ResourceType;
-import common.state.spec.SpecTree;
+import common.state.spec.*;
 import common.state.sst.sub.GateInfo;
 
 import java.util.Arrays;
@@ -28,14 +25,14 @@ public class Actions {
     Action[] duplicates;
     Action[] setAi;
 
-    SpecTree<CreationSpec> buildingPlacements;
+    private SpecTree<CreationSpec> buildingPlacements;
 
     Action[] getBuildingButtons(UiClientContext context, String[] currentPath) {
         return getActionsForSpecTree(
                 context,
                 buildingPlacements,
                 currentPath,
-                input -> Collections.singleton(new PlaceBuilding(context, input.createdType))
+                input -> Collections.singleton(new PlaceBuilding(context, input))
         );
     }
 
@@ -80,12 +77,17 @@ public class Actions {
 
     static Actions createActions(UiClientContext context) {
         Actions actions = new Actions();
+
+        actions.buildingPlacements = context.clientGameState.gameState.gameSpec.canPlace;
+
         actions.setAi = new Action[]{
                 new Hunt(context),
                 new Deliver(context),
                 new Build(context),
                 new Gather(context),
                 new Transport(context),
+                new Farm(context),
+                new SetFarmingLocation(context),
         };
         actions.duplicates = new Action[]{
                 new Die(context),
@@ -112,17 +114,19 @@ public class Actions {
                     @Override
                     public boolean isEnabled(EntityReader entity) {
                         return defaultGuardStatement(entity) && (
-                                entity.getType().containsClass("hunter") ||
-                                entity.getType().containsClass("carrier") ||
-                                entity.getType().containsClass("constructor") ||
-                                entity.getType().containsClass("gatherer")
+                                entity.getType().containsAnyClass(
+                                        EntityClasses.HUNTER,
+                                        EntityClasses.CARRIER,
+                                        EntityClasses.CONSTRUCTOR,
+                                        EntityClasses.GATHERER
+                                )
                         );
                     }
                 },
                 new PushStack.UnitStackItemPusher(context, "Pickup...", UnitActions.StackItem.Pickup) {
                     @Override
                     public boolean isEnabled(EntityReader entity) {
-                        return defaultGuardStatement(entity) && entity.getType().containsClass("carrier");
+                        return defaultGuardStatement(entity) && entity.getType().containsClass(EntityClasses.CARRIER);
                     }
                 },
                 new PushStack.UnitStackItemPusher(context, "Create...", UnitActions.StackItem.Create) {
@@ -140,7 +144,7 @@ public class Actions {
                 new PushStack.UnitStackItemPusher(context, "Set demands...", UnitActions.StackItem.SetDemands) {
                     @Override
                     public boolean isEnabled(EntityReader entity) {
-                        return defaultGuardStatement(entity) && entity.getType().containsClass("storage");
+                        return defaultGuardStatement(entity) && entity.getType().containsClass(EntityClasses.STORAGE);
                     }
                 },
                 new PushStack.UnitStackItemPusher(context, "Set evo selects...", UnitActions.StackItem.SetEvolutionSpec) {
@@ -152,17 +156,19 @@ public class Actions {
                 new PushStack.UnitStackItemPusher(context, "Gate options...", UnitActions.StackItem.GateOptions) {
                     @Override
                     public boolean isEnabled(EntityReader entity) {
-                        return defaultGuardStatement(entity) && entity.getType().containsClass("player-occupies");
+                        return defaultGuardStatement(entity) && entity.getType().containsClass(EntityClasses.PLAYER_OCCUPIES);
                     }
                 },
                 new PushStack.UnitStackItemPusher(context, "Garrisons...", UnitActions.StackItem.Garrisons) {
                     @Override
                     public boolean isEnabled(EntityReader entity) {
                         return entity != null && !entity.noLongerExists() && (
-                                entity.getType().containsClass("can-garrison-others") ||
-                                        entity.getType().containsClass("can-garrison-in-others") ||
-                                        entity.getType().containsClass("rider") ||
-                                        entity.getType().containsClass("ridden") ||
+                                entity.getType().containsAnyClass(
+                                        EntityClasses.GARRISONS_OTHERS,
+                                        EntityClasses.CAN_GARRISON,
+                                        EntityClasses.RIDER,
+                                        EntityClasses.RIDABLE
+                                ) ||
                                         entity.getHolder() != null ||
                                         !entity.getGarrisoned().isEmpty() ||
                                         entity.getRiding() != null

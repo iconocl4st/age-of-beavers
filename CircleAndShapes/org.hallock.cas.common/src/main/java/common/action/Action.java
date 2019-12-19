@@ -337,30 +337,30 @@ public abstract class Action implements Jsonable {
     }
 
     public static class Bury extends DoubleProgressAction {
-        public ResourceType seed;
+        public final EntityId farm;
 
-        public Bury(ResourceType rt) {
+        public Bury(EntityId rt) {
             super(ActionType.Plant);
-            this.seed = rt;
+            this.farm = rt;
             this.progress = 0.0;
         }
 
-        private Bury(ResourceType rt, double time) {
+        private Bury(EntityId rt, double time) {
             super(ActionType.Plant);
-            this.seed = rt;
+            this.farm = rt;
             this.progress = time;
         }
 
         public static Bury finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
             return new Bury(
-                    reader.read("seed", ResourceType.Serializer, spec),
+                    reader.read("farm", EntityId.Serializer, spec),
                     reader.readDouble("progress")
             );
         }
 
         @Override
         protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
-            writer.write("seed", seed, ResourceType.Serializer, options);
+            writer.write("farm", farm, EntityId.Serializer, options);
             writer.write("progress", progress);
         }
     }

@@ -3,7 +3,7 @@ package client.gui.game.gl;
 import java.util.TreeMap;
 
 class GlConstants {
-    static final double INITIAL_Z = -6f;
+    static final double INITIAL_Z = -20f;
     static final double ZOOM_SPEED = 0.1;
     static final double FOV_Y = 45d;
     static final int FPS = 60;

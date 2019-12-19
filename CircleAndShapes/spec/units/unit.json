@@ -1,8 +1,0 @@
-{
-  "name": "unit",
-  "size": {
-    "width": 1,
-    "height": 1
-  },
-  "classes": ["unit"]
-}

@@ -34,7 +34,7 @@ class Editors {
             case Enumeration: return createEnumerationSelector((Creators.EnumerationCreator<?>) creator);
             case Generations: return createGenerationEditor(c, (Creators.GenerationCreator) creator);
             case EntityReference: return createEntityReferenceSelector(c, (Creators.EntityCreatorReference) creator);
-            case ResourceReference: return createResourceReferenceSelector(c, (Creators.ResourceCreatorReference) creator, Collections.emptySet());
+            case ResourceReference: return createNullable(allowNulls, (Interfaces.ValueCreator<?>) creator,  createResourceReferenceSelector(c, (Creators.ResourceCreatorReference) creator, Collections.emptySet()));
             case CraftingCreator: return createCraftingEditor(c, (Creators.CraftingCreator) creator);
             case Strings: return createNullable(allowNulls, (Interfaces.ValueCreator<?>) creator, createStringSelector(((Creators.StringsCreator<?>) creator).stringCreator));
             case File: return createNullable(allowNulls, (Interfaces.ValueCreator<?>) creator, createPathSelector(c, (Creators.FileCreator) creator));
@@ -819,7 +819,7 @@ class Editors {
         panel.add(Editors.createEditor(c, resource.growsInto,false));
 
         panel.add(Swing.createLabel("Minimap color"));
-        panel.add(Editors.createEditor(c, resource.growsInto,false));
+        panel.add(Editors.createEditor(c, resource.minimapColor,false));
 
         return panel;
     }
@@ -836,6 +836,7 @@ class Editors {
             Creators.UnitGenCreator ug = (Creators.UnitGenCreator) creator;
             panel.add(createEditor(c, ug.unit, false));
             panel.add(createEditor(c, ug.numberToGenerate, false));
+            panel.add(createEditor(c, ug.carrying, true));
         }
         panel.add(Swing.createButton("Remove", () -> onRemove.remove(panel)));
         return panel;
@@ -852,6 +853,7 @@ class Editors {
         for (String header : headers)
             headerPanel.add(Swing.createLabel(header));
         headerPanel.add(new JPanel());
+        panel.add(headerPanel);
 
         layout.setPosition(headerPanel, new Rectangle2D.Double(0, 0, 1, 0.1));
 
@@ -889,13 +891,13 @@ class Editors {
         JTabbedPane jTabbedPane = new JTabbedPane();
         JPanel gaia = new JPanel();
         gaia.setLayout(new GridLayout(1, 0));
-        gaia.add(createGenEditors(c, new String[] {"Unit", "Number to generate"}, creator.gaiaUnitGens, n -> new Creators.UnitGenCreator(), "Gaia units"));
+        gaia.add(createGenEditors(c, new String[] {"Unit", "Number to generate", "Carrying"}, creator.gaiaUnitGens, n -> new Creators.UnitGenCreator(), "Gaia units"));
         gaia.add(createGenEditors(c, new String[] {"Resource", "Number of patches", "Patch size"}, creator.gaiaResGens, n -> new Creators.ResourceGenCreator(), "Gaia resources"));
         jTabbedPane.addTab("Gaia Generation", gaia);
 
         JPanel perPlayer = new JPanel();
         perPlayer.setLayout(new GridLayout(1, 0));
-        perPlayer.add(createGenEditors(c, new String[] {"Unit", "Number to generate"}, creator.byPlayerUnitGens, n -> new Creators.UnitGenCreator(), "Gaia units"));
+        perPlayer.add(createGenEditors(c, new String[] {"Unit", "Number to generate", "Carrying"}, creator.byPlayerUnitGens, n -> new Creators.UnitGenCreator(), "Gaia units"));
         perPlayer.add(createGenEditors(c, new String[] {"Resource", "Number of patches", "Patch size"}, creator.byPlayerResGens, n -> new Creators.ResourceGenCreator(), "Gaia resources"));
         jTabbedPane.addTab("Per player Generation", perPlayer);
 

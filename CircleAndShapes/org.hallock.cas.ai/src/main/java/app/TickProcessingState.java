@@ -9,6 +9,7 @@ import client.ai.ai2.Produce;
 import common.action.Action;
 import common.msg.Message;
 import common.state.EntityReader;
+import common.state.spec.EntityClasses;
 import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
 import common.state.sst.sub.ConstructionZone;
@@ -100,10 +101,10 @@ public class TickProcessingState {
         addGatherLocation(entity, currentAi);
         if (isHuman) ++population;
 
-        if (type.containsClass("can-garrison-others"))
+        if (type.containsClass(EntityClasses.GARRISONS_OTHERS))
             garrisoners.add(entity);
 
-        if (type.containsClass("storage")) {
+        if (type.containsClass(EntityClasses.STORAGE)) {
             MapUtils.add(collectedResources, entity.getCarrying().quantities);
             PrioritizedCapacitySpec capacity = entity.getCapacity();
             storageSpace += capacity.getMaximumWeightHoldable();

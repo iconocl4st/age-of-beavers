@@ -7,7 +7,9 @@ import common.state.Player;
 import common.state.edit.P;
 import common.state.spec.GameSpec;
 import common.state.spec.GenerationSpec;
+import common.state.spec.ResourceType;
 import common.state.sst.OccupancyView;
+import common.state.sst.sub.Load;
 import common.state.sst.sub.TerrainType;
 import common.util.DPoint;
 import common.util.EvolutionSpec;
@@ -32,7 +34,7 @@ public class MapGenerator {
     private final Point[] playerLocations;
     private final Profiler profiler;
 
-    MapGenerator(Point[] playerLocations, ServerGameState gameState, Random random, IdGenerator idGenerator,  ServerStateManipulator ssm, Profiler profiler) {
+    private MapGenerator(Point[] playerLocations, ServerGameState gameState, Random random, IdGenerator idGenerator,  ServerStateManipulator ssm, Profiler profiler) {
         this.playerLocations = playerLocations;
         this.spec = gameState.state.gameSpec;
         this.random = random;
@@ -72,19 +74,19 @@ public class MapGenerator {
         return unionFind;
     }
 
-    DPoint getRandomLocation() {
+    private DPoint getRandomLocation() {
         // need to add a buffer
         return new DPoint((int) (random.nextDouble() * spec.width), (int)(random.nextDouble() * spec.height));
     }
 
-    DPoint getRandomLocation(DPoint location, double maximumDistance) {
+    private DPoint getRandomLocation(DPoint location, double maximumDistance) {
         return new DPoint(
                 (int) (Math.max(2, Math.min(spec.width - 2 , location.x + (2 * random.nextDouble() - 1) * maximumDistance))),
                 (int) (Math.max(2, Math.min(spec.height - 2, location.y + (2 * random.nextDouble() - 1) * maximumDistance)))
         );
     }
 
-    void generateResources() {
+    private void generateResources() {
         OccupancyView occupancy = Occupancy.createGenerationOccupancy(gameState.state);
 
         TreeSet<Point> farEnoughAway = new TreeSet<>((p1, p2) -> {
@@ -288,6 +290,12 @@ public class MapGenerator {
                                 getFreeLocation(spiralIterator, uGen.type.size, playerLocation, MIN_DISTANCE_TO_PLAYER, unionFind, mapper),
                                 player
                         );
+                        if (uGen.carrying != null) {
+                            Load load = gameState.state.carryingManager.get(generatedId);
+                            for (Map.Entry<ResourceType, Integer> entry : uGen.carrying.entrySet()) {
+                                ssm.changeCarrying(generatedId, load, entry.getKey(), entry.getValue());
+                            }
+                        }
                         gameState.startingUnits.get(p).add(generatedId);
                         // TODO: make it explored, at least...
                     }
@@ -308,6 +316,12 @@ public class MapGenerator {
                         getFreeLocation(uGen.type.size),
                         Player.GAIA
                 );
+                if (uGen.carrying != null) {
+                    Load load = gameState.state.carryingManager.get(id);
+                    for (Map.Entry<ResourceType, Integer> entry : uGen.carrying.entrySet()) {
+                        ssm.changeCarrying(id, load, entry.getKey(), entry.getValue());
+                    }
+                }
             }
         }
     }

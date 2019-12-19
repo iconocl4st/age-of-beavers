@@ -24,19 +24,22 @@ public class EntitySpec {
     public final Double initialRotationSpeed;
     public final Double initialAttackSpeed;
     public final Double initialBuildSpeed;
+    public final Double initialPlantSpeed;
+    public final Double initialGardenSpeed;
     public final String ai;
     public final Immutable.ImmutableMap<String, String> aiArgs;
     public final Immutable.ImmutableSet<String> classes;
     public final Immutable.ImmutableMap<ResourceType, Integer> carrying;
     public final EntitySpec resultingStructure;
+    public final ResourceType requiredSeed;
     public final Color minimapColor;
+    public final Boolean diesOnEmpty;
 
     // immutable versions?
     public /* final */ SpecTree<CreationSpec> canCreate = new SpecTree<>();
     public /* final */ SpecTree<CraftingSpec> canCraft = new SpecTree<>();
 
     public final List<EntitySpec> dropOnDeath = new LinkedList<>();
-
 
     // TODO:
 
@@ -54,11 +57,15 @@ public class EntitySpec {
             Double initialRotationSpeed,
             Double initialAttackSpeed,
             Double initialBuildSpeed,
+            Double initialGardenSpeed,
+            Double initialPlantSpeed,
             String ai,
             Immutable.ImmutableMap<String, String> aiArgs,
             Immutable.ImmutableSet<String> classes,
             Immutable.ImmutableMap<ResourceType, Integer> carrying,
             EntitySpec resultingStructure,
+            ResourceType requiredSeed,
+            Boolean diesOnEmpty,
             Color minimapColor
     ) {
         if (size == null) {
@@ -77,12 +84,21 @@ public class EntitySpec {
         this.initialRotationSpeed = initialRotationSpeed;
         this.initialAttackSpeed = initialAttackSpeed;
         this.initialBuildSpeed = initialBuildSpeed;
+        this.initialGardenSpeed  = initialGardenSpeed;
+        this.initialPlantSpeed = initialPlantSpeed;
         this.ai = ai;
         this.aiArgs = aiArgs;
         this.classes = classes;
         this.carrying = carrying;
         this.resultingStructure = resultingStructure;
         this.minimapColor = minimapColor;
+        this.requiredSeed = requiredSeed;
+        this.diesOnEmpty = diesOnEmpty;
+
+        for (String cls : classes) {
+            if (!EntityClasses.isValidClass(cls))
+                throw new IllegalStateException("Invalid class: " + cls);
+        }
     }
 
     public boolean equals(Object other) {
@@ -101,7 +117,7 @@ public class EntitySpec {
     }
 
     public boolean canHaveGatherPoint() {
-        return containsClass("can-garrison-others") || canCreate.isNotEmpty();
+        return containsClass(EntityClasses.GARRISONS_OTHERS) || canCreate.isNotEmpty();
     }
 
     public boolean containsClass(String clazz) {
@@ -116,14 +132,12 @@ public class EntitySpec {
         return false;
     }
 
-
-    public static PrioritizedCapacitySpec getConstructionCarryCapacity(Map<ResourceType, Integer> requiredResource){
+    public static PrioritizedCapacitySpec getConstructionCarryCapacity(Map<ResourceType, Integer> requiredResource) {
         HashMap<ResourceType, Integer> carryLimits = new HashMap<>();
         for (Map.Entry<ResourceType, Integer> entry : requiredResource.entrySet())
             carryLimits.put(entry.getKey(), entry.getValue());
         return PrioritizedCapacitySpec.createCapacitySpec(carryLimits, true, false);
     }
-
 
     public EntitySpec createConstructionSpec(PrioritizedCapacitySpec carryCapacity) {
         return new EntitySpec(
@@ -141,10 +155,14 @@ public class EntitySpec {
             null,
             null,
             null,
+            null,
+            null,
             Immutable.ImmutableMap.emptyMap(),
             Immutable.ImmutableSet.from("storage", "construction-zone", "visible-in-fog", "unit"), // blocks buildings...
             Immutable.ImmutableMap.emptyMap(),
             this,
+            null,
+            false,
             minimapColor
         );
     }
@@ -152,7 +170,7 @@ public class EntitySpec {
     public static DataSerializer<EntitySpec> Serializer = new DataSerializer<EntitySpec>() {
         @Override
         public void write(EntitySpec value, JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
-            if (value.containsClass("construction-zone")) {
+            if (value.containsClass(EntityClasses.CONSTRUCTION_ZONE)) {
                 writer.writeBeginDocument();
                 writer.write("is-construction-spec", true);
                 writer.write("resulting-structure", value.resultingStructure.name);

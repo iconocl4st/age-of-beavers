@@ -31,7 +31,7 @@ public final class UnGarrisonLocation {
         DPoint gatherPoint = holder.getCurrentGatherPoint();
         if (gatherPoint != null) {
             Path<? extends Jsonable> path = state.pathFinder.findExitPath(occView, holder, heldSize, new SearchDestination(gatherPoint));
-            if (path != null)
+            if (path != null && !path.points.isEmpty())
                 return new UnGarrisonLocation(path.points.get(0).toPoint(), path);
         }
         Set<Point> dPoints = PathFinder.enumerateNeighbors(location.toPoint(), type.size, occView);

@@ -14,6 +14,7 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.FPSAnimator;
+import common.state.spec.CreationSpec;
 import common.state.spec.EntitySpec;
 import common.state.spec.GameSpec;
 import common.util.DPoint;
@@ -35,7 +36,7 @@ public class GlGameScreen {
     private BuildingPlacer placer;
     private CommandListener commander;
 
-    public void queryBuildingLocation(EntitySpec spec) {
+    public void queryBuildingLocation(CreationSpec spec) {
         placer.setBuilding(spec);
         commander.setCommand(null);
         SwingUtilities.invokeLater(() -> {
@@ -132,11 +133,13 @@ public class GlGameScreen {
         canvas.addKeyListener(hotkeyListener);
         canvas.addMouseListener(grabFocusListener);
         canvas.addKeyListener(controlGroupListener);
+        canvas.addKeyListener(glGameScreen.placer);
 
         context.selectionManager.addListener(glGameScreen.goToListener);
 
         recListener.addRectangleListener(selectionListener);
         pressListener.addPressListener(selectionListener);
+        pressListener.addPressListener(glGameScreen.placer);
 
 
         if (context.clientGameState.isSpectating()) {

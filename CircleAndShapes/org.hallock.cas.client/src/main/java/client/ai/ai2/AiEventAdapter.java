@@ -4,6 +4,7 @@ import common.AiAttemptResult;
 import common.event.*;
 import common.state.EntityId;
 import common.state.EntityReader;
+import common.state.sst.sub.GrowthInfo;
 import common.util.DPoint;
 
 import java.util.Set;
@@ -46,7 +47,7 @@ public abstract class AiEventAdapter {
                 );
             case GrowthChanged:
                 GrowthStageChanged growthState = (GrowthStageChanged) event;
-                return growthChanged(aiContext, null);
+                return growthChanged(aiContext, growthState.currentPlant, growthState.growthInfo);
             case Bell:
                 AlarmEvent alarmEvent = (AlarmEvent) event;
                 return rangAlarm(aiContext, alarmEvent);
@@ -61,7 +62,7 @@ public abstract class AiEventAdapter {
         }
     }
 
-    protected AiAttemptResult growthChanged(AiContext aiContext, EntityReader plant) { return AiAttemptResult.NothingDone; }
+    protected AiAttemptResult growthChanged(AiContext aiContext, EntityReader plant, GrowthInfo growthInfo) { return AiAttemptResult.NothingDone; }
     protected AiAttemptResult productionComplete(AiContext aiContext, EntityReader createdEntity) { return AiAttemptResult.NothingDone; }
     protected AiAttemptResult demandsChanged(AiContext aiContext) { return AiAttemptResult.NothingDone; }
     protected AiAttemptResult resourcesChanged(AiContext aiContext) { return AiAttemptResult.NothingDone; }

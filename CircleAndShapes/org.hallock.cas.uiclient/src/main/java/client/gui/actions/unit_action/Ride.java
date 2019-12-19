@@ -3,6 +3,7 @@ package client.gui.actions.unit_action;
 import client.ai.ai2.WhileWithinProximity;
 import client.app.UiClientContext;
 import common.state.EntityReader;
+import common.state.spec.EntityClasses;
 import common.state.sst.GameStateHelper;
 
 public class Ride extends UnitToUnitAction {
@@ -12,7 +13,7 @@ public class Ride extends UnitToUnitAction {
 
     @Override
     public boolean isEnabled(EntityReader entity) {
-        return defaultGuardStatement(entity) && entity.getType().containsClass("rider") && entity.getRiding() == null;
+        return defaultGuardStatement(entity) && entity.getType().containsClass(EntityClasses.RIDER) && entity.getRiding() == null;
     }
 
     @Override

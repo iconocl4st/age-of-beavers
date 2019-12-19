@@ -216,7 +216,6 @@ class GlPainter implements GLEventListener {
 
 
     void paintBuckShot(GL2 gl) {
-//
 //        double counter = 0.3;
 //        double prev = counter;
 //        counter += 0.3;

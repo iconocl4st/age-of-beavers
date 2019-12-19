@@ -38,7 +38,6 @@ public abstract class NetworkAiEvent extends AiEvent implements Jsonable {
                 case BuildingPlacementChanged: event = BuildingPlacementChanged.finishParsing(reader, spec, entityId); break;
                 case TargetWithinRange: event = TargetWithinRange.finishParsing(reader, spec, entityId); break;
                 case ProductionComplete: event = ProductionComplete.finishParsing(reader, spec, entityId); break;
-                case GrowthChanged: event = GrowthStageChanged.finishParsing(reader, spec, entityId); break;
             }
             reader.readEndDocument();
             return event;

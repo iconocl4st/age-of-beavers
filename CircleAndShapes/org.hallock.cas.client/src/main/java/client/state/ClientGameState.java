@@ -15,6 +15,7 @@ import common.state.Player;
 import common.state.edit.GameSpecManager;
 import common.state.los.Exploration;
 import common.state.los.LineOfSight;
+import common.state.spec.EntityClasses;
 import common.state.spec.GameSpec;
 import common.state.sst.GameState;
 import common.util.ExecutorServiceWrapper;
@@ -106,7 +107,7 @@ public class ClientGameState {
         state.quadTree = new OccupiedQuadTree(state.gameState.gameSpec.width, state.gameState.gameSpec.height, state.executor);
         for (EntityId entityId : state.gameState.entityManager.allKeys()) {
             EntityReader entity = new  EntityReader(state.gameState, entityId);
-            if (entity.getType().containsClass("occupies")) {
+            if (entity.getType().containsClass(EntityClasses.OCCUPIES)) {
                 state.quadTree.setType(entity.getLocation().toPoint(), entity.getSize(), QuadTreeOccupancyState.Occupied);
 //                state.gameState.staticOccupancy.set(entity.getLocation().toPoint(), entity.getSize(), true);
             }

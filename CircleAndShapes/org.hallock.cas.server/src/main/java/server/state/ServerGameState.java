@@ -8,10 +8,10 @@ import common.state.EntityId;
 import common.state.Player;
 import common.state.los.Exploration;
 import common.state.los.LineOfSight;
+import common.state.spec.EntityClasses;
 import common.state.spec.EntitySpec;
 import common.state.spec.GameSpec;
 import common.state.sst.GameState;
-import common.state.sst.manager.Terrains;
 import common.state.sst.sub.*;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
@@ -148,8 +148,8 @@ public class ServerGameState {
             EvolutionSpec weights = state.evolutionManager.get(entityId);
             if (weights != null) nextState.evolutionManager.set(entityId, weights);
 
-            GrowthInfo growthInfo = state.crops.get(entityId);
-            if (growthInfo != null) nextState.crops.set(entityId, growthInfo);
+            GrowthInfo growthInfo = state.cropInfo.get(entityId);
+            if (growthInfo != null) nextState.cropInfo.set(entityId, growthInfo);
 
             Double gardenSpeed = state.gardenSpeed.get(entityId);
             if (gardenSpeed != null) nextState.gardenSpeed.set(entityId, gardenSpeed);
@@ -160,8 +160,8 @@ public class ServerGameState {
             String graphics = state.graphicsManager.get(entityId);
             if (graphics != null) nextState.graphicsManager.set(entityId, graphics);
 
-            if (type.containsClass("occupies")) nextState.staticOccupancy.set(location.toPoint(), type.size, true);
-            if (type.containsClass("construction-zone")) nextState.buildingOccupancy.set(location.toPoint(), type.size, true);
+            if (type.containsClass(EntityClasses.OCCUPIES)) nextState.staticOccupancy.set(location.toPoint(), type.size, true);
+            if (type.containsClass(EntityClasses.CONSTRUCTION_ZONE)) nextState.buildingOccupancy.set(location.toPoint(), type.size, true);
         }
     }
 

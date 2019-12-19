@@ -5,12 +5,8 @@ import common.state.spec.EntitySpec;
 import common.state.spec.ResourceType;
 import common.state.spec.attack.Weapon;
 import common.state.sst.GameState;
-import common.state.sst.OccupancyView;
 import common.state.sst.manager.RevPair;
-import common.state.sst.sub.ConstructionZone;
-import common.state.sst.sub.GateInfo;
-import common.state.sst.sub.Load;
-import common.state.sst.sub.WeaponSet;
+import common.state.sst.sub.*;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
 import common.util.EvolutionSpec;
@@ -370,5 +366,9 @@ public class EntityReader {
 
     public double getPlantSpeed() {
         return Util.zin(state.burySpeed.get(entityId));
+    }
+
+    public GrowthInfo getGrowthInfo() {
+        return state.cropInfo.get(entityId);
     }
 }

@@ -6,7 +6,7 @@ import javax.swing.*;
 import java.io.IOException;
 import java.nio.file.Paths;
 
-public class Main {
+public class SpecEditor {
     public static void main(String[] args) throws IOException, ParseException {
         GameSpecEditorContext context = new GameSpecEditorContext();
         context.stack = new WindowStack(context);

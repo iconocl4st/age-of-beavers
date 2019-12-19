@@ -18,6 +18,9 @@ public final class Colors {
     public static final Color ATTACK = Color.red;
     public static final Color BUILD = Color.blue;
     public static final Color GATHER_POINT = new Color(243, 191, 38);
+    public static final Color GARDEN = new Color(48, 89, 50);
+    public static final Color PLANT = new Color(123, 184, 126);
+    public static final Color FARMING = new Color(26, 214, 76);
 
     public static final Color[] PLAYER_COLORS = new Color[] {
             Color.gray,

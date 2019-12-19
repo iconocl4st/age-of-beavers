@@ -1,5 +1,7 @@
 package client.gui.game;
 
+import client.ai.ai2.AiTask;
+import client.ai.ai2.FarmAi;
 import client.algo.HueristicPaintMarkedTiles;
 import client.app.UiClientContext;
 import common.CommonConstants;
@@ -89,6 +91,8 @@ public class GamePainter {
             paintAction(Colors.COLLECT, Action.ActionType.Collect, action -> new EntityReader(c.getState(), ((Action.Collect) action).resourceCarrier), c.currentTime, renderer, c.context);
             paintAction(Colors.ATTACK, Action.ActionType.Attack, action -> new EntityReader(c.getState(), ((Action.Attack) action).target), c.currentTime, renderer, c.context);
             paintAction(Colors.BUILD, Action.ActionType.Build, action -> new EntityReader(c.getState(), ((Action.Build) action).constructionId), c.currentTime, renderer, c.context);
+            paintAction(Colors.GARDEN, Action.ActionType.Garden, action -> new EntityReader(c.getState(), ((Action.Garden) action).plant), c.currentTime, renderer, c.context);
+            paintAction(Colors.PLANT, Action.ActionType.Plant, action -> new EntityReader(c.getState(), ((Action.Bury) action).farm), c.currentTime, renderer, c.context);
         }
 
         try (P p = profiler.time("projectiles")) {
@@ -484,10 +488,21 @@ public class GamePainter {
             renderer.fillCircle(Colors.GATHER_POINT, gatherPoint.x, gatherPoint.y, 0.1, ZLevels.Z_GATHER_POINT);
             renderer.drawLine(Colors.GATHER_POINT, gatherPoint.x, gatherPoint.y, location.x, location.y, ZLevels.Z_GATHER_POINT);
         }
+
+        AiTask aiTask = context.clientGameState.aiManager.get(entity);
+        if (selected && aiTask instanceof FarmAi) {
+            FarmAi farmAi = (FarmAi)  aiTask;
+            for (EntityReader plant : farmAi.getFarming()) {
+                DPoint plantCenter = plant.getCenterLocation();
+                renderer.drawLine(
+                        Colors.FARMING,
+                        location.x + type.size.width / 2.0, location.y + type.size.height / 2.0,
+                        plantCenter.x, plantCenter.y,
+                        ZLevels.Z_FARMING
+                );
+            }
+        }
     }
-
-
-
 
     private static double getAngle(double dx, double dy) {
         if (Math.abs(dx) > 14-3)

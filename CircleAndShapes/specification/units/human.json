@@ -12,10 +12,12 @@
     "evolves",
     "gatherer",
     "constructor",
+    "farmer",
     "hunter",
     "can-garrison-in-others",
     "rider"
   ],
+  "garden-speed": 0.25,
   "attack-speed": 1,
   "can-craft": {
     "children": [],
@@ -31,6 +33,7 @@
   "line-of-sight": 5,
   "name": "human",
   "attack-range-outer": 4,
+  "plant-speed": 0.25,
   "carry-capacity": {
     "default-to-accept": true,
     "maximum-weight": 500

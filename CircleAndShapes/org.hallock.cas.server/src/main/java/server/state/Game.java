@@ -1,11 +1,15 @@
 package server.state;
 
 import common.state.EntityId;
+import common.state.EntityReader;
 import common.state.spec.GameSpec;
+import common.state.sst.sub.GrowthInfo;
 import server.app.Lobby;
 import server.app.ServerContext;
 import server.engine.Simulator;
 import server.util.IdGenerator;
+
+import java.util.Map;
 
 public class Game {
     ServerContext context;
@@ -26,6 +30,10 @@ public class Game {
 
         for (EntityId entityId : serverState.state.projectileManager.allKeys()) {
             simulator.processProjectile(ssm, entityId, serverState.state.projectileManager.get(entityId), info.prevTime, info.currentTime);
+        }
+
+        for (Map.Entry<EntityId, GrowthInfo> entry : serverState.state.cropInfo.allEntries()) {
+            simulator.updateGrowth(ssm, new EntityReader(serverState.state, entry.getKey()), entry.getValue(), info.timeDelta);
         }
 
         lobby.ticked();

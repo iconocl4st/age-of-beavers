@@ -4,6 +4,7 @@ import client.event.AiEventListener;
 import common.AiAttemptResult;
 import common.event.AiEvent;
 import common.event.InitializeAi;
+import common.state.EntityId;
 
 import java.util.LinkedList;
 
@@ -98,7 +99,7 @@ public class AiStack implements AiEventListener {
         }
     }
 
-    public String getDisplayString() {
+    String getDisplayString() {
         StringBuilder builder = new StringBuilder();
         synchronized (stack) {
             for (AiTask task : stack) {

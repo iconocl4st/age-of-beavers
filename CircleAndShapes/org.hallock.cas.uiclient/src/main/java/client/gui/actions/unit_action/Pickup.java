@@ -3,6 +3,7 @@ package client.gui.actions.unit_action;
 import client.ai.ai2.OneTripTransportFrom;
 import client.app.UiClientContext;
 import common.state.EntityReader;
+import common.state.spec.EntityClasses;
 import common.state.spec.ResourceType;
 import common.util.MapUtils;
 
@@ -17,7 +18,7 @@ public class Pickup extends UnitToUnitAction {
 
     @Override
     public boolean isEnabled(EntityReader entity) {
-        return defaultGuardStatement(entity) && entity.getType().containsClass("carrier") && entity.canAccept(resource);
+        return defaultGuardStatement(entity) && entity.getType().containsClass(EntityClasses.CARRIER) && entity.canAccept(resource);
     }
 
     @Override

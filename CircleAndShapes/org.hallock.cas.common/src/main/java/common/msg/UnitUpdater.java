@@ -6,6 +6,7 @@ import common.state.EntityReader;
 import common.state.Player;
 import common.state.spec.EntitySpec;
 import common.state.sst.sub.GateInfo;
+import common.state.sst.sub.GrowthInfo;
 import common.state.sst.sub.Load;
 import common.state.sst.sub.WeaponSet;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
@@ -130,6 +131,20 @@ public class UnitUpdater {
         Message.UnitUpdated  unitUpdated = new Message.UnitUpdated();
         unitUpdated.unitId  = entityId;
         unitUpdated.capacity = capacity;
+        return unitUpdated;
+    }
+
+    public static Message updateGrowthInfo(EntityId entityId, GrowthInfo growthInfo) {
+        Message.UnitUpdated  unitUpdated = new Message.UnitUpdated();
+        unitUpdated.unitId  = entityId;
+        unitUpdated.growthInfo = growthInfo;
+        return unitUpdated;
+    }
+
+    public static Message updateUnitGraphics(EntityId entityId, String newGraphics) {
+        Message.UnitUpdated  unitUpdated = new Message.UnitUpdated();
+        unitUpdated.unitId  = entityId;
+        unitUpdated.graphics = newGraphics;
         return unitUpdated;
     }
 }

@@ -3,12 +3,15 @@ package client.gui.selected;
 import client.app.UiClientContext;
 import client.gui.ImagePanel;
 import common.action.Action;
+import common.event.GrowthStage;
 import common.state.EntityReader;
 import common.state.Player;
+import common.state.spec.EntityClasses;
 import common.state.spec.EntitySpec;
 import common.state.spec.GameSpec;
 import common.state.spec.ResourceType;
 import common.state.sst.sub.GateInfo;
+import common.state.sst.sub.GrowthInfo;
 import common.state.sst.sub.Load;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
 import common.util.DPoint;
@@ -45,6 +48,7 @@ public class SingleUnitSelected extends JPanel {
     private JLabel type;
     private JLabel owner;
     private JLabel location;
+    private JLabel growthInfo;
 
     private EntityReader entity;
 
@@ -91,6 +95,7 @@ public class SingleUnitSelected extends JPanel {
         type.setText("");
         owner.setText("");
         location.setText("");
+        growthInfo.setText("");
     }
 
 
@@ -118,7 +123,7 @@ public class SingleUnitSelected extends JPanel {
     }
 
     void setLabelValues() {
-        context.executorService.submit(() -> {
+        SwingUtilities.invokeLater(() -> {
             synchronized (uiSync) {
                 if (isUpdating) return;
                 isUpdating = true;
@@ -145,7 +150,7 @@ public class SingleUnitSelected extends JPanel {
 
         Load load = entity.getCarrying();
         Map<ResourceType, Integer> requiredResources = Collections.emptyMap();
-        if (currentType.containsClass("construction-zone")) {
+        if (currentType.containsClass(EntityClasses.CONSTRUCTION_ZONE)) {
             requiredResources = currentType.carryCapacity.getMaximumAmounts();
         }
 
@@ -234,6 +239,13 @@ public class SingleUnitSelected extends JPanel {
         } else {
             buildProgress.setText("Build progress: " + "N/A");
         }
+
+        GrowthInfo gi = entity.getGrowthInfo();
+        if (gi == null) {
+            growthInfo.setText("Not a plant");
+        } else {
+            growthInfo.setText(gi.toString());
+        }
     }
 
     private void setDead() {
@@ -264,6 +276,7 @@ public class SingleUnitSelected extends JPanel {
         location.setText("No location");
         health.setText("No health");
         buildProgress.setText("Not under construction");
+        growthInfo.setText("Not a crop");
     }
 
     static SingleUnitSelected createSingleSelect(UiClientContext context) {
@@ -307,6 +320,7 @@ public class SingleUnitSelected extends JPanel {
         rightPanel.add(ret.garrisoned = new JLabel());
         rightPanel.add(ret.gateState = new JLabel());
         rightPanel.add(ret.isRiding = new JLabel());
+        rightPanel.add(ret.growthInfo = new JLabel());
         return ret;
     }
 }

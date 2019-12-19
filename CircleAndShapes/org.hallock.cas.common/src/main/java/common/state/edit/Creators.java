@@ -22,8 +22,6 @@ import java.util.List;
 
 class Creators {
 
-
-
     private static <S> Immutable.ImmutableList<S> createList(Collection<? extends Interfaces.SpecCreator<S>> creators, Interfaces.CreationContext cntxt) {
         ArrayList<S> ret = new ArrayList<>(creators.size());
         for (Interfaces.SpecCreator<S> c : creators) {
@@ -41,10 +39,6 @@ class Creators {
         }
         return array;
     }
-
-
-
-
 
     enum CreatorType {
         Capacity,
@@ -139,7 +133,11 @@ class Creators {
 
         @Override
         public void setNull(boolean isNull) {
-            path = null;
+            if (isNull) {
+                path = null;
+            } else {
+                path = Paths.get("na.png");
+            }
         }
 
         @Override
@@ -264,7 +262,13 @@ class Creators {
 
         @Override
         public void getExportErrors(GameSpecCreator creator, Interfaces.Errors errors, Interfaces.ErrorCheckParams params) {
-            specTreeValue.visit((p, t) -> t.getExportErrors(creator, errors, params));
+            specTreeValue.visit((p, t) -> {
+                StringBuilder path = new StringBuilder();
+                for (String s : p) path.append(s).append(", ");
+                try (P ingore = errors.withPath(path.toString())) {
+                    t.getExportErrors(creator, errors, params);
+                }
+            });
         }
 
         SpecTree.SpecNode<T> rParse(JSONObject object) {
@@ -442,9 +446,15 @@ class Creators {
                 throw new IllegalStateException(fieldName);
             if (mapCreator.isNull)
                 return new PrioritizedCapacitySpec(maximumWeight.get(), defaultToAccept.get());
-            PrioritizedCapacitySpec spec = PrioritizedCapacitySpec.createCapacitySpec(mapCreator.create(cntxt), false, defaultToAccept.get());
+            PrioritizedCapacitySpec spec;
+            try {
+                spec = PrioritizedCapacitySpec.createCapacitySpec(mapCreator.create(cntxt), false, defaultToAccept.get());
             if (!maximumWeight.isNull())
                 spec.setTotalWeight(maximumWeight.get());
+            } catch (NullPointerException e) {
+                System.out.println(e);
+                throw e;
+            }
             return spec;
         }
 
@@ -740,7 +750,6 @@ class Creators {
 
 
     static class EntityCreator implements Interfaces.SpecCreator<EntitySpec> {
-
         EntityCreatorReference parent = new EntityCreatorReference("parent");
         List<EntityCreator> children = new LinkedList<>();
 
@@ -770,6 +779,10 @@ class Creators {
         ResourcesMapCreator isCarrying = new ResourcesMapCreator("is-carrying"); { fields.add(isCarrying); }
         StringsCreator.StringSetCreator classes = new StringsCreator.StringSetCreator("classes"); { fields.add(classes); }
         BooleanCreator isExported = new BooleanCreator("is-exported-to-spec"); { fields.add(isExported); }
+        DoubleCreator plantSpeed = new DoubleCreator("plant-speed"); { fields.add(plantSpeed); }
+        DoubleCreator gardenSpeed = new DoubleCreator("garden-speed"); { fields.add(gardenSpeed); }
+        ResourceCreatorReference requiredSeed = new ResourceCreatorReference("required-seed"); { fields.add(requiredSeed); }
+        BooleanCreator diesOnEmpty = new BooleanCreator("dies-on-empty"); { fields.add(diesOnEmpty); }
         ColorCreator color = new ColorCreator("minimap-color");
 
 //        public GaiaAi ai;
@@ -832,11 +845,15 @@ class Creators {
                     getInheretedValue(cntxt, rotationSpeed),
                     getInheretedValue(cntxt, attackSpeed),
                     getInheretedValue(cntxt, buildSpeed),
+                    getInheretedValue(cntxt, gardenSpeed),
+                    getInheretedValue(cntxt, plantSpeed),
                     null,
                     Immutable.ImmutableMap.emptyMap(),
                     new Immutable.ImmutableSet<>(combined),
                     new Immutable.ImmutableMap<>(isCarrying.create(cntxt)), // needs to be inherited?
                     null,
+                    requiredSeed.create(cntxt),
+                    diesOnEmpty.create(cntxt),
                     color.get()
             );
             cntxt.setArg("entity", null);
@@ -919,8 +936,9 @@ class Creators {
 
         void fill(Interfaces.CreationContext cntxt) {
             EntitySpec unitType = cntxt.getUnitType(name);
-            unitType.canCreate = canCreate.create(cntxt);
-            unitType.canCraft = canCraft.create(cntxt);
+            Interfaces.CreationContext withArg = cntxt.setArg("entity", unitType);
+            unitType.canCreate = canCreate.create(withArg);
+            unitType.canCraft = canCraft.create(withArg);
         }
 
         static EntityCreator NoEntity = new EntityCreator("none");
@@ -1030,6 +1048,9 @@ class Creators {
                 try (P p = errors.withPath("weapons")) {
                     errors.checkAll(weapons, creator, params);
                 }
+                try (P p = errors.withPath("placeable")) {
+                    canPlace.getExportErrors(creator, errors, params);
+                }
             }
         }
 
@@ -1075,7 +1096,8 @@ class Creators {
                 cntxt.unitTypes,
                 weapons,
                 generation.create(cntxt),
-                visibility.create(cntxt)
+                visibility.create(cntxt),
+                canPlace.create(cntxt)
             );
         }
 
@@ -1116,6 +1138,7 @@ class Creators {
         String name;
         IntegerCreator weight = new IntegerCreator("weight");
         EntityCreatorReference growsInto = new EntityCreatorReference("grows-into");
+        ColorCreator minimapColor = new ColorCreator("minimap-color");
 
         ResourceCreator(String name) {
             this.name = name;
@@ -1134,7 +1157,7 @@ class Creators {
 
         @Override
         public ResourceType create(Interfaces.CreationContext cntxt) {
-            return new ResourceType(name, weight.getNonNull());
+            return new ResourceType(name, weight.getNonNull(), minimapColor.create(cntxt));
         }
 
         void fill(Interfaces.CreationContext cntxt) {
@@ -1151,6 +1174,7 @@ class Creators {
         public void parse(JSONObject object) {
             weight.parse(object);
             growsInto.parse(object);
+            minimapColor.parse(object);
         }
 
         @Override
@@ -1158,6 +1182,7 @@ class Creators {
             obj.put("name", name);
             weight.save(obj);
             growsInto.save(obj);
+            minimapColor.save(obj);
         }
 
         @Override
@@ -1298,35 +1323,46 @@ class Creators {
     static class UnitGenCreator implements Interfaces.SpecCreator<GenerationSpec.UnitGen>, GenCreator {
         Creators.EntityCreatorReference unit = new Creators.EntityCreatorReference("unit");
         IntegerCreator numberToGenerate = new IntegerCreator("number");
+        Creators.ResourcesMapCreator carrying = new ResourcesMapCreator("carrying");
 
         @Override
         public void getExportErrors(GameSpecCreator creator, Interfaces.Errors errors, Interfaces.ErrorCheckParams params) {
             try (P ignore = errors.withPath("unit")) {
                 unit.getExportErrors(creator, errors, params);
             }
+            try (P ignore = errors.withPath("carrying")) {
+                carrying.getExportErrors(creator, errors, params);
+            }
             errors.nonNull(numberToGenerate);
         }
 
         @Override
         public GenerationSpec.UnitGen create(Interfaces.CreationContext cntxt) {
-            return new GenerationSpec.UnitGen(unit.create(cntxt), numberToGenerate.create(cntxt));
+            return new GenerationSpec.UnitGen(
+                    unit.create(cntxt),
+                    numberToGenerate.create(cntxt),
+                    new Immutable.ImmutableMap<>(carrying.create(cntxt))
+            );
         }
 
         @Override
         public void compile(GameSpecCreator creator) {
             unit.compile(creator);
+            carrying.compile(creator);
         }
 
         @Override
         public void parse(JSONObject object) {
             unit.parse(object);
             numberToGenerate.parse(object);
+            carrying.parse(object);
         }
 
         @Override
         public void save(JSONObject obj) {
             unit.save(obj);
             numberToGenerate.save(obj);
+            carrying.save(obj);
         }
 
         @Override
@@ -1557,14 +1593,21 @@ class Creators {
 
         @Override
         public void getExportErrors(GameSpecCreator creator, Interfaces.Errors errors, Interfaces.ErrorCheckParams params) {
+            if (valueName == null) {
+                errors.error("Enumeration value cannot be null.");
+            }
         }
 
         @Override
         public T create(Interfaces.CreationContext cntxt) {
+//            if (valueName == null)
+//                return null;
             for (T t : values)
                 if (t.name().equals(valueName))
                     return t;
-            throw new IllegalStateException(valueName);
+            StringBuilder builder = new StringBuilder().append("[");
+            for (T t : values) builder.append(t.name()).append(", ");
+            throw new IllegalStateException("Unable to find " + valueName + " in " + builder.append("]"));
         }
 
         @Override
@@ -1695,13 +1738,17 @@ class Creators {
         String fieldName;
         String referenceName;
         ResourceCreator reference;
+        boolean isNull;
 
-        public ResourceCreatorReference(String fieldName) {
+        ResourceCreatorReference(String fieldName) {
             this.fieldName = fieldName;
         }
 
         @Override
         public void getExportErrors(GameSpecCreator creator, Interfaces.Errors errors, Interfaces.ErrorCheckParams params) {
+            if (!isNull && reference == null) {
+                errors.error("Reference must be set");
+            }
             if (referenceName != null) {
                 if (reference == null)
                     errors.error("Resource reference is undefined: " + referenceName);
@@ -1712,7 +1759,10 @@ class Creators {
 
         @Override
         public ResourceType create(Interfaces.CreationContext cntxt) {
-            if (referenceName == null) return null;
+            if (referenceName == null) {
+                if (isNull) return null;
+                else throw new IllegalStateException();
+            }
             for (ResourceType spec : cntxt.resourceTypes)
                 if (spec.name.equals(referenceName)) return spec;
             throw new IllegalStateException("Unable to find: " + referenceName);
@@ -1730,12 +1780,16 @@ class Creators {
 
         @Override
         public void parse(JSONObject object) {
-            if (!object.has(fieldName)) return;
+            if (!object.has(fieldName)) {
+                isNull = true;
+                return;
+            }
             referenceName = object.getString(fieldName);
         }
 
         @Override
         public void save(JSONObject obj) {
+            if (isNull) return;
             obj.put(fieldName, referenceName);
         }
 
@@ -1743,9 +1797,11 @@ class Creators {
             if (item.name.equals(ResourceCreator.NONE.name)) {
                 reference = null;
                 referenceName = null;
+                isNull = true;
             } else {
                 this.referenceName = item.name;
                 this.reference = item;
+                isNull = false;
             }
         }
 
@@ -1756,12 +1812,12 @@ class Creators {
 
         @Override
         public boolean isNull() {
-            return referenceName == null;
+            return isNull;
         }
 
         @Override
         public void setNull(boolean selected) {
-            if (selected) referenceName = null;
+            isNull = selected;
         }
 
         @Override

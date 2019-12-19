@@ -1,6 +1,59 @@
 {"globally-placeable": {
   "children": [
     {
+      "key": "railroad",
+      "child": {
+        "children": [
+          {
+            "key": "railroad",
+            "child": {
+              "type": "leaf",
+              "value": {
+                "creation-method": "Construction",
+                "creation-time": 10,
+                "created-unit": "railroad",
+                "required-resources": [{
+                  "amount": 20,
+                  "resource": "wood"
+                }]
+              }
+            }
+          },
+          {
+            "key": "railroad-turn",
+            "child": {
+              "type": "leaf",
+              "value": {
+                "creation-method": "Construction",
+                "creation-time": 10,
+                "created-unit": "railroad-turn",
+                "required-resources": [{
+                  "amount": 20,
+                  "resource": "wood"
+                }]
+              }
+            }
+          },
+          {
+            "key": "railroad-split",
+            "child": {
+              "type": "leaf",
+              "value": {
+                "creation-method": "Construction",
+                "creation-time": 10,
+                "created-unit": "railroad-split",
+                "required-resources": [{
+                  "amount": 20,
+                  "resource": "wood"
+                }]
+              }
+            }
+          }
+        ],
+        "type": "branch"
+      }
+    },
+    {
       "key": "husbandry",
       "child": {
         "children": [
@@ -23,14 +76,48 @@
             "key": "fence gate",
             "child": {
               "type": "leaf",
-              "value": {"required-resources": []}
+              "value": {
+                "creation-method": "Construction",
+                "creation-time": 10,
+                "created-unit": "fence-gate",
+                "required-resources": [{
+                  "amount": 10,
+                  "resource": "wood"
+                }]
+              }
+            }
+          },
+          {
+            "key": "farming",
+            "child": {
+              "children": [{
+                "key": "wheat-plant",
+                "child": {
+                  "type": "leaf",
+                  "value": {
+                    "creation-method": "Construction",
+                    "creation-time": 1,
+                    "created-unit": "wheat-plant",
+                    "required-resources": []
+                  }
+                }
+              }],
+              "type": "branch"
             }
           },
           {
             "key": "fence",
             "child": {
               "type": "leaf",
-              "value": {"required-resources": []}
+              "value": {
+                "creation-method": "Construction",
+                "creation-time": 10,
+                "created-unit": "fence",
+                "required-resources": [{
+                  "amount": 5,
+                  "resource": "wood"
+                }]
+              }
             }
           }
         ],
@@ -45,21 +132,57 @@
             "key": "storage yard",
             "child": {
               "type": "leaf",
-              "value": {"required-resources": []}
+              "value": {
+                "creation-method": "Construction",
+                "creation-time": 30,
+                "created-unit": "storage-yard",
+                "required-resources": [
+                  {
+                    "amount": 500,
+                    "resource": "wood"
+                  },
+                  {
+                    "amount": 50,
+                    "resource": "stone"
+                  }
+                ]
+              }
             }
           },
           {
             "key": "brothel",
             "child": {
               "type": "leaf",
-              "value": {"required-resources": []}
+              "value": {
+                "creation-method": "Construction",
+                "creation-time": 30,
+                "created-unit": "brothel",
+                "required-resources": [
+                  {
+                    "amount": 300,
+                    "resource": "wood"
+                  },
+                  {
+                    "amount": 100,
+                    "resource": "stone"
+                  }
+                ]
+              }
             }
           },
           {
             "key": "carpenter shop",
             "child": {
               "type": "leaf",
-              "value": {"required-resources": []}
+              "value": {
+                "creation-method": "Construction",
+                "creation-time": 30,
+                "created-unit": "carpenter-shop",
+                "required-resources": [{
+                  "amount": 200,
+                  "resource": "wood"
+                }]
+              }
             }
           }
         ],

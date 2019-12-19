@@ -3,6 +3,7 @@ package app;
 import common.msg.Message;
 import common.state.EntityReader;
 import common.state.Occupancy;
+import common.state.spec.CreationSpec;
 import common.state.spec.EntitySpec;
 import common.util.Util;
 
@@ -69,9 +70,9 @@ public class AiUtitlities {
 
 
     public void addFences() {
-        EntitySpec fenceType = this.context.clientGameState.gameState.gameSpec.getUnitSpec("fence");
-        EntitySpec fenceGateType = this.context.clientGameState.gameState.gameSpec.getUnitSpec("fence-gate");
-        EntitySpec feedingTroughType = this.context.clientGameState.gameState.gameSpec.getUnitSpec("feeding-trough");
+        CreationSpec fenceType = this.context.clientGameState.gameState.gameSpec.canPlace.find(cs -> cs.createdType.name.equals("fence"));
+        CreationSpec fenceGateType = this.context.clientGameState.gameState.gameSpec.canPlace.find(cs -> cs.createdType.name.equals("fence-gate"));
+        CreationSpec feedingTroughType = this.context.clientGameState.gameState.gameSpec.canPlace.find(cs -> cs.createdType.name.equals("feeding-trough"));
 
         Dimension dimension = new Dimension(AiConstants.FENCED_WIDTH, AiConstants.FENCED_WIDTH);
         Point location = getSpaceForBuilding(dimension);

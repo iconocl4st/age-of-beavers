@@ -3,6 +3,7 @@ package common.state.sst;
 import common.state.EntityId;
 import common.state.EntityReader;
 import common.state.Player;
+import common.state.spec.EntityClasses;
 import common.state.spec.EntitySpec;
 import common.state.sst.manager.ManagerImpl;
 
@@ -15,7 +16,7 @@ public class GameStateHelper {
         Player riddenOwner = ridden.getOwner();
         if (riderType == null || riddenType == null || riderOwner == null || riddenOwner == null)
             return false;
-        if (!riderType.containsClass("rider") || !riddenType.containsClass("ridable"))
+        if (!riderType.containsClass(EntityClasses.RIDER) || !riddenType.containsClass(EntityClasses.RIDABLE))
             return false;
         if (rider.isHidden() || ridden.isHidden())
             return false;
@@ -31,10 +32,10 @@ public class GameStateHelper {
 
     public static boolean playerCanGarrison(Player player, EntityReader goGarrison, EntityReader destination) {
         EntitySpec eEntity = goGarrison.getType();
-        if (eEntity == null || !eEntity.containsClass("can-garrison-in-others"))
+        if (eEntity == null || !eEntity.containsClass(EntityClasses.CAN_GARRISON))
             return false;
         EntitySpec rEntity = destination.getType();
-        if (rEntity == null || !rEntity.containsClass("can-garrison-others"))
+        if (rEntity == null || !rEntity.containsClass(EntityClasses.GARRISONS_OTHERS))
             return false;
         Player eOwner = goGarrison.getOwner();
         if (eOwner == null) return false;

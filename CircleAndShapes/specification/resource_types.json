@@ -65,7 +65,8 @@
   },
   {
     "name": "wheat-seed",
-    "weight": 1
+    "weight": 1,
+    "grows-into": "wheat-plant"
   },
   {
     "name": "wood",

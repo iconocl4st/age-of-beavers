@@ -1,22 +1,21 @@
 package client.gui.mouse;
 
 import client.app.UiClientContext;
-import client.gui.game.GamePainter;
-import client.gui.game.Zoom;
 import client.gui.game.gl.GlListeners;
-import client.state.ClientGameState;
 import common.msg.Message;
 import common.state.Occupancy;
-import common.state.spec.EntitySpec;
+import common.state.spec.CreationSpec;
 
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.IOException;
 
-public class BuildingPlacer implements GlListeners.GameMousePressListener {
-    private EntitySpec building;
+public class BuildingPlacer implements GlListeners.GameMousePressListener, KeyListener {
+    private CreationSpec building;
     private int buildingLocX = -1;
     private int buildingLocY = -1;
+    private int currentRotation;
 
     private final UiClientContext context;
 
@@ -31,14 +30,29 @@ public class BuildingPlacer implements GlListeners.GameMousePressListener {
 
     public Rectangle getBuildingLocation() {
         if (isNotPlacing()) return null;
-        return new Rectangle(buildingLocX, buildingLocY, building.size.width, building.size.height);
+        int x = buildingLocX;
+        int y = buildingLocY;
+        int w = building.createdType.size.width;
+        int h = building.createdType.size.height;
+        switch (currentRotation) {
+            case 0:
+                return new Rectangle(x, y, w, h);
+            case 1:
+                return new Rectangle(x - h, y, h, w);
+            case 2:
+                return new Rectangle(x - w, y - h, w, h);
+            case 3:
+                return new Rectangle(x, y - w, h, w);
+            default:
+                throw new IllegalStateException();
+        }
     }
 
     public boolean isNotPlacing() {
-        return building == null || buildingLocX < 0 || buildingLocY < 0;
+        return building == null /* || buildingLocX < 0 || buildingLocY < 0 */;
     }
 
-    public void setBuilding(EntitySpec spec) {
+    public void setBuilding(CreationSpec spec) {
         this.building = spec;
         if (spec == null) {
             buildingLocX = -1;
@@ -46,14 +60,14 @@ public class BuildingPlacer implements GlListeners.GameMousePressListener {
         }
     }
 
-    private boolean buildBuilding(final EntitySpec building, final int buildingLocX, final int buildingLocY) {
+    private boolean buildBuilding(final CreationSpec building, final int buildingLocX, final int buildingLocY) {
         if (!canBuild()) {
             return false;
         }
 
         context.executorService.submit(() -> {
             try {
-                context.writer.send(new Message.PlaceBuilding(building, buildingLocX, buildingLocY));
+                context.writer.send(new Message.PlaceBuilding(building, buildingLocX, buildingLocY, currentRotation));
                 context.writer.flush();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -63,10 +77,10 @@ public class BuildingPlacer implements GlListeners.GameMousePressListener {
     }
 
     public boolean canBuild() {
-        return !Occupancy.isOccupied(
+        return buildingLocX < 0 || buildingLocY < 0 || !Occupancy.isOccupied(
                 Occupancy.createConstructionOccupancy(context.clientGameState.gameState, context.clientGameState.exploration),
                 new Point(buildingLocX, buildingLocY),
-                building.size
+                building.createdType.size
         );
     }
 
@@ -90,5 +104,21 @@ public class BuildingPlacer implements GlListeners.GameMousePressListener {
     }
 
     @Override
+    public void keyPressed(KeyEvent keyEvent) {
+        switch (keyEvent.getKeyCode()) {
+            case KeyEvent.VK_L:
+                currentRotation++;
+                if (currentRotation >= 4)
+                    currentRotation = 0;
+        }
+    }
+
+    @Override
     public void mouseReleased(double x, double y, GlListeners.PressInfo info) {}
+
+    @Override
+    public void keyTyped(KeyEvent keyEvent) {}
+
+    @Override
+    public void keyReleased(KeyEvent keyEvent) {}
 }

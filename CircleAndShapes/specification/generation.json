@@ -42,7 +42,11 @@
     },
     {
       "number": 1,
-      "unit": "storage-yard"
+      "unit": "storage-yard",
+      "carrying": [{
+        "amount": 5,
+        "resource": "wheat-seed"
+      }]
     },
     {
       "number": 5,

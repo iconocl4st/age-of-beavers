@@ -1,6 +1,7 @@
 package client.event.supply;
 
 import common.state.EntityReader;
+import common.state.spec.EntityClasses;
 import common.state.spec.GameSpec;
 import common.state.spec.ResourceType;
 import common.state.sst.sub.Load;
@@ -54,7 +55,7 @@ public class StorageTracker {
     }
 
     private void add(EntityReader entity) {
-        if (entity.noLongerExists() || !entity.getType().containsClass("storage"))
+        if (entity.noLongerExists() || !entity.getType().containsClass(EntityClasses.STORAGE))
             return;
         TrackedStorage tracked = new TrackedStorage();
         tracked.contributingTotalWeight = entity.getAmountOfResourceAbleToAccept();

@@ -3,7 +3,6 @@ package common.state.spec;
 import common.util.json.*;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 public class CraftingSpec implements Jsonable {

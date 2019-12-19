@@ -56,7 +56,7 @@ public class GameState implements Jsonable {
     public ManagerImpl<String> graphicsManager;
     public ManagerImpl<Double> gardenSpeed;
     public ManagerImpl<Double> burySpeed;
-    public ManagerImpl<GrowthInfo> crops;
+    public ManagerImpl<GrowthInfo> cropInfo;
 //    public ManagerImpl<Armor> armorManager;
 
     // for natural resources and buildings...
@@ -99,7 +99,7 @@ public class GameState implements Jsonable {
         gs.buildingOccupancy = new BitArray(spec.width, spec.height);
         gs.textures = new Terrains(spec.width, spec.height);
         gs.graphicsManager = new ManagerImpl<>(DataSerializer.StringSerializer);
-        gs.crops = new ManagerImpl<>(GrowthInfo.Serializer);
+        gs.cropInfo = new ManagerImpl<>(GrowthInfo.Serializer);
         gs.gardenSpeed = new ManagerImpl<>(DataSerializer.DoubleSerializer);
         gs.burySpeed = new ManagerImpl<>(DataSerializer.DoubleSerializer);
         gs.gameSpec = spec;
@@ -140,7 +140,7 @@ public class GameState implements Jsonable {
         reader.readName("building-occupancy"); buildingOccupancy.updateAll(reader, options);
         reader.readName("textures"); textures.updateAll(reader, options);
         reader.readName("graphics"); graphicsManager.updateAll(reader, options);
-        reader.readName("crops"); crops.updateAll(reader, options);
+        reader.readName("cropInfo"); cropInfo.updateAll(reader, options);
         reader.readName("gardening-speeds"); gardenSpeed.updateAll(reader, options);
         reader.readName("bury-speeds"); burySpeed.updateAll(reader, options);
         reader.readEndDocument();
@@ -181,7 +181,7 @@ public class GameState implements Jsonable {
         writer.writeName("building-occupancy"); buildingOccupancy.writeTo(writer, options);
         writer.writeName("textures"); textures.writeTo(writer, options);
         writer.writeName("graphics"); graphicsManager.writeTo(writer, options);
-        writer.writeName("crops"); crops.writeTo(writer, options);
+        writer.writeName("cropInfo"); cropInfo.writeTo(writer, options);
         writer.writeName("gardening-speeds"); gardenSpeed.writeTo(writer, options);
         writer.writeName("bury-speeds"); burySpeed.writeTo(writer, options);
         writer.writeEndDocument();
@@ -216,7 +216,7 @@ public class GameState implements Jsonable {
             depositSpeedManager.remove(entity);
             evolutionManager.remove(entity);
             graphicsManager.remove(entity);
-            crops.remove(entity);
+            cropInfo.remove(entity);
             gardenSpeed.remove(entity);
             burySpeed.remove(entity);
         }

@@ -16,6 +16,8 @@ public class EvolutionSpec implements Jsonable {
     public Double initialBuildSpeed;
     public Double initialRotationSpeed;
     public Double initialAttackSpeed;
+    public Double initialPlantSpeed;
+    public Double initialGardenSpeed;
 //        public List<EntitySpec> dropOnDeath;
 
     public EvolutionSpec() {}
@@ -30,6 +32,8 @@ public class EvolutionSpec implements Jsonable {
         initialBuildSpeed = spec.initialBuildSpeed;
         initialRotationSpeed = spec.initialRotationSpeed;
         initialAttackSpeed = spec.initialAttackSpeed;
+        initialPlantSpeed = spec.initialPlantSpeed;
+        initialGardenSpeed = spec.initialGardenSpeed;
     }
     
     public void writeTo(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
@@ -42,6 +46,8 @@ public class EvolutionSpec implements Jsonable {
         writer.write("build-speed", initialBuildSpeed);
         writer.write("rotation-speed", initialRotationSpeed);
         writer.write("attack-speed", initialAttackSpeed);
+        writer.write("garden-speed", initialGardenSpeed);
+        writer.write("plant-speed", initialPlantSpeed);
         writer.writeEndDocument();
     }
     
@@ -57,6 +63,8 @@ public class EvolutionSpec implements Jsonable {
             spec.initialBuildSpeed = reader.readDouble("build-speed");
             spec.initialRotationSpeed = reader.readDouble("rotation-speed");
             spec.initialAttackSpeed = reader.readDouble("attack-speed");
+            spec.initialGardenSpeed = reader.readDouble("garden-speed");
+            spec.initialPlantSpeed = reader.readDouble("plant-speed");
             reader.readEndDocument();
             return spec;
         }
@@ -72,6 +80,8 @@ public class EvolutionSpec implements Jsonable {
         ret.initialBuildSpeed = 1.0;
         ret.initialRotationSpeed = 1.0;
         ret.initialAttackSpeed = 1.0;
+        ret.initialGardenSpeed = 1.0;
+        ret.initialPlantSpeed = 1.0;
         return ret;
     }
 }

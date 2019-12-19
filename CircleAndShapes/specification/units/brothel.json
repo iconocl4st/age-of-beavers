@@ -24,7 +24,21 @@
     }]
   },
   "can-create": {
-    "children": [],
+    "children": [{
+      "key": "Human",
+      "child": {
+        "type": "leaf",
+        "value": {
+          "creation-method": "Garrison",
+          "creation-time": 30,
+          "created-unit": "human",
+          "required-resources": [{
+            "amount": 50,
+            "resource": "food"
+          }]
+        }
+      }
+    }],
     "type": "branch"
   },
   "is-exported-to-spec": true

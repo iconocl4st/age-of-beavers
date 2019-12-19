@@ -107,8 +107,8 @@ public class ActionRequester {
         writer.send(new Message.RequestAction(entity.entityId, new Action.Idle()));
     }
 
-    public void setUnitActionToPlant(EntityReader entity, ResourceType type) {
-        writer.send(new Message.RequestAction(entity.entityId, new Action.Bury(type)));
+    public void setUnitActionToPlant(EntityReader entity, EntityReader plant) {
+        writer.send(new Message.RequestAction(entity.entityId, new Action.Bury(plant.entityId)));
     }
 
     public void setUnitActionToGarden(EntityReader entity, EntityReader plant) {

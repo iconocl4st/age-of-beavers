@@ -17,6 +17,10 @@ public class SpecTree<T> {
     public SpecTree(SpecNode<T> root) { this.root = root; }
 
 
+    public T find(Predicate<T> pred) {
+        return root.find(pred);
+    }
+
     public void setRoot(SpecNode<T> tSpecNode) {
         this.root = tSpecNode;
     }
@@ -61,6 +65,8 @@ public class SpecTree<T> {
         public abstract void visit(ArrayList<String> list, NodeVisitor<T> visitor);
 
         public abstract <G> SpecNode<G> toType(ArrayList<String> path, TypeChanger<T, G> changer);
+
+        public abstract T find(Predicate<T> pred);
     }
 
     public static final class SpecBranchNode<T> extends SpecNode<T> {
@@ -73,7 +79,7 @@ public class SpecTree<T> {
         }
 
         protected SpecNode<T> get(String[] path, int i) {
-            if (i >= path.length - 1) return this;
+            if (i >= path.length) return this;
             return children.get(path[i]).get(path, i + 1);
         }
 
@@ -118,6 +124,17 @@ public class SpecTree<T> {
             }
             return ret;
         }
+
+        @Override
+        public T find(Predicate<T> pred) {
+            for (SpecNode<T> specNode : children.values()) {
+                T t = specNode.find(pred);
+                if (t != null) {
+                    return t;
+                }
+            }
+            return null;
+        }
     }
 
     public static final class SpecLeafNode<T> extends SpecNode<T> {
@@ -132,7 +149,7 @@ public class SpecTree<T> {
         }
 
         protected SpecNode<T> get(String[] path, int i) {
-            if (i != path.length - 1) throw new IllegalStateException();
+            if (i != path.length) throw new IllegalStateException();
             return this;
         }
 
@@ -164,6 +181,13 @@ public class SpecTree<T> {
         public <G> SpecNode<G> toType(ArrayList<String> path, TypeChanger<T, G> changer) {
             return new SpecLeafNode<>(changer.toType(path, value));
         }
+
+        @Override
+        public T find(Predicate<T> pred) {
+            if (pred.test(value))
+                return value;
+            return null;
+        }
     }
 
 
@@ -175,6 +199,7 @@ public class SpecTree<T> {
         public SpecNodeReference(EntitySpec entity, String[] path) {
             this.entity = entity;
             this.path = path;
+            if (path == null) throw new NullPointerException();
         }
 
         @Override

@@ -3,6 +3,7 @@ package client.gui.actions.unit_action;
 import client.ai.ai2.TransportAi;
 import client.app.UiClientContext;
 import common.state.EntityReader;
+import common.state.spec.EntityClasses;
 
 public class Transport extends UnitAction {
 
@@ -12,7 +13,7 @@ public class Transport extends UnitAction {
 
     @Override
     public boolean isEnabled(EntityReader entity) {
-        return defaultGuardStatement(entity) && entity.getType().containsClass("carrier");
+        return defaultGuardStatement(entity) && entity.getType().containsClass(EntityClasses.CARRIER);
     }
 
     @Override

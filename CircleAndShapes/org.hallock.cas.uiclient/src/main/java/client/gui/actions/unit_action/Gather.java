@@ -2,6 +2,7 @@ package client.gui.actions.unit_action;
 
 import client.app.UiClientContext;
 import common.state.EntityReader;
+import common.state.spec.EntityClasses;
 
 public class Gather extends UnitToUnitAction {
     public Gather(UiClientContext context) {
@@ -10,12 +11,12 @@ public class Gather extends UnitToUnitAction {
 
     @Override
     public boolean isEnabled(EntityReader entity) {
-        return defaultGuardStatement(entity) && entity.getType().containsClass("gatherer");
+        return defaultGuardStatement(entity) && entity.getType().containsClass(EntityClasses.GATHERER);
     }
 
     @Override
     public boolean canRunOn(EntityReader performer, EntityReader target) {
-        return target.getType().containsClass("natural-resource");
+        return target.getType().containsClass(EntityClasses.NATURAL_RESOURCE);
     }
 
     @Override

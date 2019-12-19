@@ -71,8 +71,10 @@ public class ClientGameMessageHandler {
                         context.gameState.carryingManager.set(msg.unitId, msg.load);
                         context.eventManager.notifyListeners(new ResourcesChanged(msg.unitId));
                     }
-                    if (msg.growthInfo != null)
-                        context.gameState.crops.set(msg.unitId, msg.growthInfo);
+                    if (msg.growthInfo != null) {
+                        context.gameState.cropInfo.set(msg.unitId, msg.growthInfo);
+                        context.eventManager.notifyListeners(new GrowthStageChanged(entity, msg.growthInfo));
+                    }
                     if (msg.gardenSpeed != null)
                         context.gameState.gardenSpeed.set(msg.unitId, msg.gardenSpeed);
                     if (msg.plantSpeed != null)

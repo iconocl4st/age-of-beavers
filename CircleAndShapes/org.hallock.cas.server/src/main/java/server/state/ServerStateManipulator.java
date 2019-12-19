@@ -5,10 +5,7 @@ import common.Proximity;
 import common.action.Action;
 import common.algo.Ballistics;
 import common.algo.ConnectedSet;
-import common.event.ActionCompleted;
-import common.event.BuildingPlacementChanged;
-import common.event.ProductionComplete;
-import common.event.TargetKilled;
+import common.event.*;
 import common.msg.Message;
 import common.msg.UnitUpdater;
 import common.state.EntityId;
@@ -135,7 +132,7 @@ public class ServerStateManipulator {
                     }
                     action.timeRemaining = action.spec.creationTime;
                     load.subtract(action.spec.requiredResources);
-                    broadCaster.broadCast(UnitUpdater.updateUnitLoad(entity.entityId, load));
+                    notifyCarryingChange(entity.entityId, load);
                 }
             }
             break;
@@ -153,7 +150,7 @@ public class ServerStateManipulator {
             }
             break;
             case Garden: {
-                Action.Wait action = (Action.Wait) daAction;
+                Action.Garden action = (Action.Garden) daAction;
                 if (!entity.isOwnedBy(player)) return;
                 if (entity.isHidden()) return;
                 // check that the plant is actually a plant...
@@ -161,7 +158,7 @@ public class ServerStateManipulator {
             }
             break;
             case Plant: {
-                Action.Wait action = (Action.Wait) daAction;
+                Action.Bury action = (Action.Bury) daAction;
                 if (!entity.isOwnedBy(player)) return;
                 if (entity.isHidden()) return;
                 // check if there is anything there
@@ -180,20 +177,21 @@ public class ServerStateManipulator {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    public void placeBuilding(EntitySpec spec, Point location) {
+    public void placeBuilding(CreationSpec spec, Point location) {
+        EntitySpec createdSpec = spec.createdType;
         OccupancyView constructionOccupancy = Occupancy.createConstructionOccupancy(game.serverState.state, game.serverState.explorations[player.number - 1]);
-        if (Occupancy.isOccupied(constructionOccupancy, location, spec.size))
+        if (Occupancy.isOccupied(constructionOccupancy, location, createdSpec.size))
             return;
 
-        if (spec.containsClass("constructed")) {
-            spec = spec.createConstructionSpec(EntitySpec.getConstructionCarryCapacity(spec.carryCapacity.getMaximumAmounts()));
+        if (createdSpec.containsClass(EntityClasses.CONSTRUCTED) && !createdSpec.name.contains("rail")) {
+            createdSpec = createdSpec.createConstructionSpec(EntitySpec.getConstructionCarryCapacity(spec.requiredResources));
         }
 
         EntityId constructionId = game.idGenerator.generateId();
-        createUnit(constructionId, spec, new EvolutionSpec(spec), new DPoint(location), Player.GAIA);
+        createUnit(constructionId, createdSpec, new EvolutionSpec(createdSpec), new DPoint(location), Player.GAIA);
         constructionChanged(player, constructionId, null);
 
-        System.out.println("Building created.");
+        System.out.println("Building placed.");
     }
 
 
@@ -239,7 +237,7 @@ public class ServerStateManipulator {
                 updateLineOfSight(toGarrison.entityId, toGarrisonLocation, null);
 
                 EntitySpec type = garrisonWithin.getType();
-                if (type.containsClass("player-occupies"))
+                if (type.containsClass(EntityClasses.PLAYER_OCCUPIES))
                     updateGateOccupancy(garrisonWithin);
             }
         }
@@ -277,7 +275,7 @@ public class ServerStateManipulator {
             updateLineOfSight(entity.entityId, null, start);
 
             EntitySpec type = holder.getType();
-            if (type.containsClass("player-occupies"))
+            if (type.containsClass(EntityClasses.PLAYER_OCCUPIES))
                 updateGateOccupancy(holder);
 
             if (unGarrisonLocation.path != null) {
@@ -343,7 +341,7 @@ public class ServerStateManipulator {
                 game.serverState.state.hiddenManager.set(ridden.entityId, false);
                 broadCaster.broadCast(UnitUpdater.updateUnitVisibiliy(ridden.entityId, false));
 
-                if (!rider.getType().containsClass("owned"))
+                if (!rider.getType().containsClass(EntityClasses.OWNED))
                     setOwner(rider, Player.GAIA);
 
 //                game.serverState.state.movementSpeedManager.set(rider.entityId, prev.movementSpeed);
@@ -408,7 +406,7 @@ public class ServerStateManipulator {
         synchronized (sync) {
             if (entity.noLongerExists()) return;
             if (!entity.isOwnedBy(player) && !entity.isOwnedBy(Player.GAIA)) return;
-            if (!entity.getType().containsClass("storage")) return;
+            if (!entity.getType().containsClass(EntityClasses.STORAGE)) return;
 
             PrioritizedCapacitySpec capacitySpec = game.serverState.state.capacityManager.get(entityId);
             Prioritization prioritization = capacitySpec.getPrioritization(resourceType);
@@ -462,14 +460,23 @@ public class ServerStateManipulator {
 
     //////////////////////////////////////////////////////////////////
 
-    public void changePayload(EntityId entityId, Load load, ResourceType resource, int newValue) {
-        load.setQuantity(resource, newValue);
+    private void notifyCarryingChange(EntityId entityId, Load load) {
         broadCaster.broadCast(UnitUpdater.updateUnitLoad(entityId, load));
+    }
+
+    public void setCarrying(EntityId entityId, Load load) {
+        game.serverState.state.carryingManager.set(entityId, load);
+        notifyCarryingChange(entityId, load);
+    }
+
+    public void changeCarrying(EntityId entityId, Load load, ResourceType resource, int newValue) {
+        load.setQuantity(resource, newValue);
+        notifyCarryingChange(entityId, load);
     }
 
     public void subtractFromPayload(EntityReader entity, Load load, Map<ResourceType, Integer> toSubtract) {
         load.subtract(toSubtract);
-        broadCaster.broadCast(UnitUpdater.updateUnitLoad(entity.entityId, load));
+        notifyCarryingChange(entity.entityId, load);
     }
 
     public void updateBuildProgress(EntityId constructionId, ConstructionZone zone, double amount) {
@@ -495,9 +502,9 @@ public class ServerStateManipulator {
         updateLineOfSight(entity.entityId, oldLocation, newLocation);
     }
 
-    public void dropAll(EntityId entityId, Load load) {
+    private void dropAll(EntityId entityId, Load load) {
         load.quantities.clear();
-        broadCaster.broadCast(UnitUpdater.updateUnitLoad(entityId, load));
+        notifyCarryingChange(entityId, load);
     }
 
     public void setCreationProgress(EntityId entityId, Action.Create action, double v) {
@@ -532,20 +539,23 @@ public class ServerStateManipulator {
             state.entityManager.set(id, new Object());
         state.typeManager.set(id, spec);
         state.locationManager.setLocation(MovableEntity.createStationary(new EntityReader(state, id), location));
-        state.playerManager.set(id, spec.containsClass("owned") ? player : Player.GAIA);
+        state.playerManager.set(id, spec.containsClass(EntityClasses.OWNED) ? player : Player.GAIA);
         state.ageManager.set(id, state.currentTime);
         if (eSpec.initialBaseHealth != null && eSpec.initialBaseHealth != 0.0) state.healthManager.set(id, eSpec.initialBaseHealth);
         if (eSpec.initialBaseHealth != null && eSpec.initialBaseHealth != 0.0) state.baseHealthManager.set(id, eSpec.initialBaseHealth);
         if (eSpec.initialMovementSpeed != null && eSpec.initialMovementSpeed != 0.0) state.movementSpeedManager.set(id, eSpec.initialMovementSpeed);
         if (eSpec.initialRotationSpeed != null && eSpec.initialRotationSpeed != 0.0) state.rotationSpeedManager.set(id, eSpec.initialRotationSpeed);
         if (eSpec.carryCapacity != null) state.capacityManager.set(id, eSpec.carryCapacity);
-        else if (spec.carryCapacity != null) state.capacityManager.set(id, new PrioritizedCapacitySpec(spec.carryCapacity, false));
+        else if (spec.carryCapacity != null) state.capacityManager.set(id, new PrioritizedCapacitySpec(spec.carryCapacity));
         else state.capacityManager.set(id, new PrioritizedCapacitySpec(0, false));
         if (eSpec.initialAttackSpeed != null && eSpec.initialAttackSpeed != 0.0) state.attackSpeedManager.set(id, eSpec.initialAttackSpeed);
         if (eSpec.initialBuildSpeed != null && eSpec.initialBuildSpeed != 0.0) state.buildSpeedManager.set(id, eSpec.initialBuildSpeed);
         if (eSpec.initialDepositSpeed != null && eSpec.initialDepositSpeed != 0.0) state.depositSpeedManager.set(id, eSpec.initialDepositSpeed);
         if (eSpec.initialCollectSpeed != null && eSpec.initialCollectSpeed != 0.0) state.collectSpeedManager.set(id, eSpec.initialCollectSpeed);
         if (eSpec.initialLineOfSight != null && eSpec.initialLineOfSight != 0.0) state.lineOfSightManager.set(id, eSpec.initialLineOfSight);
+        if (eSpec.initialPlantSpeed != null && eSpec.initialPlantSpeed != 0.0) state.burySpeed.set(id, eSpec.initialPlantSpeed);
+        if (eSpec.initialGardenSpeed != null && eSpec.initialGardenSpeed != 0.0) state.gardenSpeed.set(id, eSpec.initialGardenSpeed);
+
         state.orientationManager.set(id, 0.0); // should be passed in
 //        state.graphicsManager.set(id, spec.graphicsImage);
 
@@ -557,7 +567,8 @@ public class ServerStateManipulator {
         }
 
         Load load = new Load();
-        load.quantities.putAll(spec.carrying);
+        if (!spec.containsClass(EntityClasses.FARM))
+            load.quantities.putAll(spec.carrying);
         state.carryingManager.set(id, load);
 
         if (spec.containsClass("construction-zone")) {
@@ -571,7 +582,11 @@ public class ServerStateManipulator {
             }
         }
 
-        if (spec.containsClass("player-occupies")) {
+        if (spec.containsClass(EntityClasses.FARM)) {
+            state.cropInfo.set(id, new GrowthInfo(GrowthStage.ToBePlanted, 0, 0.0));
+        }
+
+        if (spec.containsClass(EntityClasses.PLAYER_OCCUPIES)) {
             state.gateStateManager.set(id, new GateInfo(location.toPoint(), GateInfo.GateState.UnlockedForPlayerOnly));
         }
 //        game.serverState.state.actionManager.set(id, new Action.Idle());
@@ -611,20 +626,20 @@ public class ServerStateManipulator {
     private void addOccupancies(EntityReader entity) {
         EntitySpec spec = entity.getType();
         DPoint location = entity.getLocation();
-        if (spec.containsClass("construction-zone")) {
+        if (spec.containsClass(EntityClasses.CONSTRUCTION_ZONE)) {
             game.serverState.state.buildingOccupancy.set(location.toPoint(), spec.size, true);
             broadCaster.broadCast(new Message.OccupancyChanged(location.toPoint(), spec.size, false, true));
         }
-        if (spec.containsClass("occupies")) {
+        if (spec.containsClass(EntityClasses.OCCUPIES)) {
             game.serverState.state.staticOccupancy.set(location.toPoint(), spec.size, true);
             broadCaster.broadCast(new Message.OccupancyChanged(location.toPoint(), spec.size, true, false));
         }
-        if (spec.containsClass("player-occupies"))
+        if (spec.containsClass(EntityClasses.PLAYER_OCCUPIES))
             updateGateOccupancy(entity);
     }
 
     private void moveOtherUnitsOutOfTheWay(EntitySpec spec, DPoint location) {
-        if (!spec.containsClass("player-occupies") && !spec.containsClass("occupies"))
+        if (!spec.containsClass(EntityClasses.PLAYER_OCCUPIES) && !spec.containsClass(EntityClasses.OCCUPIES))
             return;
         for (EntityReader entity : game.serverState.state.locationManager.getEntitiesWithin(
                 location.x,
@@ -740,7 +755,7 @@ public class ServerStateManipulator {
         }
         for (Point p : change.lostVision) {
             for (EntityReader entity : game.serverState.state.locationManager.getEntities(p, GridLocationQuerier.ANY_ENTITY)) {
-                if (game.serverState.state.typeManager.get(entity.entityId).containsClass("visible-in-fog"))
+                if (game.serverState.state.typeManager.get(entity.entityId).containsClass(EntityClasses.VISIBLE_IN_FOG))
                     continue;
                 broadCaster.send(player, new Message.UnitRemoved(entity.entityId));
             }
@@ -774,13 +789,14 @@ public class ServerStateManipulator {
         unitUpdate.buildSpeed = state.buildSpeedManager.get(entity);
         unitUpdate.evolutionWeights = state.evolutionManager.get(entity);
         unitUpdate.graphics = state.graphicsManager.get(entity);
+        unitUpdate.growthInfo = state.cropInfo.get(entity);
         return unitUpdate;
     }
 
     public void setOccupancyState(EntityId entityId, GateInfo.GateState newState) {
         EntityReader entity = new EntityReader(game.serverState.state, entityId);
         if (!entity.isOwnedBy(player)) return;
-        if (!entity.getType().containsClass("player-occupies")) return;
+        if (!entity.getType().containsClass(EntityClasses.PLAYER_OCCUPIES)) return;
 
         GateInfo info = entity.getGateState();
         if (info != null && info.state.equals(newState)) {
@@ -905,6 +921,35 @@ public class ServerStateManipulator {
 
     public void notifyProductionCompleted(EntityId creator, EntityId createdUnit, Player owner) {
         broadCaster.send(owner, new Message.AiEventMessage(new ProductionComplete(creator, createdUnit)));
+    }
+
+    private static String getPlantImage(GrowthInfo growthInfo) {
+        switch (growthInfo.currentState) {
+            case NeedsTending:
+            case Growing:
+                switch (growthInfo.tendedCount) {
+                    case 0: return "unit/plant_1.png";
+                    case 1: return "unit/plant_2.png";
+                    case 2: return "unit/plant_3.png";
+                    case 3: return "unit/plant_4.png";
+                    case 4: return "unit/plant_5.png";
+                }
+                throw new IllegalStateException(String.valueOf(growthInfo.tendedCount));
+            case ToBePlanted:
+            case Expired:
+                return "unit/plant_0.png";
+            case Ripe:
+                return "unit/plant_5.png";
+        }
+        throw new IllegalStateException();
+    }
+
+    public void updatePlantGrowth(EntityReader farm, GrowthInfo growthInfo) {
+        game.serverState.state.cropInfo.set(farm.entityId, growthInfo);
+        broadCaster.broadCast(UnitUpdater.updateGrowthInfo(farm.entityId, growthInfo));
+        String newGraphics = getPlantImage(growthInfo);
+        game.serverState.state.graphicsManager.set(farm.entityId, newGraphics);
+        broadCaster.broadCast((UnitUpdater.updateUnitGraphics(farm.entityId, newGraphics)));
     }
 
 //

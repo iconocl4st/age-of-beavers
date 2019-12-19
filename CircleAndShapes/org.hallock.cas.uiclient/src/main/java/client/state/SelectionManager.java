@@ -3,6 +3,7 @@ package client.state;
 import client.app.UiClientContext;
 import common.state.EntityId;
 import common.state.EntityReader;
+import common.state.spec.EntityClasses;
 import common.state.spec.EntitySpec;
 
 import java.util.*;
@@ -27,18 +28,18 @@ public class SelectionManager {
         }
         boolean owned = entity.isOwnedBy(context.clientGameState.currentPlayer);
         if (owned) {
-            if (type.containsClass("unit")) {
+            if (type.containsClass(EntityClasses.UNIT)) {
                 return 5;
             }
-            if (type.containsClass("natural-resource")) {
+            if (type.containsClass(EntityClasses.NATURAL_RESOURCE)) {
                 return 4;
             }
             return 3;
         } else {
-            if (type.containsClass("unit")) {
+            if (type.containsClass(EntityClasses.UNIT)) {
                 return 2;
             }
-            if (type.containsClass("natural-resource")) {
+            if (type.containsClass(EntityClasses.NATURAL_RESOURCE)) {
                 return 1;
             }
             return 0;

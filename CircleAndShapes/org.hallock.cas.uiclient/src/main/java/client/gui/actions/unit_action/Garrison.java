@@ -3,6 +3,7 @@ package client.gui.actions.unit_action;
 import client.ai.ai2.WhileWithinProximity;
 import client.app.UiClientContext;
 import common.state.EntityReader;
+import common.state.spec.EntityClasses;
 import common.state.sst.GameStateHelper;
 
 public class Garrison extends UnitToUnitAction {
@@ -14,14 +15,13 @@ public class Garrison extends UnitToUnitAction {
     @Override
     public boolean isEnabled(EntityReader entity) {
         return defaultGuardStatement(entity) && (
-               entity.getType().containsClass("can-garrison-in-others") ||
-               entity.getType().containsClass("ridable")
+                entity.getType().containsAnyClass(EntityClasses.CAN_GARRISON, EntityClasses.RIDABLE)
         );
     }
 
     @Override
     public boolean canRunOn(EntityReader performer, EntityReader target) {
-        return target.getType().containsClass("can-garrison-others") || target.getType().containsClass("rider");
+        return target.getType().containsAnyClass(EntityClasses.GARRISONS_OTHERS, EntityClasses.RIDER);
     }
 
     @Override

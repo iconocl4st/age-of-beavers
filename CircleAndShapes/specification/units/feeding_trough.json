@@ -7,6 +7,13 @@
     "height": 1
   },
   "line-of-sight": 5,
+  "classes": [
+    "constructed",
+    "storage",
+    "occupies",
+    "visible-in-fog",
+    "can-garrison-others"
+  ],
   "name": "feeding-trough",
   "can-craft": {
     "children": [],

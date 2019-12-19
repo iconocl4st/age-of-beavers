@@ -10,6 +10,7 @@ import common.event.BuildingPlacementChanged;
 import common.event.DemandsChanged;
 import common.state.EntityId;
 import common.state.EntityReader;
+import common.state.spec.EntityClasses;
 import common.state.spec.GameSpec;
 import common.state.spec.ResourceType;
 import common.state.sst.sub.Load;
@@ -159,7 +160,7 @@ public class SupplyAndDemandManager implements AiEventListener {
             return;
         }
         synchronized (entitySync) {
-            if (reader.noLongerExists() || !reader.getType().containsClass("storage")) {
+            if (reader.noLongerExists() || !reader.getType().containsClass(EntityClasses.STORAGE)) {
                 remove(reader);
                 return;
             }

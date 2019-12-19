@@ -40,6 +40,14 @@ class TextureCache {
 
     void loadTextures(GameSpec spec) {
         textures.clear();
+        loadTexture("unit/construction.png");
+        loadTexture("unit/plant_0.png");
+        loadTexture("unit/plant_1.png");
+        loadTexture("unit/plant_2.png");
+        loadTexture("unit/plant_3.png");
+        loadTexture("unit/plant_4.png");
+        loadTexture("unit/plant_5.png");
+
         for (EntitySpec entitySpec : spec.unitSpecs) {
             loadTexture(entitySpec.graphicsImage);
         }

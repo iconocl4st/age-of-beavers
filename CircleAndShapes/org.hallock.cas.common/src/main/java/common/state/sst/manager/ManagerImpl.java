@@ -25,6 +25,12 @@ public class ManagerImpl<T> implements ManagerSpec<T> {
         }
     }
 
+    public Set<Map.Entry<EntityId, T>> allEntries() {
+        synchronized (map) {
+            return new HashSet<>(map.entrySet());
+        }
+    }
+
     public void set(EntityId entityId, T value) {
         synchronized (map) {
             map.put(entityId, value);

@@ -57,15 +57,19 @@ public class EntityTracker implements AiEventListener {
     public TreeSet<EntityReader> getTracked(String clazz, DPoint location) {
         updateTracked(); // TODO: do this less frequently
         TreeSet<EntityReader> ret = new TreeSet<>(Comparator.comparingDouble(e1 -> location.distanceTo(e1.getCenterLocation())));
-        ret.addAll(getByClass(clazz));
+        synchronized (currentlyTracking) {
+            ret.addAll(getByClass(clazz));
+        }
         return ret;
     }
 
     public TreeSet<EntityReader> getTracked(String[] classes, DPoint location) {
         updateTracked(); // TODO: do this less frequently
         TreeSet<EntityReader> ret = new TreeSet<>(Comparator.comparingDouble(e1 -> location.distanceTo(e1.getCenterLocation())));
-        for (String clazz : classes){
-            ret.addAll(getByClass(clazz));
+        synchronized (currentlyTracking) {
+            for (String clazz : classes) {
+                ret.addAll(getByClass(clazz));
+            }
         }
         return ret;
     }

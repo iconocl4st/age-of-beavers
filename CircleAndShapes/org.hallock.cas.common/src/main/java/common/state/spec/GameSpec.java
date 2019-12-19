@@ -14,8 +14,8 @@ public class GameSpec {
     public final Immutable.ImmutableList<ResourceType> resourceTypes;
     public final Immutable.ImmutableList<EntitySpec> unitSpecs;
     public final Immutable.ImmutableList<WeaponSpec> weaponTypes;
-
     public final GenerationSpec generationSpec;
+    public final SpecTree<CreationSpec> canPlace;
 
     public GameSpec(
             double gameSpeed,
@@ -25,8 +25,8 @@ public class GameSpec {
             Immutable.ImmutableList<EntitySpec> unitSpecs,
             Immutable.ImmutableList<WeaponSpec> weaponTypes,
             GenerationSpec generationSpec,
-            VisibilitySpec visibility
-    ) {
+            VisibilitySpec visibility,
+            SpecTree<CreationSpec> creationSpecSpecTree) {
         this.gameSpeed = gameSpeed;
         this.width = width;
         this.height = height;
@@ -35,6 +35,7 @@ public class GameSpec {
         this.generationSpec = generationSpec;
         this.weaponTypes = weaponTypes;
         this.visibility = visibility;
+        this.canPlace = creationSpecSpecTree;
     }
 
     public ResourceType getResourceType(String name) {

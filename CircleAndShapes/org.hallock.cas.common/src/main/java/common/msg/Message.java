@@ -10,10 +10,7 @@ import common.state.Player;
 import common.state.edit.GameSpecManager;
 import common.state.los.Exploration;
 import common.state.los.LineOfSight;
-import common.state.spec.CraftingSpec;
-import common.state.spec.EntitySpec;
-import common.state.spec.GameSpec;
-import common.state.spec.ResourceType;
+import common.state.spec.*;
 import common.state.sst.GameState;
 import common.state.sst.sub.*;
 import common.state.sst.sub.capacity.PrioritizedCapacitySpec;
@@ -605,24 +602,28 @@ public abstract class Message implements Jsonable {
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static class PlaceBuilding extends Message {
-        public final EntitySpec spec;
+        public final CreationSpec spec;
         public final Point location;
+        public final int rotation;
 
-        public PlaceBuilding(EntitySpec building, int buildingLocX, int buildingLocY) {
+        public PlaceBuilding(CreationSpec building, int buildingLocX, int buildingLocY, int rotation) {
             this.spec = building;
             this.location = new Point(buildingLocX, buildingLocY);
+            this.rotation = rotation;
         }
 
         public static PlaceBuilding finishParsing(JsonReaderWrapperSpec reader, ReadOptions spec) throws IOException {
-            EntitySpec entity = reader.read("entity", EntitySpec.Serializer, spec);
+            CreationSpec entity = reader.read("creation-spec", CreationSpec.Serializer, spec);
             Point location = reader.read("location", DataSerializer.PointSerializer, spec);
-            return new PlaceBuilding(entity, location.x, location.y);
+            int rotation = reader.readInt32("rotation");
+            return new PlaceBuilding(entity, location.x, location.y, rotation);
         }
 
         @Override
         protected void writeInnards(JsonWriterWrapperSpec writer, WriteOptions options) throws IOException {
-            writer.write("entity", spec, EntitySpec.Serializer, options);
+            writer.write("creation-spec", spec, CreationSpec.Serializer, options);
             writer.write("location", location, DataSerializer.PointSerializer, options);
+            writer.write("rotation", rotation);
         }
 
         @Override

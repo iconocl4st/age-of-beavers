@@ -2,6 +2,7 @@ package client.gui.actions.unit_action;
 
 import client.app.UiClientContext;
 import common.state.EntityReader;
+import common.state.spec.EntityClasses;
 
 public class Hunt extends UnitToUnitAction {
     public Hunt(UiClientContext context) {
@@ -10,12 +11,12 @@ public class Hunt extends UnitToUnitAction {
 
     @Override
     public boolean isEnabled(EntityReader entity) {
-        return defaultGuardStatement(entity) && entity.getType().containsClass("hunter");
+        return defaultGuardStatement(entity) && entity.getType().containsClass(EntityClasses.HUNTER);
     }
 
     @Override
     public boolean canRunOn(EntityReader performer, EntityReader target) {
-        return target.getType().containsClass("prey");
+        return target.getType().containsClass(EntityClasses.PREY);
     }
 
     @Override
