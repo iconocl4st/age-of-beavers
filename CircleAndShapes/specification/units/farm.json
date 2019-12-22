@@ -1,0 +1,21 @@
+{
+  "size": {
+    "width": 1,
+    "height": 1
+  },
+  "classes": [
+    "occupies",
+    "crop",
+    "visible-in-fog"
+  ],
+  "name": "farm",
+  "can-craft": {
+    "children": [],
+    "type": "branch"
+  },
+  "can-create": {
+    "children": [],
+    "type": "branch"
+  },
+  "is-exported-to-spec": false
+}

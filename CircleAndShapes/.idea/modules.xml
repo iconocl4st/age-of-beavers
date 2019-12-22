@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/org.hallock.cas.ai/org.hallock.cas.ai.iml" filepath="$PROJECT_DIR$/org.hallock.cas.ai/org.hallock.cas.ai.iml" />
       <module fileurl="file://$PROJECT_DIR$/org.hallock.cas.client/org.hallock.cas.client.iml" filepath="$PROJECT_DIR$/org.hallock.cas.client/org.hallock.cas.client.iml" />
     </modules>
   </component>

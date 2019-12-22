@@ -23,164 +23,68 @@
     <SUITE FILE_PATH="coverage/CircleAndShapes$MazePainter.ic" NAME="MazePainter Coverage Results" MODIFIED="1575086315865" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
       <FILTER>common.algo.jmp_pnt.*</FILTER>
     </SUITE>
+    <SUITE FILE_PATH="coverage/CircleAndShapes$GLAnimators.ic" NAME="GLAnimators Coverage Results" MODIFIED="1576214435588" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
+      <FILTER>client.gui.game.gl.*</FILTER>
+    </SUITE>
+    <SUITE FILE_PATH="coverage/CircleAndShapes$ProgrammaticCreator.ic" NAME="ProgrammaticCreator Coverage Results" MODIFIED="1576545143019" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
+      <FILTER>client.gui.game.gl.object.*</FILTER>
+    </SUITE>
     <SUITE FILE_PATH="coverage/CircleAndShapes$Testing__1_.ic" NAME="Testing (1) Coverage Results" MODIFIED="1573800932914" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/CircleAndShapes$Main.ic" NAME="Main Coverage Results" MODIFIED="1576044667984" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
       <FILTER>common.util.*</FILTER>
     </SUITE>
-    <SUITE FILE_PATH="coverage/CircleAndShapes$Testing.ic" NAME="Testing Coverage Results" MODIFIED="1574209310037" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-  </component>
-  <component name="DockManager">
-    <window id="1">
-      <content type="file-editors">
-        <state>
-          <leaf>
-            <file leaf-file-name="Weapons.java" pinned="false" current-in-tab="true">
-              <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/attack/Weapons.java">
-                <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="162">
-                    <caret line="45" column="50" selection-start-line="45" selection-start-column="50" selection-end-line="45" selection-end-column="50" />
-                  </state>
-                </provider>
-              </entry>
-            </file>
-          </leaf>
-        </state>
-      </content>
-    </window>
+    <SUITE FILE_PATH="coverage/CircleAndShapes$Testing.ic" NAME="Testing Coverage Results" MODIFIED="1576483658741" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Creators.java" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Creators.java">
+      <file leaf-file-name="DPoint.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/DPoint.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="457">
-              <caret line="734" column="24" lean-forward="true" selection-start-line="734" selection-start-column="24" selection-end-line="734" selection-end-column="24" />
+            <state relative-caret-position="198">
+              <caret line="16" column="19" lean-forward="true" selection-start-line="16" selection-start-column="19" selection-end-line="16" selection-end-column="19" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Location.java" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/Location.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="57">
+              <caret line="63" lean-forward="true" selection-start-line="63" selection-end-line="63" />
               <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#2599#2600#0" expanded="true" />
-                <element signature="e#2667#2668#0" expanded="true" />
-                <element signature="e#6063#6064#0" expanded="true" />
-                <element signature="e#6098#6099#0" expanded="true" />
-                <element signature="e#6227#6228#0" expanded="true" />
-                <element signature="e#6263#6264#0" expanded="true" />
-                <element signature="e#15067#15068#0" expanded="true" />
-                <element signature="e#15119#15120#0" expanded="true" />
-                <element signature="e#26448#26449#0" expanded="true" />
-                <element signature="e#26488#26489#0" expanded="true" />
-                <element signature="e#27263#27264#0" expanded="true" />
-                <element signature="e#27298#27299#0" expanded="true" />
-                <element signature="e#29975#29976#0" expanded="true" />
-                <element signature="e#30028#30029#0" expanded="true" />
-                <element signature="e#26308#26309#0" expanded="true" />
-                <element signature="e#26348#26349#0" expanded="true" />
-                <element signature="e#31620#31621#0" expanded="true" />
-                <element signature="e#31655#31656#0" expanded="true" />
-                <element signature="e#31691#31692#0" expanded="true" />
-                <element signature="e#31766#31767#0" expanded="true" />
-                <element signature="e#33329#33330#0" expanded="true" />
-                <element signature="e#33362#33363#0" expanded="true" />
-                <element signature="e#34115#34116#0" expanded="true" />
-                <element signature="e#34166#34167#0" expanded="true" />
-                <element signature="e#39297#39298#0" expanded="true" />
-                <element signature="e#39351#39352#0" expanded="true" />
-                <element signature="e#41771#41772#0" expanded="true" />
-                <element signature="e#41816#41817#0" expanded="true" />
-                <element signature="e#42166#42167#0" expanded="true" />
-                <element signature="e#42223#42224#0" expanded="true" />
-                <element signature="e#45625#45626#0" expanded="true" />
-                <element signature="e#45664#45665#0" expanded="true" />
-                <element signature="e#45719#45720#0" expanded="true" />
-                <element signature="e#45788#45789#0" expanded="true" />
-                <element signature="e#45515#45516#0" expanded="true" />
-                <element signature="e#45565#45566#0" expanded="true" />
-                <element signature="e#51330#51331#0" expanded="true" />
-                <element signature="e#51387#51388#0" expanded="true" />
-                <element signature="e#51918#51919#0" expanded="true" />
-                <element signature="e#51958#51959#0" expanded="true" />
-                <element signature="e#52011#52012#0" expanded="true" />
-                <element signature="e#52063#52064#0" expanded="true" />
-                <element signature="e#52130#52131#0" expanded="true" />
-                <element signature="e#52188#52189#0" expanded="true" />
-                <element signature="e#52246#52247#0" expanded="true" />
-                <element signature="e#52304#52305#0" expanded="true" />
-                <element signature="e#52340#52341#0" expanded="true" />
-                <element signature="e#52384#52385#0" expanded="true" />
-                <element signature="e#53792#53793#0" expanded="true" />
-                <element signature="e#53849#53850#0" expanded="true" />
-                <element signature="e#54223#54224#0" expanded="true" />
-                <element signature="e#54263#54264#0" expanded="true" />
-                <element signature="e#54316#54317#0" expanded="true" />
-                <element signature="e#54368#54369#0" expanded="true" />
-                <element signature="e#54435#54436#0" expanded="true" />
-                <element signature="e#54493#54494#0" expanded="true" />
-                <element signature="e#54551#54552#0" expanded="true" />
-                <element signature="e#54611#54612#0" expanded="true" />
+                <element signature="e#914#915#0" expanded="true" />
+                <element signature="e#960#961#0" expanded="true" />
+                <element signature="e#1000#1001#0" expanded="true" />
+                <element signature="e#1051#1052#0" expanded="true" />
+                <element signature="e#1089#1090#0" expanded="true" />
+                <element signature="e#1148#1149#0" expanded="true" />
+                <element signature="e#1186#1187#0" expanded="true" />
+                <element signature="e#1244#1245#0" expanded="true" />
+                <element signature="e#1607#1608#0" expanded="true" />
+                <element signature="e#1631#1632#0" expanded="true" />
+                <element signature="e#1883#1884#0" expanded="true" />
+                <element signature="e#1923#1924#0" expanded="true" />
+                <element signature="e#1782#1783#0" expanded="true" />
+                <element signature="e#1825#1826#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Immutable.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/Immutable.java">
+      <file leaf-file-name="CanTravelBetween.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/algo/CanTravelBetween.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="288">
-              <caret line="208" column="15" lean-forward="true" selection-start-line="208" selection-start-column="15" selection-end-line="208" selection-end-column="15" />
-              <folding>
-                <element signature="e#5408#5409#0" expanded="true" />
-                <element signature="e#5456#5457#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="759">
+              <caret line="107" column="27" lean-forward="true" selection-start-line="107" selection-start-column="27" selection-end-line="107" selection-end-column="27" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="EntitySpec.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/EntitySpec.java">
+      <file leaf-file-name="SpecTree.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/SpecTree.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="133">
-              <caret line="135" column="17" lean-forward="true" selection-start-line="135" selection-start-column="17" selection-end-line="135" selection-end-column="17" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="EvolutionSpec.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/EvolutionSpec.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="225">
-              <caret line="33" column="4" lean-forward="true" selection-start-line="33" selection-start-column="4" selection-end-line="33" selection-end-column="4" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="MapGenerator.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/algo/MapGenerator.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="45">
-              <caret line="115" selection-start-line="115" selection-end-line="115" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="GenerationSpec.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/GenerationSpec.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="210">
-              <caret line="30" column="15" selection-start-line="30" selection-start-column="15" selection-end-line="30" selection-end-column="15" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Interfaces.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Interfaces.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="211">
-              <caret line="170" column="14" selection-start-line="170" selection-start-column="14" selection-end-line="170" selection-end-column="14" />
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#4691#4692#0" expanded="true" />
-                <element signature="e#4765#4766#0" expanded="true" />
-                <element signature="e#7693#7694#0" expanded="true" />
-                <element signature="e#7735#7736#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="72">
+              <caret line="8" column="13" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
             </state>
           </provider>
         </entry>
@@ -197,12 +101,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>creationContext</find>
-      <find>stack</find>
-      <find>removeLast</find>
-      <find>is being</find>
-      <find>removing</find>
-      <find>demands</find>
       <find>resourcesBorder</find>
       <find>desiredAllocations</find>
       <find>project</find>
@@ -227,6 +125,12 @@
       <find>parseNat</find>
       <find>theUnmodifiableEnvironment</find>
       <find>decremen</find>
+      <find>GLProfile</find>
+      <find>URL</find>
+      <find>here</find>
+      <find>System</find>
+      <find>pool-2-thread-2@3780</find>
+      <find>quantities</find>
     </findStrings>
     <replaceStrings>
       <replace>extends</replace>
@@ -240,57 +144,57 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/json/ReadOptions.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/ResourceType.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/attack/Weapon.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/state/Game.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/app/Lobby.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/sst/GameState.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/state/ServerGameState.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/app/ServerDriver.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/event/supply/StorageTracker.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/state/ClientGameState.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/event/supply/SupplyAndDemandManager.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ai2/Produce.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/app/ClientMessageHandler.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/Minimap.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/selected/SingleUnitSelected.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/DemandsView.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/sst/sub/capacity/PrioritizedCapacitySpec.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.ai/src/main/java/app/TickProcessingState.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.ai/src/main/java/app/assign/Assigner.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Main.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/CreationsSpec.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/SpecNode.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/state/ServerStateManipulator.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/GameSpec.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/CreationSpec.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/PushStack.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/MapUtils.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/Craft.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/msg/Message.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ActionRequester.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/EntityReader.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/Actions.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/UnitActions.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/Create.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/ContinuousCreate.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.ai/src/main/java/app/assign/AiCheck.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/Immutable.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/CraftingSpec.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/sst/GameStateHelper.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/global_action/PlaceBuilding.java" />
         <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/SpecTree.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/CreatorParser.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/CreationMethod.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Editors.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/GameSpecManager.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/GameSpecEditorContext.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/P.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/WindowStack.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Interfaces.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.ai/src/main/java/app/assign/PlayerAction.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.ai/src/main/java/app/AiUtitlities.java" />
         <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/GenerationSpec.java" />
-        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/CarrySpec.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/algo/MapGenerator.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/EntityReader.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/action/Action.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ActionRequester.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/Actions.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/Farm.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/mouse/CommandListener.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ai2/AiTask.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/event/GrowthStage.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/EntityClasses.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/ResourceType.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Editors.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Main.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/SpecEditor.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/EvolutionSpec.java" />
         <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/EntitySpec.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/gl/GlPainter.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/event/NetworkAiEvent.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/event/BuildingPlacementChanged.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ai2/AiStack.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/state/ClientGameMessageHandler.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/event/GrowthStageChanged.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ai2/AiEventAdapter.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ai2/AiManager.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/SetFarmingLocation.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/gl/GlConstants.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/sst/manager/ManagerImpl.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/state/Game.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/selected/SingleUnitSelected.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/sst/sub/GrowthInfo.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/ZLevels.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/Colors.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/GamePainter.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ai2/FarmAi.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/msg/UnitUpdater.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/gl/TextureCache.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/engine/Simulator.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/state/EntityTracker.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/gl/GlGameScreen.java" />
         <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Creators.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/state/ServerStateManipulator.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.driver/src/main/java/driver/Images.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/mouse/BuildingPlacer.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/msg/Message.java" />
+        <option value="$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/Location.java" />
       </list>
     </option>
   </component>
@@ -311,9 +215,10 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="y" value="-2" />
-    <option name="width" value="1920" />
-    <option name="height" value="1082" />
+    <option name="x" value="1990" />
+    <option name="y" value="27" />
+    <option name="width" value="1850" />
+    <option name="height" value="1053" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -321,13 +226,18 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
+      <pane id="AndroidView" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
               <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
+              <item name="objs" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
@@ -504,6 +414,58 @@
               <item name="main" type="462c0819:PsiDirectoryNode" />
               <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="common" type="462c0819:PsiDirectoryNode" />
+              <item name="action" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
+              <item name="org.hallock.cas.common" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="common" type="462c0819:PsiDirectoryNode" />
+              <item name="algo" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
+              <item name="org.hallock.cas.common" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="common" type="462c0819:PsiDirectoryNode" />
+              <item name="algo" type="462c0819:PsiDirectoryNode" />
+              <item name="jmp_pnt" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
+              <item name="org.hallock.cas.common" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="common" type="462c0819:PsiDirectoryNode" />
+              <item name="algo" type="462c0819:PsiDirectoryNode" />
+              <item name="quad" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
+              <item name="org.hallock.cas.common" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="common" type="462c0819:PsiDirectoryNode" />
+              <item name="event" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
+              <item name="org.hallock.cas.common" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="common" type="462c0819:PsiDirectoryNode" />
               <item name="msg" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -547,44 +509,7 @@
               <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="common" type="462c0819:PsiDirectoryNode" />
               <item name="state" type="462c0819:PsiDirectoryNode" />
-              <item name="spec" type="462c0819:PsiDirectoryNode" />
-              <item name="attack" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
-              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
-              <item name="org.hallock.cas.common" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="common" type="462c0819:PsiDirectoryNode" />
-              <item name="state" type="462c0819:PsiDirectoryNode" />
               <item name="sst" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
-              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
-              <item name="org.hallock.cas.common" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="common" type="462c0819:PsiDirectoryNode" />
-              <item name="state" type="462c0819:PsiDirectoryNode" />
-              <item name="sst" type="462c0819:PsiDirectoryNode" />
-              <item name="sub" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
-              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
-              <item name="org.hallock.cas.common" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="common" type="462c0819:PsiDirectoryNode" />
-              <item name="state" type="462c0819:PsiDirectoryNode" />
-              <item name="sst" type="462c0819:PsiDirectoryNode" />
-              <item name="sub" type="462c0819:PsiDirectoryNode" />
-              <item name="capacity" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
@@ -595,17 +520,6 @@
               <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="common" type="462c0819:PsiDirectoryNode" />
               <item name="util" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
-              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
-              <item name="org.hallock.cas.common" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="common" type="462c0819:PsiDirectoryNode" />
-              <item name="util" type="462c0819:PsiDirectoryNode" />
-              <item name="json" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
@@ -696,6 +610,16 @@
               <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="server" type="462c0819:PsiDirectoryNode" />
               <item name="app" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
+              <item name="org.hallock.cas.server" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+              <item name="engine" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
@@ -806,17 +730,72 @@
               <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="client" type="462c0819:PsiDirectoryNode" />
               <item name="gui" type="462c0819:PsiDirectoryNode" />
+              <item name="game" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
+              <item name="org.hallock.cas.uiclient" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="client" type="462c0819:PsiDirectoryNode" />
+              <item name="gui" type="462c0819:PsiDirectoryNode" />
+              <item name="game" type="462c0819:PsiDirectoryNode" />
+              <item name="gl" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
+              <item name="org.hallock.cas.uiclient" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="client" type="462c0819:PsiDirectoryNode" />
+              <item name="gui" type="462c0819:PsiDirectoryNode" />
+              <item name="keys" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
+              <item name="org.hallock.cas.uiclient" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="client" type="462c0819:PsiDirectoryNode" />
+              <item name="gui" type="462c0819:PsiDirectoryNode" />
+              <item name="mouse" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
+              <item name="org.hallock.cas.uiclient" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="client" type="462c0819:PsiDirectoryNode" />
+              <item name="gui" type="462c0819:PsiDirectoryNode" />
               <item name="selected" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
               <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
-              <item name="spec" type="462c0819:PsiDirectoryNode" />
+              <item name="org.hallock.cas.uiclient" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="client" type="462c0819:PsiDirectoryNode" />
+              <item name="state" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
               <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
-              <item name="spec" type="462c0819:PsiDirectoryNode" />
+              <item name="specification" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CircleAndShapes" type="462c0819:PsiDirectoryNode" />
+              <item name="specification" type="462c0819:PsiDirectoryNode" />
               <item name="units" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -840,6 +819,46 @@
               <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
               <item name="java-atk-wrapper.jar" type="462c0819:PsiDirectoryNode" />
               <item name="Accessibility" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="nashorn.jar" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="nashorn.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jdk" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="nashorn.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jdk" type="462c0819:PsiDirectoryNode" />
+              <item name="nashorn" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="nashorn.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jdk" type="462c0819:PsiDirectoryNode" />
+              <item name="nashorn" type="462c0819:PsiDirectoryNode" />
+              <item name="internal" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="nashorn.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jdk" type="462c0819:PsiDirectoryNode" />
+              <item name="nashorn" type="462c0819:PsiDirectoryNode" />
+              <item name="internal" type="462c0819:PsiDirectoryNode" />
+              <item name="codegen" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
@@ -877,6 +896,32 @@
               <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
               <item name="rt.jar" type="462c0819:PsiDirectoryNode" />
               <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="awt" type="462c0819:PsiDirectoryNode" />
+              <item name="image" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="rt.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="awt" type="462c0819:PsiDirectoryNode" />
+              <item name="peer" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="rt.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="beans" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="rt.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="lang" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -885,6 +930,22 @@
               <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
               <item name="rt.jar" type="462c0819:PsiDirectoryNode" />
               <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="net" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="rt.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="security" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="rt.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="util" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -894,7 +955,17 @@
               <item name="rt.jar" type="462c0819:PsiDirectoryNode" />
               <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="util" type="462c0819:PsiDirectoryNode" />
-              <item name="stream" type="462c0819:PsiDirectoryNode" />
+              <item name="concurrent" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="rt.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="util" type="462c0819:PsiDirectoryNode" />
+              <item name="concurrent" type="462c0819:PsiDirectoryNode" />
+              <item name="locks" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
@@ -902,6 +973,30 @@
               <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
               <item name="rt.jar" type="462c0819:PsiDirectoryNode" />
               <item name="javax" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="rt.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="javax" type="462c0819:PsiDirectoryNode" />
+              <item name="accessibility" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="rt.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="javax" type="462c0819:PsiDirectoryNode" />
+              <item name="imageio" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="rt.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="javax" type="462c0819:PsiDirectoryNode" />
+              <item name="naming" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
@@ -916,54 +1011,284 @@
               <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
               <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
               <item name="rt.jar" type="462c0819:PsiDirectoryNode" />
-              <item name="javax" type="462c0819:PsiDirectoryNode" />
-              <item name="swing" type="462c0819:PsiDirectoryNode" />
-              <item name="table" type="462c0819:PsiDirectoryNode" />
+              <item name="sun" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
               <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
               <item name="&lt; 1.8 &gt;" type="70bed36:NamedLibraryElementNode" />
               <item name="rt.jar" type="462c0819:PsiDirectoryNode" />
-              <item name="javax" type="462c0819:PsiDirectoryNode" />
-              <item name="swing" type="462c0819:PsiDirectoryNode" />
-              <item name="tree" type="462c0819:PsiDirectoryNode" />
+              <item name="sun" type="462c0819:PsiDirectoryNode" />
+              <item name="misc" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
               <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="Maven: com.googlecode.json-simple:json-simple:1.1.1" type="70bed36:NamedLibraryElementNode" />
+              <item name="Maven: com.fasterxml.jackson.core:jackson-core:2.10.0" type="70bed36:NamedLibraryElementNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
               <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="Maven: com.googlecode.json-simple:json-simple:1.1.1" type="70bed36:NamedLibraryElementNode" />
-              <item name="json-simple-1.1.1.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="Maven: com.fasterxml.jackson.core:jackson-core:2.10.0" type="70bed36:NamedLibraryElementNode" />
+              <item name="jackson-core-2.10.0.jar" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
               <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="Maven: com.googlecode.json-simple:json-simple:1.1.1" type="70bed36:NamedLibraryElementNode" />
-              <item name="json-simple-1.1.1.jar" type="462c0819:PsiDirectoryNode" />
-              <item name="simple" type="462c0819:PsiDirectoryNode" />
+              <item name="Maven: com.fasterxml.jackson.core:jackson-core:2.10.0" type="70bed36:NamedLibraryElementNode" />
+              <item name="jackson-core-2.10.0.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="core" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
               <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="Maven: org.json:json:20190722" type="70bed36:NamedLibraryElementNode" />
+              <item name="Maven: org.jogamp.gluegen:gluegen-rt:2.3.2" type="70bed36:NamedLibraryElementNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
               <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="Maven: org.json:json:20190722" type="70bed36:NamedLibraryElementNode" />
-              <item name="json-20190722.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="Maven: org.jogamp.gluegen:gluegen-rt:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="gluegen-rt-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
               <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="Maven: org.json:json:20190722" type="70bed36:NamedLibraryElementNode" />
-              <item name="json-20190722.jar" type="462c0819:PsiDirectoryNode" />
-              <item name="json" type="462c0819:PsiDirectoryNode" />
+              <item name="Maven: org.jogamp.gluegen:gluegen-rt:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="gluegen-rt-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.gluegen:gluegen-rt:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="gluegen-rt-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="common" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.gluegen:gluegen-rt:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="gluegen-rt-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="common" type="462c0819:PsiDirectoryNode" />
+              <item name="util" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.gluegen:gluegen-rt:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="gluegen-rt-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="common" type="462c0819:PsiDirectoryNode" />
+              <item name="util" type="462c0819:PsiDirectoryNode" />
+              <item name="awt" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="opengl" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="graph" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="graph" type="462c0819:PsiDirectoryNode" />
+              <item name="font" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="nativewindow" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="nativewindow" type="462c0819:PsiDirectoryNode" />
+              <item name="util" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="newt" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="opengl" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="opengl" type="462c0819:PsiDirectoryNode" />
+              <item name="awt" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="opengl" type="462c0819:PsiDirectoryNode" />
+              <item name="glu" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="opengl" type="462c0819:PsiDirectoryNode" />
+              <item name="util" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="opengl" type="462c0819:PsiDirectoryNode" />
+              <item name="util" type="462c0819:PsiDirectoryNode" />
+              <item name="awt" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="opengl" type="462c0819:PsiDirectoryNode" />
+              <item name="util" type="462c0819:PsiDirectoryNode" />
+              <item name="texture" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="graph" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="graph" type="462c0819:PsiDirectoryNode" />
+              <item name="font" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="graph" type="462c0819:PsiDirectoryNode" />
+              <item name="font" type="462c0819:PsiDirectoryNode" />
+              <item name="typecast" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="graph" type="462c0819:PsiDirectoryNode" />
+              <item name="font" type="462c0819:PsiDirectoryNode" />
+              <item name="typecast" type="462c0819:PsiDirectoryNode" />
+              <item name="ot" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="graph" type="462c0819:PsiDirectoryNode" />
+              <item name="font" type="462c0819:PsiDirectoryNode" />
+              <item name="typecast" type="462c0819:PsiDirectoryNode" />
+              <item name="ot" type="462c0819:PsiDirectoryNode" />
+              <item name="mac" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="opengl" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="opengl" type="462c0819:PsiDirectoryNode" />
+              <item name="gl4" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: org.jogamp.jogl:jogl-all:2.3.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="jogl-all-2.3.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="jogamp" type="462c0819:PsiDirectoryNode" />
+              <item name="opengl" type="462c0819:PsiDirectoryNode" />
+              <item name="glx" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="CircleAndShapes" type="b2602c69:ProjectViewProjectNode" />
@@ -973,8 +1298,8 @@
           <select />
         </subPane>
       </pane>
-      <pane id="AndroidView" />
       <pane id="PackagesPane" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -997,11 +1322,11 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveMembersDialog.RECENTS_KEY">
-      <recent name="client.editor.Creators.ResourceCreator" />
-      <recent name="client.editor.Editors" />
-      <recent name="client.editor.Swing" />
-      <recent name="common.util.Util" />
-      <recent name="common.factory.Path" />
+      <recent name="client.gui.game.gl.object.ParseUtils" />
+      <recent name="client.app.ClientConstants" />
+      <recent name="client.gui.game.ZLevels" />
+      <recent name="client.gui.game.gl.GamePointListener" />
+      <recent name="client.gui.game.gl.GameMouseListener" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="common.spec.edit" />
@@ -1044,21 +1369,21 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.Testing">
-    <configuration name="ActuallyUsefulTable" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="common.state.edit.ActuallyUsefulTable" />
-      <module name="org.hallock.cas.uiclient" />
+  <component name="RunManager" selected="Application.Location">
+    <configuration name="Images" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="driver.Images" />
+      <module name="org.hallock.cas.driver" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="common.state.edit.*" />
+          <option name="PATTERN" value="driver.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
     </configuration>
-    <configuration name="CreatorParser" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="client.editor.CreatorParser" />
-      <module name="org.hallock.cas.uiclient" />
+    <configuration name="Location" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="common.util.Location" />
+      <module name="org.hallock.cas.common" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <extension name="coverage">
         <pattern>
@@ -1067,8 +1392,19 @@
         </pattern>
       </extension>
     </configuration>
-    <configuration name="Main (1)" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="common.state.edit.Main" />
+    <configuration name="PrintThreads" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="driver.PrintThreads" />
+      <module name="org.hallock.cas.driver" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="driver.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+    </configuration>
+    <configuration name="SpecEditor" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="common.state.edit.SpecEditor" />
       <module name="org.hallock.cas.common" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <extension name="coverage">
@@ -1078,21 +1414,17 @@
         </pattern>
       </extension>
     </configuration>
-    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="client.editor.Main" />
-      <module name="org.hallock.cas.uiclient" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="common.util.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-    </configuration>
     <configuration name="Testing" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="driver.Testing" />
       <module name="org.hallock.cas.driver" />
+      <option name="VM_PARAMETERS" value="-Djogl.debug.DebugGL" />
       <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="driver.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
     </configuration>
     <configuration name="Testing" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="driver.Testing" />
@@ -1152,18 +1484,18 @@
     </configuration>
     <list>
       <item itemvalue="Application.Testing" />
-      <item itemvalue="Application.Main" />
-      <item itemvalue="Application.CreatorParser" />
-      <item itemvalue="Application.ActuallyUsefulTable" />
-      <item itemvalue="Application.Main (1)" />
+      <item itemvalue="Application.PrintThreads" />
+      <item itemvalue="Application.SpecEditor" />
+      <item itemvalue="Application.Images" />
+      <item itemvalue="Application.Location" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.Location" />
         <item itemvalue="Application.Testing" />
-        <item itemvalue="Application.Main (1)" />
-        <item itemvalue="Application.Main" />
-        <item itemvalue="Application.ActuallyUsefulTable" />
-        <item itemvalue="Application.CreatorParser" />
+        <item itemvalue="Application.Images" />
+        <item itemvalue="Application.SpecEditor" />
+        <item itemvalue="Application.PrintThreads" />
       </list>
     </recent_temporary>
   </component>
@@ -1257,16 +1589,38 @@
       <workItem from="1575746487186" duration="38138000" />
       <workItem from="1575835890190" duration="23269000" />
       <workItem from="1575939463224" duration="13977000" />
-      <workItem from="1576011622902" duration="30373000" />
+      <workItem from="1576011622902" duration="32896000" />
+      <workItem from="1576064658876" duration="35400000" />
+      <workItem from="1576183708336" duration="30488000" />
+      <workItem from="1576224499539" duration="3221000" />
+      <workItem from="1576265419847" duration="15273000" />
+      <workItem from="1576393612129" duration="5957000" />
+      <workItem from="1576439827026" duration="33323000" />
+      <workItem from="1576482921989" duration="1993000" />
+      <workItem from="1576485046744" duration="183000" />
+      <workItem from="1576535017309" duration="5525000" />
+      <workItem from="1576540621223" duration="9000" />
+      <workItem from="1576540657082" duration="5647000" />
+      <workItem from="1576564441699" duration="13890000" />
+      <workItem from="1576603272872" duration="30638000" />
+      <workItem from="1576690590104" duration="33218000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1568082000" />
+    <option name="totallyTimeSpent" value="1785370000" />
+  </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="-2" width="1920" height="1082" extended-state="6" />
-    <editor active="true" />
+    <frame x="1990" y="27" width="1850" height="1053" extended-state="6" />
     <layout>
       <window_info anchor="right" id="Palette" order="4" />
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.50083196" side_tool="true" weight="0.025" />
@@ -1274,31 +1628,31 @@
       <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" />
       <window_info id="Capture Tool" order="6" />
       <window_info id="Designer" order="3" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="3" sideWeight="0.853022" visible="true" weight="0.03315508" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="3" sideWeight="0.8507463" visible="true" weight="0.1711111" />
       <window_info anchor="right" id="Database" order="7" />
-      <window_info id="Structure" order="1" sideWeight="0.16483517" side_tool="true" visible="true" weight="0.11550802" />
+      <window_info id="Structure" order="1" sideWeight="0.1481888" side_tool="true" visible="true" weight="0.23555556" />
       <window_info anchor="right" id="Ant Build" order="2" weight="0.25" />
       <window_info id="UI Designer" order="4" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.23020063" />
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info active="true" anchor="bottom" id="Messages" order="0" sideWeight="0.49916804" visible="true" weight="0.2312566" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.28649837" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.03837953" />
+      <window_info anchor="bottom" id="Messages" order="0" sideWeight="0.49916804" weight="0.16245884" />
       <window_info anchor="right" id="Palette&#9;" order="9" />
       <window_info id="Image Layers" order="2" />
       <window_info anchor="right" id="Capture Analysis" order="5" />
       <window_info anchor="bottom" id="Version Control" order="11" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.500528" />
-      <window_info anchor="right" id="Coverage" order="0" sideWeight="0.14697802" side_tool="true" visible="true" weight="0.03315508" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.3402854" />
       <window_info anchor="bottom" id="Terminal" order="9" />
-      <window_info anchor="right" id="Panda" order="10" sideWeight="0.49947202" weight="0.092623405" />
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.83516484" visible="true" weight="0.11550802" />
-      <window_info anchor="bottom" id="Panda Executor" order="14" weight="0.17317846" />
-      <window_info anchor="bottom" id="Find" order="4" weight="0.23653643" />
+      <window_info anchor="right" id="Panda" order="10" sideWeight="0.7697368" weight="0.09197861" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.8518112" visible="true" weight="0.23555556" />
+      <window_info anchor="bottom" id="Panda Executor" order="14" weight="0.17282608" />
+      <window_info anchor="bottom" id="Find" order="4" weight="0.27442372" />
       <window_info anchor="right" id="Theme Preview" order="6" />
       <window_info id="Favorites" order="5" side_tool="true" />
       <window_info anchor="bottom" id="Inspection" order="7" weight="0.4" />
       <window_info anchor="right" id="Commander" order="1" weight="0.4" />
       <window_info active="true" anchor="bottom" id="Analyze Dataflow to" order="12" visible="true" weight="0.32945737" />
       <window_info anchor="bottom" id="Cvs" order="5" weight="0.25" />
+      <window_info anchor="right" id="Coverage" order="0" sideWeight="0.14925373" side_tool="true" visible="true" weight="0.019251337" />
       <window_info anchor="bottom" id="Message" order="1" />
       <window_info anchor="bottom" id="JProfiler" order="13" />
     </layout>
@@ -1314,19 +1668,19 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/EntityReader.java</url>
-          <line>69</line>
+          <line>65</line>
           <properties />
           <option name="timeStamp" value="796" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/engine/Simulator.java</url>
-          <line>231</line>
+          <line>268</line>
           <properties />
           <option name="timeStamp" value="811" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/engine/Simulator.java</url>
-          <line>301</line>
+          <line>338</line>
           <properties />
           <option name="timeStamp" value="816" />
         </line-breakpoint>
@@ -1335,12 +1689,6 @@
           <line>116</line>
           <properties />
           <option name="timeStamp" value="861" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/OldGather.java</url>
-          <line>32</line>
-          <properties />
-          <option name="timeStamp" value="906" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/sst/sub/ProjectileLaunch.java</url>
@@ -1379,12 +1727,6 @@
           <option name="timeStamp" value="1262" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/algo/jmp_pnt/RequiredSearches.java</url>
-          <line>58</line>
-          <properties />
-          <option name="timeStamp" value="1301" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/app/ClientMessageHandler.java</url>
           <line>63</line>
           <properties />
@@ -1401,12 +1743,6 @@
           <line>217</line>
           <properties />
           <option name="timeStamp" value="1382" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/app/GamePlayerMessageHandler.java</url>
-          <line>88</line>
-          <properties />
-          <option name="timeStamp" value="1396" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/action/Action.java</url>
@@ -1427,22 +1763,106 @@
           <option name="timeStamp" value="1483" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Editors.java</url>
-          <line>92</line>
+          <url>file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/EntitySpec.java</url>
+          <line>71</line>
           <properties />
-          <option name="timeStamp" value="1516" />
+          <option name="timeStamp" value="1560" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Editors.java</url>
-          <line>164</line>
+          <url>file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/gl/GlPainter.java</url>
+          <line>162</line>
           <properties />
-          <option name="timeStamp" value="1521" />
+          <option name="timeStamp" value="1642" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/CreatorParser.java</url>
-          <line>63</line>
+          <url>file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/gl/GlPainter.java</url>
+          <line>121</line>
           <properties />
-          <option name="timeStamp" value="1528" />
+          <option name="timeStamp" value="1644" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/gl/GlPainter.java</url>
+          <line>91</line>
+          <properties />
+          <option name="timeStamp" value="1645" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>jar://$MAVEN_REPOSITORY$/org/jogamp/jogl/jogl-all/2.3.2/jogl-all-2.3.2.jar!/jogamp/opengl/x11/glx/X11GLXContext.class</url>
+          <line>142</line>
+          <properties />
+          <option name="timeStamp" value="1647" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>jar://$MAVEN_REPOSITORY$/org/jogamp/jogl/jogl-all/2.3.2/jogl-all-2.3.2.jar!/jogamp/opengl/GLDrawableHelper.class</url>
+          <line>1077</line>
+          <properties />
+          <option name="timeStamp" value="1649" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/app/GamePlayerMessageHandler.java</url>
+          <line>88</line>
+          <properties />
+          <option name="timeStamp" value="1658" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/ProportionalLayout.java</url>
+          <line>60</line>
+          <properties />
+          <option name="timeStamp" value="1674" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/ProportionalLayout.java</url>
+          <line>120</line>
+          <properties />
+          <option name="timeStamp" value="1677" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/ProportionalLayout.java</url>
+          <line>123</line>
+          <properties />
+          <option name="timeStamp" value="1678" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>jar:///usr/lib/jvm/java-1.8.0-openjdk-amd64/jre/lib/rt.jar!/java/awt/Component.class</url>
+          <line>1262</line>
+          <properties />
+          <option name="timeStamp" value="1685" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/algo/jmp_pnt/RequiredSearches.java</url>
+          <line>59</line>
+          <properties />
+          <option name="timeStamp" value="1698" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Creators.java</url>
+          <line>1609</line>
+          <properties />
+          <option name="timeStamp" value="1712" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Creators.java</url>
+          <line>454</line>
+          <properties />
+          <option name="timeStamp" value="1727" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ai2/FarmAi.java</url>
+          <line>205</line>
+          <properties />
+          <option name="timeStamp" value="1756" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/GamePainter.java</url>
+          <line>168</line>
+          <properties />
+          <option name="timeStamp" value="1760" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/Location.java</url>
+          <line>74</line>
+          <properties />
+          <option name="timeStamp" value="1766" />
         </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
@@ -1454,542 +1874,482 @@
           <properties />
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="1538" />
+      <option name="time" value="1767" />
     </breakpoint-manager>
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="evaluateExpression">
       <expression>
-        <expression-string>jCheckBox.isSelected()</expression-string>
+        <expression-string>i * h / numWoods</expression-string>
         <language-id>JAVA</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>builder.toString()</expression-string>
+        <expression-string>requiredSeed</expression-string>
         <language-id>JAVA</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>new LogNormalDistribution(Math.log(1), 0.1).sample()</expression-string>
+        <expression-string>entity.getType().classes</expression-string>
         <language-id>JAVA</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>new LogNormalDistribution(Math.log(1), 0.01).sample()</expression-string>
+        <expression-string>entity.getType()</expression-string>
         <language-id>JAVA</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>new LogNormalDistribution(Math.log(1), 0.001).sample()</expression-string>
+        <expression-string>entity.getType().containsClass(EntityClasses.FARM)</expression-string>
         <language-id>JAVA</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>new LogNormalDistribution(Math.log(0.1), 0.001).sample()</expression-string>
+        <expression-string>PrioritizedCapacitySpec.createCapacitySpec(mapCreator.create(cntxt), false, defaultToAccept.get())</expression-string>
         <language-id>JAVA</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>new LogNormalDistribution(Math.exp(0.1), 0.001).sample()</expression-string>
+        <expression-string>defaultToAccept</expression-string>
         <language-id>JAVA</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>new LogNormalDistribution(0.1, 0.001).sample()</expression-string>
+        <expression-string>mapCreator.create(cntxt)</expression-string>
         <language-id>JAVA</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>new LogNormalDistribution(0.1, 1).sample()</expression-string>
+        <expression-string>entity.getGraphics()</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>aiContext.controlling.getType().carryCapacity</expression-string>
         <language-id>JAVA</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="jar:///usr/lib/jvm/java-1.8.0-openjdk-amd64/jre/lib/rt.jar!/java/util/stream/Stream.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
-          <caret line="83" column="41" lean-forward="true" selection-start-line="83" selection-start-column="20" selection-end-line="83" selection-end-column="41" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/GameSpec.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="567">
-          <caret line="104" column="7" lean-forward="true" selection-start-line="88" selection-start-column="26" selection-end-line="104" selection-end-column="7" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/UiManager.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="28" column="12" selection-start-line="28" selection-start-column="12" selection-end-line="28" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/Action.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="162">
-          <caret line="14" column="22" lean-forward="true" selection-start-line="14" selection-start-column="22" selection-end-line="14" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/DisabledAction.java">
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/gl/GlPainter.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
-          <caret line="8" column="14" selection-start-line="8" selection-start-column="14" selection-end-line="8" selection-end-column="14" />
+          <caret line="317" column="17" selection-start-line="317" selection-start-column="17" selection-end-line="317" selection-end-column="17" />
           <folding>
-            <element signature="e#243#244#0" expanded="true" />
-            <element signature="e#280#281#0" expanded="true" />
+            <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/UnitAction.java">
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/event/AiEvent.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="72">
-          <caret line="8" column="22" selection-start-line="8" selection-start-column="22" selection-end-line="8" selection-end-column="22" />
+          <caret line="4" column="22" selection-start-line="4" selection-start-column="22" selection-end-line="4" selection-end-column="22" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/global_action/PlaceBuilding.java">
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/event/NetworkAiEvent.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="144">
-          <caret line="9" column="11" selection-start-line="9" selection-start-column="11" selection-end-line="9" selection-end-column="11" />
+        <state relative-caret-position="315">
+          <caret line="40" column="13" selection-start-line="40" selection-start-column="13" selection-end-line="40" selection-end-column="13" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/PushStack.java">
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/event/BuildingPlacementChanged.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34">
-          <caret line="29" column="29" lean-forward="true" selection-start-line="29" selection-start-column="29" selection-end-line="29" selection-end-column="29" />
+        <state relative-caret-position="162">
+          <caret line="15" column="69" selection-start-line="15" selection-start-column="69" selection-end-line="15" selection-end-column="69" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ai2/AiContext.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="72">
+          <caret line="7" column="13" selection-start-line="7" selection-start-column="13" selection-end-line="7" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ai2/AiStack.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="547">
+          <caret line="100" lean-forward="true" selection-start-line="100" selection-end-line="100" />
           <folding>
-            <element signature="e#1123#1124#0" expanded="true" />
-            <element signature="e#1159#1160#0" expanded="true" />
-            <element signature="e#1247#1248#0" expanded="true" />
-            <element signature="e#1305#1306#0" expanded="true" />
-            <element signature="e#750#751#0" expanded="true" />
-            <element signature="e#795#796#0" expanded="true" />
-            <element signature="e#959#960#0" expanded="true" />
-            <element signature="e#995#996#0" expanded="true" />
-            <element signature="e#1191#1192#0" expanded="true" />
-            <element signature="e#1254#1255#0" expanded="true" />
+            <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/MapUtils.java">
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ai2/AiTask.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="279">
-          <caret line="131" lean-forward="true" selection-start-line="131" selection-end-line="131" />
+        <state relative-caret-position="72">
+          <caret line="4" column="50" selection-start-line="4" selection-start-column="50" selection-end-line="4" selection-end-column="50" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/Craft.java">
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/event/AiEventManager.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="504">
-          <caret line="35" column="13" lean-forward="true" selection-start-line="35" selection-start-column="13" selection-end-line="35" selection-end-column="13" />
+        <state relative-caret-position="235">
+          <caret line="53" column="16" selection-start-line="53" selection-start-column="16" selection-end-line="53" selection-end-column="16" />
           <folding>
-            <element signature="e#1085#1086#0" expanded="true" />
-            <element signature="e#1121#1122#0" expanded="true" />
+            <element signature="e#1733#1734#0" expanded="true" />
+            <element signature="e#1777#1778#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/event/GrowthStageChanged.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="216">
+          <caret line="13" column="35" selection-start-line="13" selection-start-column="35" selection-end-line="13" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/state/ClientGameMessageHandler.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="273">
+          <caret line="71" column="84" selection-start-line="71" selection-start-column="84" selection-end-line="71" selection-end-column="84" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ai2/AiEventAdapter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="263">
+          <caret line="50" column="22" selection-start-line="50" selection-start-column="22" selection-end-line="50" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ai2/AiManager.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="579">
+          <caret line="83" selection-start-line="83" selection-end-line="83" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/Farm.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="252">
+          <caret line="18" column="66" selection-start-line="18" selection-start-column="66" selection-end-line="18" selection-end-column="66" />
+          <folding>
+            <element signature="e#502#503#0" expanded="true" />
+            <element signature="e#585#586#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ActionRequester.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="396">
+          <caret line="77" column="27" selection-start-line="77" selection-start-column="27" selection-end-line="77" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/SetFarmingLocation.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="414">
+          <caret line="25" column="26" selection-start-line="25" selection-start-column="26" selection-end-line="25" selection-end-column="26" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/gl/GlConstants.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="20" lean-forward="true" selection-start-line="20" selection-end-line="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/gl/GlZoom.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="200">
+          <caret line="22" lean-forward="true" selection-start-line="22" selection-end-line="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/engine/Engine.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="499">
+          <caret line="55" column="23" selection-start-line="55" selection-start-column="23" selection-end-line="55" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/sst/manager/ManagerImpl.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="18">
+          <caret line="11" column="13" selection-start-line="11" selection-start-column="13" selection-end-line="11" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/sst/GameState.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="18">
+          <caret line="58" column="11" selection-start-line="58" selection-start-column="11" selection-end-line="58" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/state/Game.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="168">
+          <caret line="36" selection-start-line="36" selection-end-line="36" />
+          <folding>
+            <element signature="e#1357#1358#0" expanded="true" />
+            <element signature="e#1385#1386#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ai2/DefaultAiTask.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="72">
+          <caret line="18" selection-start-line="18" selection-end-line="18" />
+          <folding>
+            <element signature="e#400#401#0" expanded="true" />
+            <element signature="e#448#449#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/action/Action.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="18">
+          <caret line="368" column="24" selection-start-line="368" selection-start-column="24" selection-end-line="368" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar:///usr/lib/jvm/java-1.8.0-openjdk-amd64/jre/lib/rt.jar!/java/lang/Object.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="163">
+          <caret line="23" column="18" selection-start-line="23" selection-start-column="18" selection-end-line="23" selection-end-column="18" />
+          <folding>
+            <element signature="e#487#488#0" expanded="true" />
+            <element signature="e#580#581#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/selected/SingleUnitSelected.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="252">
+          <caret line="242" column="41" selection-start-line="242" selection-start-column="41" selection-end-line="242" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/sst/sub/GrowthInfo.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="108">
+          <caret line="10" column="27" selection-start-line="10" selection-start-column="27" selection-end-line="10" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/ZLevels.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="155">
+          <caret line="18" column="59" selection-start-line="18" selection-start-column="59" selection-end-line="18" selection-end-column="59" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/Colors.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="173">
+          <caret line="22" column="61" selection-start-line="22" selection-start-column="61" selection-end-line="22" selection-end-column="61" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/GamePainter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="409" column="45" selection-start-line="409" selection-start-column="45" selection-end-line="409" selection-end-column="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ai2/FarmAi.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="232">
+          <caret line="172" column="18" selection-start-line="172" selection-start-column="18" selection-end-line="172" selection-end-column="18" />
+          <folding>
+            <element signature="e#7880#7881#0" expanded="true" />
+            <element signature="e#7939#7940#0" expanded="true" />
+            <element signature="e#9881#9882#0" expanded="true" />
+            <element signature="e#9918#9919#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/msg/UnitUpdater.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="485">
+          <caret line="148" column="5" lean-forward="true" selection-start-line="148" selection-start-column="5" selection-end-line="148" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/gl/TextureCache.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="179">
+          <caret line="39" lean-forward="true" selection-start-line="39" selection-end-line="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/engine/Simulator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="72">
+          <caret line="47" column="30" selection-start-line="47" selection-start-column="30" selection-end-line="47" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/state/EntityTracker.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="254">
+          <caret line="54" column="5" selection-start-line="54" selection-start-column="5" selection-end-line="54" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar:///usr/lib/jvm/java-1.8.0-openjdk-amd64/jre/lib/rt.jar!/java/awt/Graphics.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="246">
+          <caret line="120" column="25" selection-start-line="120" selection-start-column="25" selection-end-line="120" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar:///usr/lib/jvm/java-1.8.0-openjdk-amd64/jre/lib/rt.jar!/java/awt/geom/Arc2D.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="354">
+          <caret line="427" column="113" selection-start-line="427" selection-start-column="113" selection-end-line="427" selection-end-column="113" />
+          <folding>
+            <element signature="e#16503#16504#0" expanded="true" />
+            <element signature="e#16535#16536#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Creators.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="200">
+          <caret line="1736" column="35" selection-start-line="1736" selection-start-column="35" selection-end-line="1736" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/EntitySpec.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="234">
+          <caret line="161" column="43" selection-start-line="161" selection-start-column="43" selection-end-line="161" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/SpecEditor.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="14" column="36" lean-forward="true" selection-start-line="14" selection-start-column="36" selection-end-line="14" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/game/gl/GlGameScreen.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="252">
+          <caret line="126" column="45" selection-start-line="126" selection-start-column="45" selection-end-line="126" selection-end-column="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.driver/src/main/java/driver/Images.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="396">
+          <caret line="240" column="43" selection-start-line="240" selection-start-column="43" selection-end-line="240" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/mouse/BuildingPlacer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="541">
+          <caret line="69" column="60" lean-forward="true" selection-start-line="69" selection-start-column="60" selection-end-line="69" selection-end-column="60" />
+          <folding>
+            <element signature="e#1112#1113#0" expanded="true" />
+            <element signature="e#1197#1198#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/msg/Message.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="101">
-          <caret line="791" column="56" selection-start-line="791" selection-start-column="56" selection-end-line="791" selection-end-column="56" />
+        <state relative-caret-position="201">
+          <caret line="610" column="66" lean-forward="true" selection-start-line="610" selection-start-column="66" selection-end-line="610" selection-end-column="66" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/EntityId.java">
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/state/ServerStateManipulator.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="144">
-          <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
+        <state relative-caret-position="314">
+          <caret line="236" column="79" selection-start-line="236" selection-start-column="79" selection-end-line="236" selection-end-column="79" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.client/src/main/java/client/ai/ActionRequester.java">
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/GridLocation.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="268">
-          <caret line="90" column="86" lean-forward="true" selection-start-line="90" selection-start-column="86" selection-end-line="90" selection-end-column="86" />
-          <folding>
-            <element signature="e#4990#4991#0" expanded="true" />
-            <element signature="e#5015#5016#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="108">
+          <caret line="23" column="43" selection-start-line="23" selection-start-column="43" selection-end-line="23" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/sst/sub/MovableEntity.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="108">
+          <caret line="13" column="31" lean-forward="true" selection-start-line="13" selection-start-column="31" selection-end-line="13" selection-end-column="31" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/EntityReader.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="713">
-          <caret line="366" selection-start-line="366" selection-end-line="366" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/Create.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="19" column="39" selection-start-line="19" selection-start-column="39" selection-end-line="19" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/unit_action/ContinuousCreate.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="18" column="169" selection-start-line="18" selection-start-column="169" selection-end-line="18" selection-end-column="169" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/UnitActions.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="213">
-          <caret line="179" column="83" selection-start-line="179" selection-start-column="83" selection-end-line="179" selection-end-column="83" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.uiclient/src/main/java/client/gui/actions/Actions.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="99">
-          <caret line="212" column="67" lean-forward="true" selection-start-line="212" selection-start-column="67" selection-end-line="212" selection-end-column="67" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar:///usr/lib/jvm/java-1.8.0-openjdk-amd64/jre/lib/rt.jar!/java/lang/ProcessEnvironment.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="79">
-          <caret line="94" column="5" lean-forward="true" selection-start-line="94" selection-start-column="5" selection-end-line="94" selection-end-column="5" />
+        <state relative-caret-position="399">
+          <caret line="305" column="5" lean-forward="true" selection-start-line="305" selection-start-column="5" selection-end-line="305" selection-end-column="5" />
           <folding>
-            <element signature="e#809#810#0" expanded="true" />
-            <element signature="e#858#859#0" expanded="true" />
+            <element signature="e#10173#10174#0" expanded="true" />
+            <element signature="e#10239#10240#0" expanded="true" />
+            <element signature="e#12067#12068#0" expanded="true" />
+            <element signature="e#12118#12119#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar:///usr/lib/jvm/java-1.8.0-openjdk-amd64/jre/lib/rt.jar!/java/lang/System.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="397">
-          <caret line="228" column="36" lean-forward="true" selection-start-line="228" selection-start-column="36" selection-end-line="228" selection-end-column="36" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar:///usr/lib/jvm/java-1.8.0-openjdk-amd64/jre/lib/rt.jar!/java/util/Collections.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="307">
-          <caret line="531" column="47" selection-start-line="531" selection-start-column="47" selection-end-line="531" selection-end-column="47" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Swing.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="25" column="26" selection-start-line="25" selection-start-column="26" selection-end-line="25" selection-end-column="26" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.ai/src/main/java/app/assign/AiCheck.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="577">
-          <caret line="156" column="68" selection-start-line="156" selection-start-column="68" selection-end-line="156" selection-end-column="68" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Main.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="305">
-          <caret line="20" selection-start-line="20" selection-end-line="20" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/CreationMethod.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="126">
-          <caret line="7" lean-forward="true" selection-start-line="7" selection-end-line="7" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/SpecTree.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="297">
-          <caret line="45" column="5" lean-forward="true" selection-start-line="45" selection-start-column="5" selection-end-line="45" selection-end-column="5" />
+        <state relative-caret-position="72">
+          <caret line="8" column="13" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/CraftingSpec.java">
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/DPoint.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="414">
-          <caret line="27" column="17" selection-start-line="27" selection-start-column="17" selection-end-line="27" selection-end-column="17" />
+        <state relative-caret-position="198">
+          <caret line="16" column="19" lean-forward="true" selection-start-line="16" selection-start-column="19" selection-end-line="16" selection-end-column="19" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/GameSpecParser.java">
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/algo/CanTravelBetween.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="111">
-          <caret line="114" column="27" lean-forward="true" selection-start-line="114" selection-start-column="27" selection-end-line="114" selection-end-column="27" />
+        <state relative-caret-position="759">
+          <caret line="107" column="27" lean-forward="true" selection-start-line="107" selection-start-column="27" selection-end-line="107" selection-end-column="27" />
         </state>
       </provider>
     </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/org/json/json/20190722/json-20190722.jar!/org/json/JSONObject.class">
+    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/Location.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="160">
-          <caret line="322" selection-start-line="322" selection-end-line="322" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/CreatorParser.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="82" selection-start-line="82" selection-end-line="82" />
+        <state relative-caret-position="57">
+          <caret line="63" lean-forward="true" selection-start-line="63" selection-end-line="63" />
           <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/spec/units/feeding_trough.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="504">
-          <caret line="28" column="25" lean-forward="true" selection-start-line="28" selection-start-column="25" selection-end-line="28" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/CreationSpec.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1199">
-          <caret line="80" column="65" selection-start-line="80" selection-start-column="65" selection-end-line="80" selection-end-column="65" />
-          <folding>
-            <element signature="e#2915#3385#0" expanded="true" />
-            <element signature="e#3384#3385#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Editors.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="525" column="35" lean-forward="true" selection-start-line="525" selection-start-column="35" selection-end-line="525" selection-end-column="35" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.driver/src/main/java/driver/Testing.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="216">
-          <caret line="22" column="32" lean-forward="true" selection-start-line="22" selection-start-column="32" selection-end-line="22" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/app/Lobby.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="328">
-          <caret line="42" column="8" selection-start-line="42" selection-start-column="8" selection-end-line="42" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/app/ServerDriver.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="387">
-          <caret line="34" column="48" selection-start-line="34" selection-start-column="48" selection-end-line="34" selection-end-column="48" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/GameSpecManager.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="122">
-          <caret line="26" selection-start-line="26" selection-end-line="26" />
-          <folding>
-            <element signature="e#280#281#0" expanded="true" />
-            <element signature="e#328#329#0" expanded="true" />
-            <element signature="e#463#464#0" expanded="true" />
-            <element signature="e#522#523#0" expanded="true" />
-            <element signature="e#611#612#0" expanded="true" />
-            <element signature="e#614#615#0" expanded="true" />
-            <element signature="e#649#650#0" expanded="true" />
-            <element signature="e#654#655#0" expanded="true" />
-            <element signature="e#711#712#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/attack/Weapons.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="162">
-          <caret line="45" column="50" selection-start-line="45" selection-start-column="50" selection-end-line="45" selection-end-column="50" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/GameSpecEditorContext.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="173">
-          <caret line="59" column="9" selection-start-line="59" selection-start-column="9" selection-end-line="59" selection-end-column="9" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/attack/WeaponSpec.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="378">
-          <caret line="28" column="34" lean-forward="true" selection-start-line="28" selection-start-column="34" selection-end-line="28" selection-end-column="34" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar:///usr/lib/jvm/java-1.8.0-openjdk-amd64/jre/lib/rt.jar!/java/lang/AutoCloseable.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="8" column="4" selection-start-line="8" selection-start-column="4" selection-end-line="8" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/P.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="5" selection-start-line="5" selection-end-line="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/WindowStack.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="43" column="25" selection-start-line="43" selection-start-column="25" selection-end-line="43" selection-end-column="25" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/GenerationSpec.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="30" column="15" selection-start-line="30" selection-start-column="15" selection-end-line="30" selection-end-column="15" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Interfaces.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="211">
-          <caret line="170" column="14" selection-start-line="170" selection-start-column="14" selection-end-line="170" selection-end-column="14" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#4691#4692#0" expanded="true" />
-            <element signature="e#4765#4766#0" expanded="true" />
-            <element signature="e#7693#7694#0" expanded="true" />
-            <element signature="e#7735#7736#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.server/src/main/java/server/algo/MapGenerator.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="115" selection-start-line="115" selection-end-line="115" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/EvolutionSpec.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="33" column="4" lean-forward="true" selection-start-line="33" selection-start-column="4" selection-end-line="33" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/util/Immutable.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="208" column="15" lean-forward="true" selection-start-line="208" selection-start-column="15" selection-end-line="208" selection-end-column="15" />
-          <folding>
-            <element signature="e#5408#5409#0" expanded="true" />
-            <element signature="e#5456#5457#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/CarrySpec.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="432">
-          <caret line="26" column="41" lean-forward="true" selection-start-line="26" selection-start-column="41" selection-end-line="26" selection-end-column="41" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/spec/EntitySpec.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="133">
-          <caret line="135" column="17" lean-forward="true" selection-start-line="135" selection-start-column="17" selection-end-line="135" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/org.hallock.cas.common/src/main/java/common/state/edit/Creators.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="457">
-          <caret line="734" column="24" lean-forward="true" selection-start-line="734" selection-start-column="24" selection-end-line="734" selection-end-column="24" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#2599#2600#0" expanded="true" />
-            <element signature="e#2667#2668#0" expanded="true" />
-            <element signature="e#6063#6064#0" expanded="true" />
-            <element signature="e#6098#6099#0" expanded="true" />
-            <element signature="e#6227#6228#0" expanded="true" />
-            <element signature="e#6263#6264#0" expanded="true" />
-            <element signature="e#15067#15068#0" expanded="true" />
-            <element signature="e#15119#15120#0" expanded="true" />
-            <element signature="e#26448#26449#0" expanded="true" />
-            <element signature="e#26488#26489#0" expanded="true" />
-            <element signature="e#27263#27264#0" expanded="true" />
-            <element signature="e#27298#27299#0" expanded="true" />
-            <element signature="e#29975#29976#0" expanded="true" />
-            <element signature="e#30028#30029#0" expanded="true" />
-            <element signature="e#26308#26309#0" expanded="true" />
-            <element signature="e#26348#26349#0" expanded="true" />
-            <element signature="e#31620#31621#0" expanded="true" />
-            <element signature="e#31655#31656#0" expanded="true" />
-            <element signature="e#31691#31692#0" expanded="true" />
-            <element signature="e#31766#31767#0" expanded="true" />
-            <element signature="e#33329#33330#0" expanded="true" />
-            <element signature="e#33362#33363#0" expanded="true" />
-            <element signature="e#34115#34116#0" expanded="true" />
-            <element signature="e#34166#34167#0" expanded="true" />
-            <element signature="e#39297#39298#0" expanded="true" />
-            <element signature="e#39351#39352#0" expanded="true" />
-            <element signature="e#41771#41772#0" expanded="true" />
-            <element signature="e#41816#41817#0" expanded="true" />
-            <element signature="e#42166#42167#0" expanded="true" />
-            <element signature="e#42223#42224#0" expanded="true" />
-            <element signature="e#45625#45626#0" expanded="true" />
-            <element signature="e#45664#45665#0" expanded="true" />
-            <element signature="e#45719#45720#0" expanded="true" />
-            <element signature="e#45788#45789#0" expanded="true" />
-            <element signature="e#45515#45516#0" expanded="true" />
-            <element signature="e#45565#45566#0" expanded="true" />
-            <element signature="e#51330#51331#0" expanded="true" />
-            <element signature="e#51387#51388#0" expanded="true" />
-            <element signature="e#51918#51919#0" expanded="true" />
-            <element signature="e#51958#51959#0" expanded="true" />
-            <element signature="e#52011#52012#0" expanded="true" />
-            <element signature="e#52063#52064#0" expanded="true" />
-            <element signature="e#52130#52131#0" expanded="true" />
-            <element signature="e#52188#52189#0" expanded="true" />
-            <element signature="e#52246#52247#0" expanded="true" />
-            <element signature="e#52304#52305#0" expanded="true" />
-            <element signature="e#52340#52341#0" expanded="true" />
-            <element signature="e#52384#52385#0" expanded="true" />
-            <element signature="e#53792#53793#0" expanded="true" />
-            <element signature="e#53849#53850#0" expanded="true" />
-            <element signature="e#54223#54224#0" expanded="true" />
-            <element signature="e#54263#54264#0" expanded="true" />
-            <element signature="e#54316#54317#0" expanded="true" />
-            <element signature="e#54368#54369#0" expanded="true" />
-            <element signature="e#54435#54436#0" expanded="true" />
-            <element signature="e#54493#54494#0" expanded="true" />
-            <element signature="e#54551#54552#0" expanded="true" />
-            <element signature="e#54611#54612#0" expanded="true" />
+            <element signature="e#914#915#0" expanded="true" />
+            <element signature="e#960#961#0" expanded="true" />
+            <element signature="e#1000#1001#0" expanded="true" />
+            <element signature="e#1051#1052#0" expanded="true" />
+            <element signature="e#1089#1090#0" expanded="true" />
+            <element signature="e#1148#1149#0" expanded="true" />
+            <element signature="e#1186#1187#0" expanded="true" />
+            <element signature="e#1244#1245#0" expanded="true" />
+            <element signature="e#1607#1608#0" expanded="true" />
+            <element signature="e#1631#1632#0" expanded="true" />
+            <element signature="e#1883#1884#0" expanded="true" />
+            <element signature="e#1923#1924#0" expanded="true" />
+            <element signature="e#1782#1783#0" expanded="true" />
+            <element signature="e#1825#1826#0" expanded="true" />
           </folding>
         </state>
       </provider>

@@ -1,0 +1,23 @@
+{
+  "minimap-color": {
+    "red": 0,
+    "green": 0,
+    "blue": 0
+  },
+  "parent": "building",
+  "image": "unit/railroad_turn.png",
+  "size": {
+    "width": 10,
+    "height": 10
+  },
+  "name": "railroad-turn",
+  "can-craft": {
+    "children": [],
+    "type": "branch"
+  },
+  "can-create": {
+    "children": [],
+    "type": "branch"
+  },
+  "is-exported-to-spec": true
+}

@@ -1,0 +1,45 @@
+{
+  "is-carrying": [
+    {
+      "amount": 2,
+      "resource": "wheat-seed"
+    },
+    {
+      "amount": 100,
+      "resource": "wheat"
+    }
+  ],
+  "minimap-color": {
+    "red": 204,
+    "green": 204,
+    "blue": 0
+  },
+  "parent": "farm",
+  "image": "unit/black.png",
+  "name": "wheat-plant",
+  "required-seed": "wheat-seed",
+  "can-craft": {
+    "children": [],
+    "type": "branch"
+  },
+  "carry-capacity": {
+    "default-to-accept": false,
+    "maximum-amounts": [
+      {
+        "amount": 100,
+        "resource": "wheat"
+      },
+      {
+        "amount": 2,
+        "resource": "wheat-seed"
+      }
+    ],
+    "maximum-weight": 102
+  },
+  "can-create": {
+    "children": [],
+    "type": "branch"
+  },
+  "is-exported-to-spec": true,
+  "drops-on-death": []
+}
